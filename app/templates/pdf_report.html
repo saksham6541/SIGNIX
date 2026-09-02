@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Solar Report - {{ loc.address }}</title>
+<style>
+  @page { size: A4; margin: 1.6cm; }
+  body { font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif; color: #1a1a1a; font-size: 10.5px; line-height: 1.45; }
+  h1 { color: #c47a0b; margin: 0 0 4px; font-size: 18px; }
+  h2 { color: #3d2570; border-bottom: 1.5px solid #e0d6f0; padding-bottom: 3px; margin: 16px 0 8px; font-size: 13px; }
+  h3 { color: #3d2570; font-size: 11px; margin: 12px 0 6px; }
+  .address { color: #555; margin: 0 0 8px; font-size: 10px; }
+  .badge { display: inline-block; background: #efe8ff; color: #3d2570; padding: 2px 8px; border-radius: 8px; font-size: 9px; margin: 0 4px 4px 0; font-weight: 700; }
+  .badge-g { background: #e8f8ef; color: #1a7a45; }
+  .badge-o { background: #fff3e8; color: #b35a00; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+  th, td { padding: 5px 6px; text-align: left; border-bottom: 1px solid #eee; vertical-align: top; }
+  th { background: #f7f4fc; color: #3d2570; font-size: 9px; text-transform: uppercase; }
+  .grid { width: 100%; margin: 8px 0; }
+  .grid td { width: 25%; border: 1px solid #eee; border-radius: 4px; padding: 8px; text-align: center; }
+  .grid .label { display: block; font-size: 8px; color: #777; text-transform: uppercase; margin-bottom: 2px; }
+  .grid .value { display: block; font-size: 14px; font-weight: bold; color: #c47a0b; }
+  .fin-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #eee; }
+  .fin-row.total { font-weight: bold; border-bottom: 2px solid #333; margin-top: 4px; padding-top: 6px; }
+  .muted { color: #666; font-size: 9.5px; }
+  .box { background: #faf8ff; border-left: 3px solid #3d2570; padding: 8px 10px; margin: 10px 0; font-size: 9.5px; color: #444; }
+  .box-warn { border-left-color: #e08e0b; background: #fffaf3; }
+  ul.notes { margin: 4px 0 0 14px; padding: 0; }
+  ul.notes li { margin-bottom: 3px; }
+  .footer-note { margin-top: 18px; font-size: 8.5px; color: #888; border-top: 1px solid #eee; padding-top: 8px; }
+  .two-col { width: 100%; }
+  .two-col td { width: 50%; vertical-align: top; padding-right: 10px; }
+</style>
+</head>
+<body>
+  <h1>Rooftop Solar Estimation Report</h1>
+  <p class="address">{{ loc.address }}</p>
+  <div>
+    {% if loc.orientation_label %}
+    <span class="badge">Orientation: {{ loc.orientation_label }}{% if loc.orientation_deg is not none %} ({{ loc.orientation_deg }}°){% endif %}</span>
+    {% endif %}
+    {% if loc.battery_kwh and loc.battery_kwh > 0 %}
+    <span class="badge badge-g">Battery: {{ loc.battery_kwh }} kWh</span>
+    {% endif %}
+    {% if loc.inverter_type %}
+    <span class="badge badge-o">Inverter: {{ loc.inverter_type }}</span>
+    {% endif %}
+    {% if loc.irradiance_source %}
+    <span class="badge">Data: {{ loc.irradiance_source }}</span>
+    {% endif %}
+  </div>
+
+  <h2>1. System overview</h2>
+  <table class="grid">
+    <tr>
+      <td><span class="label">System size</span><span class="value">{{ loc.system_size }} kW</span></td>
+      <td><span class="label">Annual generation</span><span class="value">{{ loc.annual_generation }} kWh</span></td>
+      <td><span class="label">Monthly savings</span><span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></td>
+      <td><span class="label">Payback</span><span class="value">{% if loc.payback_years %}{{ loc.payback_years }} yrs{% else %}—{% endif %}</span></td>
+    </tr>
+  </table>
+
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>Total roof area</td><td>{{ loc.roof_area_sqm }} m²</td></tr>
+    <tr><td>Obstructed area</td><td>{{ loc.obstructed_area_sqm or 0 }} m²</td></tr>
+    <tr><td>Usable area</td><td><strong>{{ loc.usable_area_sqm }} m²</strong></td></tr>
+    {% if loc.roof_capacity_kw %}
+    <tr><td>Roof capacity (from drawing)</td><td>{{ loc.roof_capacity_kw }} kW</td></tr>
+    {% endif %}
+    {% if loc.sizing_method %}
+    <tr><td>Sizing method</td><td>{{ loc.sizing_method }}</td></tr>
+    {% endif %}
+  </table>
+
+  {% if loc.bill_sizing %}
+  <h3>Bill-based sizing</h3>
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>Monthly bill (input)</td><td>₹{{ '{:,.0f}'.format(loc.bill_sizing.monthly_bill) }}</td></tr>
+    <tr><td>Tariff used</td><td>₹{{ loc.bill_sizing.tariff_per_kwh }}/unit</td></tr>
+    <tr><td>Estimated monthly units</td><td>{{ loc.bill_sizing.monthly_units }} units</td></tr>
+    {% if loc.bill_sizing.daily_units is defined %}
+    <tr><td>Estimated daily units</td><td>{{ loc.bill_sizing.daily_units }} units</td></tr>
+    {% endif %}
+    <tr><td>Recommended range</td><td>{{ loc.bill_sizing.recommended_min_kw }}–{{ loc.bill_sizing.recommended_max_kw }} kW</td></tr>
+    <tr><td>Design size used</td><td><strong>{{ loc.system_size }} kW</strong> (capped by roof if needed)</td></tr>
+  </table>
+  {% endif %}
+
+  <h2>2. Performance indicators</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    {% if loc.specific_yield %}<tr><td>Specific yield</td><td>{{ '{:,.0f}'.format(loc.specific_yield) }} kWh/kWp/year</td></tr>{% endif %}
+    {% if loc.capacity_factor %}<tr><td>Capacity factor</td><td>{{ loc.capacity_factor }}%</td></tr>{% endif %}
+    {% if loc.orientation_factor %}<tr><td>Orientation factor (vs South)</td><td>{{ (loc.orientation_factor * 100)|round|int }}%</td></tr>{% endif %}
+    {% if loc.recommended_tilt_deg %}<tr><td>Recommended tilt</td><td>{{ loc.recommended_tilt_deg }}° (≈ latitude)</td></tr>{% endif %}
+    {% if loc.performance_ratio %}<tr><td>Performance ratio (assumed)</td><td>{{ loc.performance_ratio }}</td></tr>{% endif %}
+    {% if loc.peak_sun_hours_assumed %}<tr><td>Peak sun hours (assumed)</td><td>{{ loc.peak_sun_hours_assumed }} h/day</td></tr>{% endif %}
+    {% if loc.lcoe %}<tr><td>LCOE (25 yr)</td><td>₹{{ loc.lcoe }}/kWh</td></tr>{% endif %}
+    {% if loc.lifetime_kwh %}<tr><td>Lifetime energy (25 yr, 0.5%/yr degradation)</td><td>{{ '{:,.0f}'.format(loc.lifetime_kwh) }} kWh</td></tr>{% endif %}
+    {% if loc.self_consumption_frac %}<tr><td>Self-consumption share</td><td>{{ (loc.self_consumption_frac * 100)|int }}%</td></tr>{% endif %}
+  </table>
+
+  {% if loc.monthly_data %}
+  <h2>3. Monthly generation (kWh)</h2>
+  <table>
+    <thead><tr>{% for month in loc.monthly_data.keys() %}<th>{{ month }}</th>{% endfor %}</tr></thead>
+    <tbody><tr>{% for kwh in loc.monthly_data.values() %}<td>{{ kwh }}</td>{% endfor %}</tr></tbody>
+  </table>
+  {% endif %}
+
+  <h2>4. Financial summary</h2>
+  <div class="fin-row"><span>PV system cost (mid estimate)</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
+  {% if loc.system_cost_low and loc.system_cost_high %}
+  <div class="fin-row"><span>Typical cost band</span><span>₹{{ '{:,.0f}'.format(loc.system_cost_low) }} – ₹{{ '{:,.0f}'.format(loc.system_cost_high) }}</span></div>
+  {% endif %}
+  {% if loc.battery_cost and loc.battery_cost > 0 %}
+  <div class="fin-row"><span>Battery storage ({{ loc.battery_kwh }} kWh)</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>
+  {% endif %}
+  <div class="fin-row"><span>PM Surya Ghar subsidy</span><span>-₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
+  <div class="fin-row total"><span>Net investment</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
+  <div class="fin-row"><span>Estimated monthly savings</span><span>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
+  <div class="fin-row"><span>Est. 25-year bill savings (flat tariff)</span><span>₹{{ '{:,.0f}'.format((loc.monthly_savings or 0) * 12 * 25) }}</span></div>
+  {% if loc.annual_om %}
+  <div class="fin-row"><span>Indicative annual O&amp;M reserve</span><span>₹{{ '{:,.0f}'.format(loc.annual_om) }}</span></div>
+  {% endif %}
+
+  {% if loc.inverter %}
+  <h2>5. Recommended inverter — {{ loc.inverter.type }}</h2>
+  <p class="muted"><strong>Best for:</strong> {{ loc.inverter.best_for }}</p>
+  <p class="muted"><strong>Subsidy eligibility:</strong> {% if loc.inverter.subsidy_eligible %}Typically eligible (DISCOM conditions apply){% else %}Usually not eligible{% endif %}</p>
+  <ul class="notes">
+    {% for a in loc.inverter.advantages %}
+    <li>{{ a }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h2>6. Environmental impact</h2>
+  <table>
+    <tr><td>CO₂ reduction / year</td><td><strong>{{ loc.co2_reduction_tons }} tons</strong></td></tr>
+    {% if loc.environmental_equivalents %}
+    <tr><td>Equivalent trees planted</td><td>~{{ loc.environmental_equivalents.trees_planted }}</td></tr>
+    <tr><td>Equivalent km not driven</td><td>~{{ '{:,}'.format(loc.environmental_equivalents.km_not_driven) }} km</td></tr>
+    <tr><td>Equivalent fuel saved</td><td>~{{ loc.environmental_equivalents.fuel_liters_saved }} L</td></tr>
+    {% endif %}
+  </table>
+
+  <div class="box">
+    <strong>Key assumptions</strong><br>
+    Bill path ≈ ₹10/unit · ~135 units/month/kW (~4–5.5 units/day/kWp). Energy check uses PSH × PR.
+    PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for 2–3 kW step · max ₹78,000.
+    Residential cost band ~₹55k–85k/kW; commercial often ~₹35k–50k/kW. ~10 m² usable roof per kWp.
+    0.5%/yr degradation in 25-yr cashflow. Tariff held constant. Not a licensed design or DISCOM quote.
+  </div>
+
+  {% if loc.planning_notes %}
+  <div class="box box-warn">
+    <strong>Important practical points</strong>
+    <ul class="notes">
+      {% for n in loc.planning_notes %}
+      <li>{{ n }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <p class="footer-note">
+    Generated by Solar Setu. Figures are indicative planning estimates only.
+    Confirm current MNRE / National Rooftop Solar Portal / local DISCOM rules, net-metering limits and vendor quotations before procurement.
+    A structural and electrical site survey is required for final design.
+  </p>
+</body>
+</html>

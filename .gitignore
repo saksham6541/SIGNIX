@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.Python
+
+# Environment / secrets
+.env
+.env.*
+
+# Local app data
+instance/
+*.db
+*.sqlite3
+.cache/
+
+# IDE / editor
+.vscode/
+.idea/
+.DS_Store
+
+# Project output / generated files
+*.log
+*.pdf
+build/
+dist/
+coverage/
+htmlcov/
+.pytest_cache/
+
+# Node / frontend hints (if added later)
+node_modules/
+
+# Keep required project files tracked
+!requirements.txt
+!app/static/
+!app/templates/

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Solar Setu — Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero">
+  <h1>Dashboard</h1>
+  <p class="tagline">Your saved rooftop solar estimates</p>
+</section>
+
+<section>
+  <h2 class="section-title">Recent Reports</h2>
+  {% if locations %}
+  <table class="reports-table">
+    <thead>
+      <tr>
+        <th>Address</th>
+        <th>System</th>
+        <th>Annual kWh</th>
+        <th>Monthly savings</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for loc in locations %}
+      <tr>
+        <td>{{ loc.address[:60] }}{% if loc.address|length > 60 %}…{% endif %}</td>
+        <td>{{ loc.system_size }} kW</td>
+        <td>{{ loc.annual_generation }}</td>
+        <td>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</td>
+        <td><a href="{{ url_for('routes.report', location_id=loc.id) }}">View →</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">No estimates yet. <a href="{{ url_for('routes.index') }}">Start Estimation →</a></p>
+  {% endif %}
+</section>
+{% endblock %}

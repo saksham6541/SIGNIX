@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Solar Setu — Detailed Report{% endblock %}
+
+{% block content %}
+<section class="report-header">
+  <div>
+    <h1>Detailed Report</h1>
+    <p class="address">{{ loc.address }}</p>
+    {% if loc.irradiance_source %}
+    <p class="address" style="margin-top:2px;">
+      Data source:
+      {% if loc.irradiance_source == 'nasa_power' %}NASA POWER (irradiance + temperature)
+      {% elif loc.irradiance_source == 'pvgis' %}PVGIS (EU JRC)
+      {% else %}Offline estimate (mock fallback){% endif %}
+    </p>
+    {% endif %}
+    <div style="margin-top:10px;">
+      {% if loc.orientation_label %}
+      <span class="orientation-badge">🧭 {{ loc.orientation_label }}
+        {% if loc.orientation_deg is not none %}({{ loc.orientation_deg }}°){% endif %}
+      </span>
+      {% endif %}
+      {% if loc.battery_kwh and loc.battery_kwh > 0 %}
+      <span class="battery-badge">🔋 {{ loc.battery_kwh }} kWh battery</span>
+      {% endif %}
+      {% if loc.inverter_type %}
+      <span class="orientation-badge">⚡ {{ loc.inverter_type }} inverter</span>
+      {% endif %}
+    </div>
+  </div>
+  <a class="btn btn-secondary" href="{{ url_for('routes.download_pdf', location_id=loc.id) }}">Download PDF</a>
+</section>
+
+<section class="savings-banner">
+  <span class="label">Estimated Monthly Savings</span>
+  <span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span>
+  <span class="sub">
+    {% if loc.payback_years %}Payback ~{{ loc.payback_years }} years{% else %}Indicative estimate{% endif %}
+    {% if loc.self_consumption_frac %} · {{ (loc.self_consumption_frac * 100)|int }}% self-consumed{% endif %}
+  </span>
+</section>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="overview">Overview</button>
+  <button class="tab-btn" data-tab="generation">Generation</button>
+  <button class="tab-btn" data-tab="financial">Financial</button>
+  <button class="tab-btn" data-tab="environmental">Environmental</button>
+</nav>
+
+<section id="tab-overview" class="tab-panel active">
+  <div class="area-breakdown-card">
+    <div class="area-row"><span>Total Roof Area</span><span>{{ loc.roof_area_sqm }} m²</span></div>
+    <div class="area-row obstructed"><span>Obstructed Area (tanks, rooms, coverings)</span><span>-{{ loc.obstructed_area_sqm or 0 }} m²</span></div>
+    <div class="area-row total"><span>Usable Area</span><span>{{ loc.usable_area_sqm }} m²</span></div>
+  </div>
+
+  {% if loc.bill_sizing %}
+  <div class="area-breakdown-card" style="margin-top:14px;">
+    <div class="area-row"><span>Monthly bill (input)</span><span>₹{{ '{:,.0f}'.format(loc.bill_sizing.monthly_bill) }}</span></div>
+    <div class="area-row"><span>Est. consumption @ ₹{{ loc.bill_sizing.tariff_per_kwh }}/unit</span><span>{{ loc.bill_sizing.monthly_units }} units</span></div>
+    <div class="area-row"><span>Bill-based recommendation</span><span>{{ loc.bill_sizing.recommended_min_kw }}–{{ loc.bill_sizing.recommended_max_kw }} kW</span></div>
+    <div class="area-row"><span>Roof capacity (from drawing)</span><span>{{ loc.roof_capacity_kw or loc.system_size }} kW</span></div>
+    <div class="area-row total"><span>Final system size</span><span>{{ loc.system_size }} kW</span></div>
+  </div>
+  {% endif %}
+
+  <div class="stat-grid" style="margin-top:14px;">
+    <div class="stat-card"><span class="label">System Size</span><span class="value">{{ loc.system_size }} kW</span></div>
+    <div class="stat-card"><span class="label">Annual Generation</span><span class="value">{{ loc.annual_generation }} kWh</span></div>
+    <div class="stat-card"><span class="label">Monthly Savings</span><span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
+    <div class="stat-card"><span class="label">Payback Period</span><span class="value">{% if loc.payback_years %}{{ loc.payback_years }} yrs{% else %}—{% endif %}</span></div>
+  </div>
+
+  {% if loc.inverter %}
+  <h3 style="margin:20px 0 10px;font-size:15px;color:var(--purple-dark);">Recommended Inverter — {{ loc.inverter.type }}</h3>
+  <div class="area-breakdown-card">
+    <div class="area-row"><span>Best for</span><span style="text-align:right;max-width:60%;">{{ loc.inverter.best_for }}</span></div>
+    <div class="area-row"><span>Subsidy eligibility</span><span>{% if loc.inverter.subsidy_eligible %}Eligible (typical){% else %}Usually not eligible{% endif %}</span></div>
+  </div>
+  <ul style="font-size:13px;color:var(--gray);margin:10px 0 0 18px;line-height:1.5;">
+    {% for a in loc.inverter.advantages %}
+    <li>{{ a }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h3 style="margin:20px 0 10px;font-size:15px;color:var(--purple-dark);">Performance Indicators</h3>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <span class="kpi-value">{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }}{% else %}—{% endif %}</span>
+      <span class="kpi-label">Specific Yield<br>kWh/kWp/year</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{% if loc.capacity_factor %}{{ loc.capacity_factor }}%{% else %}—{% endif %}</span>
+      <span class="kpi-label">Capacity Factor</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{% if loc.orientation_factor %}{{ (loc.orientation_factor * 100)|round|int }}%{% else %}—{% endif %}</span>
+      <span class="kpi-label">Orientation Factor<br>vs South</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{% if loc.recommended_tilt_deg %}{{ loc.recommended_tilt_deg }}°{% else %}—{% endif %}</span>
+      <span class="kpi-label">Recommended Tilt<br>(≈ latitude)</span>
+    </div>
+    {% if loc.lcoe %}
+    <div class="kpi-card">
+      <span class="kpi-value">₹{{ loc.lcoe }}</span>
+      <span class="kpi-label">LCOE<br>₹/kWh (25 yr)</span>
+    </div>
+    {% endif %}
+    {% if loc.lifetime_kwh %}
+    <div class="kpi-card">
+      <span class="kpi-value">{{ '{:,.0f}'.format(loc.lifetime_kwh) }}</span>
+      <span class="kpi-label">Lifetime Energy<br>kWh (25 yr)</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if loc.battery_kwh and loc.battery_kwh > 0 %}
+  <div class="area-breakdown-card" style="margin-top:16px;">
+    <div class="area-row"><span>Battery Capacity</span><span>{{ loc.battery_kwh }} kWh</span></div>
+    <div class="area-row"><span>Battery Cost (est.)</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost or 0) }}</span></div>
+    <div class="area-row total"><span>Self-consumption share</span><span>{{ ((loc.self_consumption_frac or 0.55) * 100)|int }}%</span></div>
+  </div>
+  {% endif %}
+
+  <div class="assumptions-box">
+    <strong>Key assumptions (India planning guide, Aug 2026)</strong><br>
+    • Bill path: ≈ ₹10/unit · ≈ 135 units/month per kW (~4–5.5 units/day/kWp on suitable days)<br>
+    • Energy check: daily units ÷ (peak sun hours × PR); PR ≈ {{ loc.performance_ratio or 0.80 }} · PSH ≈ {{ loc.peak_sun_hours_assumed or 5 }} h<br>
+    • Final size = min(bill recommendation, roof capacity) when bill is entered · ≈ 10 m² usable roof per kWp<br>
+    • PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for the 2–3 kW step · max ₹78,000 · Off-grid / non-residential = 0<br>
+    • Installed cost band: residential ~₹55k–85k/kW (estimate uses mid); commercial EPC often ~₹35k–50k/kW<br>
+    {% if loc.system_cost_low and loc.system_cost_high %}• This system cost band: ₹{{ '{:,.0f}'.format(loc.system_cost_low) }} – ₹{{ '{:,.0f}'.format(loc.system_cost_high) }} (excl. unusual civil/structure)<br>{% endif %}
+    {% if loc.annual_om %}• Indicative annual O&amp;M reserve ≈ ₹{{ '{:,.0f}'.format(loc.annual_om) }} (~1.2% of system cost)<br>{% endif %}
+    • Orientation factor applied · recommended tilt ≈ latitude ({{ loc.recommended_tilt_deg or '—' }}°)<br>
+    {% if loc.battery_kwh and loc.battery_kwh > 0 %}• Battery ≈ ₹9,000/kWh (LFP); nominal size ≠ usable energy (DoD × efficiency)<br>{% endif %}
+    • 0.5%/yr degradation in 25-yr cashflow · tariff held constant · not a licensed design or DISCOM quote
+  </div>
+
+  {% if loc.planning_notes %}
+  <div class="assumptions-box" style="margin-top:12px;border-left-color:var(--orange);">
+    <strong>Important practical points</strong>
+    <ul style="margin:8px 0 0 16px;padding:0;">
+      {% for n in loc.planning_notes %}
+      <li style="margin-bottom:4px;">{{ n }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+<section id="tab-generation" class="tab-panel">
+  <h2>Monthly Energy Generation</h2>
+  <p style="font-size:13px;color:var(--gray);margin-top:0;">
+    Adjusted for roof orientation
+    {% if loc.orientation_label %}({{ loc.orientation_label }}){% endif %}
+    {% if loc.orientation_factor %} · factor {{ loc.orientation_factor }}{% endif %}.
+  </p>
+  <canvas id="monthlyGenerationChart" height="100"></canvas>
+</section>
+
+<section id="tab-financial" class="tab-panel">
+  <h2>Financial Summary</h2>
+  <div class="chart-card">
+    <canvas id="financialDonutChart" height="180"></canvas>
+  </div>
+  <div class="financial-summary-box" style="margin-top:14px;">
+    <div class="fin-row"><span>PV System Cost (mid estimate)</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
+    {% if loc.system_cost_low and loc.system_cost_high %}
+    <div class="fin-row"><span>Typical cost band</span><span>₹{{ '{:,.0f}'.format(loc.system_cost_low) }} – ₹{{ '{:,.0f}'.format(loc.system_cost_high) }}</span></div>
+    {% endif %}
+    {% if loc.battery_cost and loc.battery_cost > 0 %}
+    <div class="fin-row"><span>Battery Storage Cost</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>
+    {% endif %}
+    <div class="fin-row"><span>PM Surya Ghar Subsidy</span><span>-₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
+    <div class="fin-row total"><span>Net Investment</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
+    <div class="fin-row"><span>Est. 25-year bill savings</span><span>₹{{ '{:,.0f}'.format((loc.monthly_savings or 0) * 12 * 25) }}</span></div>
+    {% if loc.lcoe %}
+    <div class="fin-row"><span>Levelised cost of energy</span><span>₹{{ loc.lcoe }}/kWh</span></div>
+    {% endif %}
+  </div>
+  <h2>Cashflow Over 25 Years</h2>
+  <p style="font-size:12px;color:var(--gray);">Includes 0.5%/yr degradation; tariff assumed constant.</p>
+  <div class="chart-card">
+    <canvas id="cashflowChart" height="140"></canvas>
+  </div>
+</section>
+
+<section id="tab-environmental" class="tab-panel">
+  <h2>Environmental Impact</h2>
+  <div class="stat-grid">
+    <div class="stat-card"><span class="label">CO₂ Reduction / Year</span><span class="value">-{{ loc.co2_reduction_tons }} Tons</span></div>
+    <div class="stat-card"><span class="label">Per kW Reference</span><span class="value">1.4 Tons/kW/Year</span></div>
+  </div>
+  <div class="equivalents-grid">
+    <div class="equivalent-card">
+      <span class="emoji">🌳</span>
+      <span class="value">~{{ loc.environmental_equivalents.trees_planted }} Trees</span>
+      <span class="label">Equivalent to planting</span>
+    </div>
+    <div class="equivalent-card">
+      <span class="emoji">🚗</span>
+      <span class="value">~{{ '{:,}'.format(loc.environmental_equivalents.km_not_driven) }} Km</span>
+      <span class="label">Equivalent to not driving</span>
+    </div>
+    <div class="equivalent-card">
+      <span class="emoji">⛽</span>
+      <span class="value">~{{ loc.environmental_equivalents.fuel_liters_saved }} L Fuel</span>
+      <span class="label">Equivalent to saving</span>
+    </div>
+  </div>
+  <div class="green-banner">Be a part of a cleaner &amp; greener India 🌱 — Every rooftop counts.</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+<script>
+  const MONTHLY_DATA = {{ loc.monthly_data | tojson }};
+  const SYSTEM_SIZE = {{ loc.system_size | tojson }};
+  const NET_INVESTMENT = {{ loc.net_investment | tojson }};
+  const ANNUAL_SAVINGS = {{ ((loc.monthly_savings or 0) * 12) | tojson }};
+  const SUBSIDY_AMOUNT = {{ (loc.subsidy_amount or 0) | tojson }};
+  const TOTAL_25YR_SAVINGS = {{ ((loc.monthly_savings or 0) * 12 * 25) | tojson }};
+  const BATTERY_COST = {{ (loc.battery_cost or 0) | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

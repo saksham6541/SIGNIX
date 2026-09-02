@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Solar Setu — Estimates{% endblock %}
+
+{% block content %}
+<section class="hero-row">
+  <div class="hero-copy">
+    <h1>Hello, <span class="grad-text">Sunseeker</span> 👋</h1>
+    <p class="subtitle">Let's build a smarter, cleaner tomorrow.</p>
+  </div>
+  <div class="hero-art" aria-hidden="true">🏠☀️</div>
+</section>
+
+<section class="search-panel">
+  <div class="search-box">
+    <input type="text" id="address-search" placeholder="Search place, society, college, or full address">
+    <button id="search-btn" type="button">Search</button>
+    <button id="locate-btn" type="button" title="Use current location">📍</button>
+  </div>
+  <div class="maps-link-box">
+    <input type="text" id="maps-link-input" placeholder="Or paste a Google Maps link (maps.app.goo.gl / maps.google.com)">
+    <button id="maps-link-btn" type="button">Use link</button>
+  </div>
+  <div id="search-results" class="search-results"></div>
+</section>
+
+<section class="cta-banner">
+  <div>
+    <p class="cta-label">Get your rooftop solar estimate in under</p>
+    <p class="cta-big">5<span>minutes</span></p>
+    <a class="btn-grad" href="#map-section">Start Estimation →</a>
+  </div>
+  <div class="cta-timer" aria-hidden="true">⏱️</div>
+</section>
+
+<section>
+  <h2 class="section-title">Why Go Solar?</h2>
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="icon-chip purple">₹</span>
+      <div>
+        <span class="value">Save up to 90%</span>
+        <span class="label">on electricity bills</span>
+      </div>
+    </div>
+    <div class="why-card">
+      <span class="icon-chip orange">⏱</span>
+      <div>
+        <span class="value orange">3–4 Years</span>
+        <span class="label">Payback on investment</span>
+      </div>
+    </div>
+    <div class="why-card">
+      <span class="icon-chip purple">🏛</span>
+      <div>
+        <span class="value">₹30,000 – ₹78,000</span>
+        <span class="label">PM Surya Ghar subsidy</span>
+      </div>
+    </div>
+    <div class="why-card">
+      <span class="icon-chip green">🌿</span>
+      <div>
+        <span class="value green">~1.4 Tons</span>
+        <span class="label">CO₂/kW/Year Carbon Reduction</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="step-indicator">
+  <div class="step-item current"><span class="step-dot">1</span> Location</div>
+  <div class="step-line"></div>
+  <div class="step-item"><span class="step-dot">2</span> Rooftop Analysis</div>
+  <div class="step-line"></div>
+  <div class="step-item"><span class="step-dot">3</span> Results</div>
+</div>
+
+<section class="map-section" id="map-section">
+  <p class="map-instructions">
+    High-resolution satellite view is on by default. <strong>Step 1:</strong> Draw your rooftop boundary.
+    <strong>Step 2:</strong> Mark non-usable areas with a light dashed outline (water tank, staircase, AC units) — fill stays almost transparent so the roof stays visible. Usable area = roof − obstructions.
+  </p>
+
+  <div class="draw-mode-toolbar">
+    <button id="mode-roof-btn" type="button" class="mode-btn active">🏠 Rooftop Boundary</button>
+    <button id="mode-obstruction-btn" type="button" class="mode-btn">🚫 Mark Obstruction</button>
+    <button id="draw-btn" type="button" class="draw-btn">✏️ Draw</button>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="map-toolbar">
+    <span id="area-readout">Total roof: -- m²  ·  Obstructed: -- m²  =  Usable: -- m² | Est. system size: -- kW</span>
+    <div class="map-toolbar-actions">
+      <button id="clear-obstructions-btn" type="button" class="btn-text">Clear obstructions</button>
+      <button id="clear-all-btn" type="button" class="btn-text">Clear all</button>
+    </div>
+  </div>
+</section>
+
+<section class="system-options-panel">
+  <h3>System Options</h3>
+  <p class="options-hint">Size from your electricity bill (₹10/unit · 135 units/kW/month), then fine-tune orientation, inverter &amp; storage.</p>
+
+  <div class="options-grid">
+    <div class="option-card">
+      <label for="monthly-bill">Average monthly electricity bill (₹)</label>
+      <input type="number" id="monthly-bill" min="0" step="100" placeholder="e.g. 5000">
+      <small>Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW.</small>
+    </div>
+
+    <div class="option-card">
+      <label for="property-type">Property type</label>
+      <select id="property-type">
+        <option value="residential">Residential home</option>
+        <option value="commercial">Shop / office / commercial</option>
+        <option value="remote">Remote / unreliable grid</option>
+      </select>
+      <small>Affects inverter recommendation (On-Grid / Hybrid / Off-Grid).</small>
+    </div>
+
+    <div class="option-card">
+      <label for="orientation-select">Roof Orientation (Azimuth)</label>
+      <select id="orientation-select">
+        <option value="auto">Auto-detect from drawing</option>
+        <option value="180">South (best for India)</option>
+        <option value="135">South-East</option>
+        <option value="225">South-West</option>
+        <option value="90">East</option>
+        <option value="270">West</option>
+        <option value="0">North (lowest yield)</option>
+      </select>
+      <small id="orientation-hint">South-facing roofs in North India typically yield the highest annual generation.</small>
+    </div>
+
+    <div class="option-card">
+      <label for="inverter-preference">Preferred inverter</label>
+      <select id="inverter-preference">
+        <option value="auto">Auto-recommend</option>
+        <option value="on-grid">On-Grid (bill savings, stable supply)</option>
+        <option value="hybrid">Hybrid (backup + battery)</option>
+        <option value="off-grid">Off-Grid (full independence)</option>
+      </select>
+      <small>On-Grid &amp; Hybrid often subsidy-eligible; Off-Grid usually not.</small>
+    </div>
+
+    <div class="option-card">
+      <label class="checkbox-label">
+        <input type="checkbox" id="needs-backup">
+        Need backup during power cuts
+      </label>
+      <label class="checkbox-label" style="margin-top:10px;">
+        <input type="checkbox" id="battery-toggle">
+        Include battery storage
+      </label>
+      <div id="battery-size-wrap" class="battery-size-wrap hidden">
+        <label for="battery-size">Battery capacity</label>
+        <select id="battery-size">
+          <option value="5">5 kWh (small home)</option>
+          <option value="10" selected>10 kWh (recommended)</option>
+          <option value="15">15 kWh</option>
+          <option value="20">20 kWh (larger home)</option>
+        </select>
+        <small>~₹9,000 per kWh (LFP). Improves self-consumption &amp; backup.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="options-actions">
+    <button id="start-estimation-btn" type="button" class="btn-primary-lg" disabled>Start Estimation →</button>
+  </div>
+</section>
+
+<section id="loading-panel" class="loading-panel hidden">
+  <p>Crunching irradiance data, orientation &amp; storage options…</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script>
+  const ESTIMATE_URL = "{{ url_for('routes.api_estimate') }}";
+  const GEOCODE_URL = "{{ url_for('routes.api_geocode') }}";
+  const REVERSE_GEOCODE_URL = "{{ url_for('routes.api_reverse_geocode') }}";
+  const PARSE_MAPS_URL = "{{ url_for('routes.api_parse_maps_url') }}";
+</script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

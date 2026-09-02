@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Solar Setu — Bridging You to Clean Energy{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  {% block head %}{% endblock %}
+</head>
+<body class="ignix-body">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="{{ url_for('routes.index') }}" class="logo-block">
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="40" height="40">
+            <defs>
+              <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FF7A45"/>
+                <stop offset="50%" stop-color="#FFB347"/>
+                <stop offset="100%" stop-color="#C24FA8"/>
+              </linearGradient>
+            </defs>
+            <circle cx="20" cy="20" r="8" fill="url(#sunGrad)"/>
+            <g stroke="url(#sunGrad)" stroke-width="2.2" stroke-linecap="round">
+              <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
+              <line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/>
+              <line x1="8.5" y1="8.5" x2="11.5" y2="11.5"/><line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
+              <line x1="31.5" y1="8.5" x2="28.5" y2="11.5"/><line x1="11.5" y1="28.5" x2="8.5" y2="31.5"/>
+            </g>
+          </svg>
+        </span>
+        <span class="logo-text">
+          <span class="logo-name">Solar Setu</span>
+          <span class="logo-tagline">Bridging You to Clean Energy</span>
+        </span>
+      </a>
+
+      <nav class="side-nav">
+        <a href="{{ url_for('routes.dashboard') }}" class="nav-item {% if request.endpoint == 'routes.dashboard' %}active{% endif %}">
+          <span class="nav-ico">▦</span> Dashboard
+        </a>
+        <a href="{{ url_for('routes.index') }}" class="nav-item {% if request.endpoint == 'routes.index' %}active{% endif %}">
+          <span class="nav-ico">☀</span> Estimates
+        </a>
+        <a href="{{ url_for('routes.dashboard') }}" class="nav-item">
+          <span class="nav-ico">📄</span> Reports
+        </a>
+        <a href="{{ url_for('routes.dashboard') }}" class="nav-item">
+          <span class="nav-ico">📍</span> Saved Locations
+        </a>
+        <a href="{{ url_for('routes.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
+          <span class="nav-ico">⇄</span> Compare
+        </a>
+        <a href="{{ url_for('routes.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
+          <span class="nav-ico">₹</span> Savings
+        </a>
+        <a href="#" class="nav-item nav-disabled" title="Coming soon">
+          <span class="nav-ico">👤</span> Profile
+        </a>
+        <a href="#" class="nav-item nav-disabled" title="Coming soon">
+          <span class="nav-ico">⚙</span> Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-goal-card">
+        <h4>India's Clean Energy Goal</h4>
+        <p>1 crore rooftop / 500 GW clean-energy target by 2030.</p>
+        <span class="goal-icon" aria-hidden="true">🎯</span>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="top-bar">
+        <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">☰</button>
+        <div class="top-bar-right">
+          <button type="button" class="icon-btn" title="Notifications" aria-label="Notifications">🔔</button>
+          <div class="user-chip">
+            <span class="avatar">S</span>
+            <span class="user-name">Welcome</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-content">
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="site-footer">
+        <p>Solar Setu · Indicative estimates only · Verify DISCOM / MNRE rules before procurement</p>
+      </footer>
+    </div>
+  </div>
+
+  {% block scripts %}{% endblock %}
+  <script>
+    document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+      document.querySelector('.app-shell')?.classList.toggle('sidebar-open');
+    });
+  </script>
+</body>
+</html>
