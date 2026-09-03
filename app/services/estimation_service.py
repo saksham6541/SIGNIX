@@ -1,7 +1,7 @@
 import time
 
 from app.config import Config
-from app.models import db, UserLocation
+from app.models import db, TariffTable, UserLocation
 from app.solar_logic import run_full_estimation
 
 
@@ -13,6 +13,64 @@ class EstimatePersistenceError(Exception):
     def __init__(self, message, schema_outdated=False):
         super().__init__(message)
         self.schema_outdated = schema_outdated
+
+
+class InvalidEstimateInputError(Exception):
+    pass
+
+
+def lookup_tariff(state):
+    if state:
+        row = TariffTable.query.filter_by(state=state).first()
+        if row:
+            return row.rate_per_kwh
+    return Config.DEFAULT_TARIFF
+
+
+def prepare_estimate_inputs(payload):
+    payload = payload or {}
+    latitude = payload.get("latitude")
+    longitude = payload.get("longitude")
+    polygon = payload.get("polygon", [])
+
+    if latitude is None or longitude is None:
+        raise InvalidEstimateInputError("latitude and longitude are required")
+    if not polygon or len(polygon) < 3:
+        raise InvalidEstimateInputError(
+            "A rooftop polygon with at least 3 points is required"
+        )
+
+    battery_kwh = float(payload.get("battery_kwh") or 0)
+    monthly_bill = payload.get("monthly_bill")
+    if monthly_bill is not None and monthly_bill != "":
+        try:
+            monthly_bill = float(monthly_bill)
+        except (TypeError, ValueError):
+            monthly_bill = None
+    else:
+        monthly_bill = None
+
+    tariff = lookup_tariff(payload.get("state"))
+    if payload.get("tariff_per_kwh"):
+        try:
+            tariff = float(payload["tariff_per_kwh"])
+        except (TypeError, ValueError):
+            pass
+
+    return {
+        "address": payload.get("address", "Unknown address"),
+        "latitude": latitude,
+        "longitude": longitude,
+        "polygon": polygon,
+        "obstructions": payload.get("obstructions", []),
+        "tariff_per_kwh": tariff,
+        "orientation": payload.get("orientation", "auto"),
+        "battery_kwh": battery_kwh,
+        "monthly_bill": monthly_bill,
+        "property_type": payload.get("property_type") or "residential",
+        "needs_backup": bool(payload.get("needs_backup")),
+        "inverter_preference": payload.get("inverter_preference") or "auto",
+    }
 
 
 def create_estimate(

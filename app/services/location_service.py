@@ -4,16 +4,8 @@ from urllib.parse import parse_qs, unquote, urlparse
 import requests
 
 from app.config import Config
-from app.models import UserLocation, TariffTable
+from app.models import UserLocation
 from app.solar_logic import calculate_environmental_equivalents
-
-
-def lookup_tariff(state):
-    if state:
-        row = TariffTable.query.filter_by(state=state).first()
-        if row:
-            return row.rate_per_kwh
-    return Config.DEFAULT_TARIFF
 
 
 def list_recent_locations(limit=10):
