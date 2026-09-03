@@ -328,6 +328,10 @@ def fetch_solar_data(latitude, longitude, peak_power_kw=1.0):
     """
     cached = get_cached_irradiance(latitude, longitude)
     if cached is not None:
+        print(
+            f"[CACHE] irradiance hit lat={latitude:.4f} lng={longitude:.4f} "
+            f"source={cached['source']}"
+        )
         return cached["irradiance"], cached["temperature"], cached["source"]
 
     irradiance, temperature, source = fetch_irradiance_nasa_power(latitude, longitude)
