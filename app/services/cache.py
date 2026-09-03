@@ -14,6 +14,11 @@ def get_cached_irradiance(lat: float, lng: float) -> Any:
 
 
 def set_cached_irradiance(
-    lat: float, lng: float, data: Any, ttl_days: int = 30
+    lat: float,
+    lng: float,
+    data: Any,
+    ttl_days: int = 30,
+    ttl_hours: float | None = None,
 ) -> None:
-    cache.set(_irradiance_key(lat, lng), data, expire=ttl_days * 86400)
+    ttl_seconds = ttl_hours * 3600 if ttl_hours is not None else ttl_days * 86400
+    cache.set(_irradiance_key(lat, lng), data, expire=ttl_seconds)

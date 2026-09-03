@@ -8,6 +8,16 @@ from app import solar_logic
 EARTH_RADIUS_M = 6371008.8
 
 
+@pytest.fixture(autouse=True)
+def isolate_irradiance_cache(monkeypatch):
+    monkeypatch.setattr(solar_logic, "get_cached_irradiance", lambda lat, lng: None)
+    monkeypatch.setattr(
+        solar_logic,
+        "set_cached_irradiance",
+        lambda lat, lng, data, **kwargs: None,
+    )
+
+
 def meters_to_degrees(meters):
     return math.degrees(meters / EARTH_RADIUS_M)
 
@@ -134,9 +144,64 @@ def test_fetch_solar_data_uses_mock_profile_when_external_fetches_fail():
         solar_logic.requests, "get", side_effect=RuntimeError("network unavailable")
     ) as http_get, patch.object(
         solar_logic, "_mock_irradiance_profile", return_value=mock_profile
-    ) as mock_profile_fetch:
+    ) as mock_profile_fetch, patch.object(
+        solar_logic, "set_cached_irradiance"
+    ) as cache_writer:
         result = solar_logic.fetch_solar_data(28.6, 77.2, peak_power_kw=2.0)
 
     assert result == (mock_profile, None, "mock_fallback")
     assert http_get.call_count == 2
     mock_profile_fetch.assert_called_once_with(28.6)
+    cache_writer.assert_called_once_with(
+        28.6,
+        77.2,
+        {
+            "irradiance": mock_profile,
+            "temperature": None,
+            "source": "mock_fallback",
+        },
+        ttl_hours=1,
+    )
+
+
+def test_fetch_solar_data_returns_cached_result_without_external_fetches(monkeypatch):
+    cached = {
+        "irradiance": {"Jan": 5.0},
+        "temperature": {"Jan": 25.0},
+        "source": "cached",
+    }
+    monkeypatch.setattr(solar_logic, "get_cached_irradiance", lambda lat, lng: cached)
+    with patch.object(
+        solar_logic, "fetch_irradiance_nasa_power"
+    ) as nasa_fetch, patch.object(solar_logic, "fetch_irradiance_pvgis") as pvgis_fetch:
+        result = solar_logic.fetch_solar_data(28.6, 77.2, peak_power_kw=2.0)
+
+    assert result == ({"Jan": 5.0}, {"Jan": 25.0}, "cached")
+    nasa_fetch.assert_not_called()
+    pvgis_fetch.assert_not_called()
+
+
+def test_fetch_solar_data_caches_successful_external_result(monkeypatch):
+    irradiance = {"Jan": 5.0}
+    temperature = {"Jan": 25.0}
+    set_cache = patch.object(solar_logic, "set_cached_irradiance")
+
+    monkeypatch.setattr(solar_logic, "get_cached_irradiance", lambda lat, lng: None)
+    with patch.object(
+        solar_logic,
+        "fetch_irradiance_nasa_power",
+        return_value=(irradiance, temperature, "nasa_power"),
+    ), set_cache as cache_writer:
+        result = solar_logic.fetch_solar_data(28.6, 77.2)
+
+    assert result == (irradiance, temperature, "nasa_power")
+    cache_writer.assert_called_once_with(
+        28.6,
+        77.2,
+        {
+            "irradiance": irradiance,
+            "temperature": temperature,
+            "source": "nasa_power",
+        },
+        ttl_days=30,
+    )

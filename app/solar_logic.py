@@ -13,6 +13,7 @@ Core solar estimation logic:
 import math
 import requests
 from app.config import Config
+from app.services.cache import get_cached_irradiance, set_cached_irradiance
 
 MONTH_NAMES = [
     "Jan",
@@ -325,12 +326,37 @@ def fetch_solar_data(latitude, longitude, peak_power_kw=1.0):
       3. Deterministic mock profile (fully offline fallback)
     Returns (irradiance_profile, temperature_profile_or_None, source)
     """
+    cached = get_cached_irradiance(latitude, longitude)
+    if cached is not None:
+        return cached["irradiance"], cached["temperature"], cached["source"]
+
     irradiance, temperature, source = fetch_irradiance_nasa_power(latitude, longitude)
     if irradiance:
-        return irradiance, temperature, source
+        result = irradiance, temperature, source
+        set_cached_irradiance(
+            latitude,
+            longitude,
+            {
+                "irradiance": result[0],
+                "temperature": result[1],
+                "source": result[2],
+            },
+            ttl_days=30,
+        )
+        return result
 
     irradiance, source = fetch_irradiance_pvgis(latitude, longitude, peak_power_kw)
-    return irradiance, None, source
+    result = irradiance, None, source
+    cached_data = {
+        "irradiance": result[0],
+        "temperature": result[1],
+        "source": result[2],
+    }
+    if source == "mock_fallback":
+        set_cached_irradiance(latitude, longitude, cached_data, ttl_hours=1)
+    else:
+        set_cached_irradiance(latitude, longitude, cached_data, ttl_days=30)
+    return result
 
 
 def calculate_monthly_generation(
