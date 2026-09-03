@@ -1,6 +1,6 @@
 # Performance Baseline
 
-Date: 2026-09-02
+Date: 2026-09-04
 Environment: Local Windows development machine, Flask app running in `solar_app/`
 Scope: Baseline request time for the `/api/estimate` endpoint using the same sample rooftop polygon repeated three times.
 
@@ -13,17 +13,18 @@ Scope: Baseline request time for the `/api/estimate` endpoint using the same sam
 
 ## Observed runtime
 
-| Run | Total request time | Notes                                                                          |
-| --- | -----------------: | ------------------------------------------------------------------------------ |
-| 1   |         8415.64 ms | first run, likely includes startup/warm-up and database initialization effects |
-| 2   |         1839.46 ms | faster but still elevated                                                      |
-| 3   |         1334.91 ms | near steady-state baseline                                                     |
+The same sample payload was sent three times to the running local app. These are
+the application timing logs for each request:
 
-Quick summary:
+| Run     | Roof area calc | Irradiance fetch | Monthly generation calc | Financial projection |  DB save | Total elapsed |
+| ------- | -------------: | ---------------: | ----------------------: | -------------------: | -------: | ------------: |
+| 1       |        0.35 ms |      18375.09 ms |                 0.06 ms |              0.11 ms | 16.89 ms |   18393.94 ms |
+| 2       |        0.09 ms |       1186.92 ms |                 0.04 ms |              0.15 ms | 15.91 ms |    1206.51 ms |
+| 3       |        0.10 ms |       1272.70 ms |                 0.04 ms |              0.16 ms | 17.29 ms |    1294.32 ms |
+| Average |        0.18 ms |       6944.90 ms |                 0.05 ms |              0.14 ms | 16.70 ms |    6964.92 ms |
 
-- Median run: ~1839 ms
-- Most recent steady-state run: ~1335 ms
-- First run was slower because the app/DB had not fully settled and there may have been cold import and initialization overhead.
+The first run was substantially slower because the live irradiance request took
+18.4 seconds. The next two runs completed in approximately 1.2–1.3 seconds.
 
 ## What the timing labels suggest
 
@@ -36,7 +37,19 @@ The code includes the following runtime checkpoints:
 - `run_full_estimation monthly generation calc elapsed`
 - `run_full_estimation financial projection elapsed`
 
-The earlier local measurement captured a total estimate route time of approximately 1492 ms, which is consistent with the later steady-state requests around 1.3–1.8 seconds. The most likely dominant cost is not the database save; it is the irradiance fetch and/or the overall solar calculation pipeline, especially when a live API call is involved.
+Average timing-label shares of average total elapsed time are:
+
+| Label                   | Average share |
+| ----------------------- | ------------: |
+| Roof area calc          |       0.0026% |
+| Irradiance fetch        |      99.7126% |
+| Monthly generation calc |       0.0007% |
+| Financial projection    |       0.0020% |
+| DB save                 |       0.2397% |
+
+The **irradiance fetch** had the largest average share of total time at
+**99.7126%**. This confirms that the external solar-data request, rather than
+the database or in-memory calculations, is the dominant cost in this run.
 
 ## Interpretation
 
