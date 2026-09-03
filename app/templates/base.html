@@ -15,7 +15,7 @@
 <body class="ignix-body">
   <div class="app-shell">
     <aside class="sidebar">
-      <a href="{{ url_for('routes.index') }}" class="logo-block">
+      <a href="{{ url_for('pages.index') }}" class="logo-block">
         <span class="logo-mark" aria-hidden="true">
           <svg viewBox="0 0 40 40" width="40" height="40">
             <defs>
@@ -41,22 +41,22 @@
       </a>
 
       <nav class="side-nav">
-        <a href="{{ url_for('routes.dashboard') }}" class="nav-item {% if request.endpoint == 'routes.dashboard' %}active{% endif %}">
+        <a href="{{ url_for('pages.dashboard') }}" class="nav-item {% if request.endpoint == 'pages.dashboard' %}active{% endif %}">
           <span class="nav-ico">▦</span> Dashboard
         </a>
-        <a href="{{ url_for('routes.index') }}" class="nav-item {% if request.endpoint == 'routes.index' %}active{% endif %}">
+        <a href="{{ url_for('pages.index') }}" class="nav-item {% if request.endpoint == 'pages.index' %}active{% endif %}">
           <span class="nav-ico">☀</span> Estimates
         </a>
-        <a href="{{ url_for('routes.dashboard') }}" class="nav-item">
+        <a href="{{ url_for('pages.dashboard') }}" class="nav-item">
           <span class="nav-ico">📄</span> Reports
         </a>
-        <a href="{{ url_for('routes.dashboard') }}" class="nav-item">
+        <a href="{{ url_for('pages.dashboard') }}" class="nav-item">
           <span class="nav-ico">📍</span> Saved Locations
         </a>
-        <a href="{{ url_for('routes.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
+        <a href="{{ url_for('pages.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
           <span class="nav-ico">⇄</span> Compare
         </a>
-        <a href="{{ url_for('routes.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
+        <a href="{{ url_for('pages.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
           <span class="nav-ico">₹</span> Savings
         </a>
         <a href="#" class="nav-item nav-disabled" title="Coming soon">

@@ -179,10 +179,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <script>
-  const ESTIMATE_URL = "{{ url_for('routes.api_estimate') }}";
-  const GEOCODE_URL = "{{ url_for('routes.api_geocode') }}";
-  const REVERSE_GEOCODE_URL = "{{ url_for('routes.api_reverse_geocode') }}";
-  const PARSE_MAPS_URL = "{{ url_for('routes.api_parse_maps_url') }}";
+  const ESTIMATE_URL = "{{ url_for('estimate.api_estimate') }}";
+  const GEOCODE_URL = "{{ url_for('locations.api_geocode') }}";
+  const REVERSE_GEOCODE_URL = "{{ url_for('locations.api_reverse_geocode') }}";
+  const PARSE_MAPS_URL = "{{ url_for('locations.api_parse_maps_url') }}";
 </script>
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>

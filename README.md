@@ -88,7 +88,12 @@ app/
 ├── config.py            # Application and solar-model configuration
 ├── models.py            # SQLAlchemy models and database setup
 ├── report_generator.py  # HTML-to-PDF reports and fallback generation
-├── routes.py            # Page routes and JSON API endpoints
+├── pages.py             # Page and report routes
+├── estimate.py          # Estimation API route
+├── locations.py         # Location and geocoding API routes
+├── services/
+│   ├── estimation_service.py # Estimation and persistence service
+│   └── location_service.py   # Location queries and geocoding service
 ├── solar_logic.py       # Rooftop, irradiance, generation, and finance logic
 ├── static/
 │   ├── css/style.css    # Application styles

@@ -27,13 +27,13 @@
         <td>{{ loc.system_size }} kW</td>
         <td>{{ loc.annual_generation }}</td>
         <td>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</td>
-        <td><a href="{{ url_for('routes.report', location_id=loc.id) }}">View →</a></td>
+        <td><a href="{{ url_for('pages.report', location_id=loc.id) }}">View →</a></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <p class="empty-state">No estimates yet. <a href="{{ url_for('routes.index') }}">Start Estimation →</a></p>
+  <p class="empty-state">No estimates yet. <a href="{{ url_for('pages.index') }}">Start Estimation →</a></p>
   {% endif %}
 </section>
 {% endblock %}
