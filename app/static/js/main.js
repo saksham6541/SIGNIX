@@ -180,12 +180,19 @@ function initEstimationButton() {
     const resultPanel = document.getElementById('estimate-result');
     if (!resultPanel) return;
 
-    document.getElementById('result-system-size').textContent = `${Number(data.system_size || 0).toFixed(2)} kW`;
-    document.getElementById('result-annual-generation').textContent = `${Number(data.annual_generation || 0).toLocaleString()} kWh / year`;
-    document.getElementById('result-monthly-savings').textContent = `₹${Number(data.monthly_savings || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month`;
+    const formatCurrency = value => `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+    document.getElementById('result-system-size').textContent = Number(data.system_size || 0).toFixed(2);
+    document.getElementById('result-annual-generation').textContent = Number(data.annual_generation || 0).toLocaleString();
+    document.getElementById('result-monthly-savings').textContent = formatCurrency(data.monthly_savings);
+    document.getElementById('result-co2-reduction').textContent = Number(data.co2_reduction_tons || 0).toFixed(2);
     document.getElementById('result-payback').textContent = data.payback_years
-      ? `${data.payback_years} years`
+      ? Number(data.payback_years).toFixed(1)
       : 'Indicative estimate';
+    document.getElementById('result-system-cost').textContent = formatCurrency(data.system_cost);
+    document.getElementById('result-subsidy').textContent = `-${formatCurrency(data.subsidy_amount)}`;
+    document.getElementById('result-net-investment').textContent = formatCurrency(data.net_investment);
+    document.getElementById('result-subsidy-note').textContent =
+      `Subsidy shown: ${formatCurrency(data.subsidy_amount)}. Final PM Surya Ghar eligibility depends on system size and government approval.`;
     document.getElementById('result-area-summary').textContent =
       `Usable roof area: ${Number(data.usable_area_sqm || 0).toFixed(2)} m² ` +
       `of ${Number(data.roof_area_sqm || 0).toFixed(2)} m² total`;

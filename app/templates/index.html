@@ -178,26 +178,68 @@
     </div>
     <span id="estimate-source" class="estimate-source"></span>
   </div>
-  <div class="estimate-summary-grid">
-    <div class="estimate-summary-item highlight">
-      <span class="label">Recommended system</span>
-      <strong id="result-system-size">—</strong>
+  <div class="estimate-top-grid">
+    <div class="savings-card">
+      <div class="savings-card-copy">
+        <span class="savings-label">Estimated Monthly Savings</span>
+        <strong id="result-monthly-savings">₹—</strong>
+        <span class="savings-subtitle">up to 90% off on electricity bills</span>
+      </div>
+      <svg class="savings-trend" viewBox="0 0 150 90" aria-hidden="true">
+        <path d="M8 76H142" />
+        <path d="M10 67L38 57L59 62L87 35L108 42L140 10" />
+        <path d="M127 11H140V24" />
+      </svg>
     </div>
-    <div class="estimate-summary-item">
-      <span class="label">Annual generation</span>
-      <strong id="result-annual-generation">—</strong>
-    </div>
-    <div class="estimate-summary-item">
-      <span class="label">Monthly savings</span>
-      <strong id="result-monthly-savings">—</strong>
-    </div>
-    <div class="estimate-summary-item">
-      <span class="label">Payback period</span>
-      <strong id="result-payback">—</strong>
+
+    <div class="estimate-stats-grid">
+      <div class="estimate-stat-card">
+        <span class="stat-icon orange-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M7 16v-4M12 16V8M17 16V4" /></svg>
+        </span>
+        <span class="stat-label">Annual Generation</span>
+        <strong id="result-annual-generation">—</strong>
+        <small>kWh</small>
+      </div>
+      <div class="estimate-stat-card">
+        <span class="stat-icon pink-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c0-1.7-2.2-3-5-3s-5 1.3-5 3 2.2 3 5 3 5 1.3 5 3-2.2 3-5 3-5-1.3-5-3" /></svg>
+        </span>
+        <span class="stat-label">CO2 Reduction</span>
+        <strong id="result-co2-reduction">—</strong>
+        <small>Tons/Year</small>
+      </div>
+      <div class="estimate-stat-card">
+        <span class="stat-icon indigo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 16l8-10 8 10H4ZM7 16v4h10v-4" /></svg>
+        </span>
+        <span class="stat-label">System Size</span>
+        <strong id="result-system-size">—</strong>
+        <small>kW</small>
+      </div>
+      <div class="estimate-stat-card">
+        <span class="stat-icon green-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2" /></svg>
+        </span>
+        <span class="stat-label">Payback Period</span>
+        <strong id="result-payback">—</strong>
+        <small>Years</small>
+      </div>
     </div>
   </div>
+
+  <div class="investment-section">
+    <h3>Investment &amp; Payback</h3>
+    <div class="investment-list">
+      <div><span>Estimated System Cost</span><strong id="result-system-cost">—</strong></div>
+      <div><span>PM Surya Ghar Subsidy</span><strong id="result-subsidy" class="deduction">—</strong></div>
+      <div class="investment-total"><span>Your Net Investment</span><strong id="result-net-investment">—</strong></div>
+    </div>
+  </div>
+
+  <div id="result-subsidy-note" class="subsidy-note"></div>
   <p id="result-area-summary" class="estimate-area-summary"></p>
-  <a id="view-full-report" class="btn-report" href="#" target="_blank" rel="noopener">View full report ↗</a>
+  <a id="view-full-report" class="btn-report" href="#" target="_blank" rel="noopener">View Full Report ↗</a>
 </section>
 
 <section id="loading-panel" class="loading-panel hidden">
