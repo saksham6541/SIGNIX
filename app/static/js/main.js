@@ -176,6 +176,28 @@ function initEstimationButton() {
   const btn = document.getElementById('start-estimation-btn');
   if (!btn) return;
 
+  function showEstimateResult(data) {
+    const resultPanel = document.getElementById('estimate-result');
+    if (!resultPanel) return;
+
+    document.getElementById('result-system-size').textContent = `${Number(data.system_size || 0).toFixed(2)} kW`;
+    document.getElementById('result-annual-generation').textContent = `${Number(data.annual_generation || 0).toLocaleString()} kWh / year`;
+    document.getElementById('result-monthly-savings').textContent = `₹${Number(data.monthly_savings || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month`;
+    document.getElementById('result-payback').textContent = data.payback_years
+      ? `${data.payback_years} years`
+      : 'Indicative estimate';
+    document.getElementById('result-area-summary').textContent =
+      `Usable roof area: ${Number(data.usable_area_sqm || 0).toFixed(2)} m² ` +
+      `of ${Number(data.roof_area_sqm || 0).toFixed(2)} m² total`;
+    document.getElementById('estimate-source').textContent = data.irradiance_source
+      ? `Irradiance: ${data.irradiance_source}`
+      : '';
+
+    const reportLink = document.getElementById('view-full-report');
+    if (reportLink && data.redirect_url) reportLink.href = data.redirect_url;
+    resultPanel.classList.remove('hidden');
+  }
+
   btn.addEventListener('click', async () => {
     const polygon = getCurrentPolygon();
     const obstructions = typeof getCurrentObstructions === 'function' ? getCurrentObstructions() : [];
@@ -240,7 +262,7 @@ function initEstimationButton() {
         return;
       }
       if (data.redirect_url) {
-        window.location.href = data.redirect_url;
+        showEstimateResult(data);
       } else {
         alert(data.error || 'Something went wrong generating your estimate.');
       }
