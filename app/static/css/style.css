@@ -245,6 +245,35 @@ body.ignix-body {
 .auth-switch a { color: var(--indigo); font-weight: 700; }
 .form-error { display: block; color: #b42318; font-size: 12px; font-weight: 600; margin-top: 5px; }
 .auth-alert { background: #fff1f0; border: 1px solid #f4c7c3; border-radius: 10px; padding: 10px 12px; }
+.form-success { color: #1a7a45; font-size: 13px; font-weight: 700; }
+
+/* ---------- Profile ---------- */
+.profile-page { padding: 18px 0 24px; }
+.profile-header { margin-bottom: 18px; }
+.profile-header h1 { margin: 0 0 6px; color: var(--indigo); font-size: 28px; }
+.profile-header p:last-child { margin: 0; color: var(--gray); font-size: 13px; }
+.profile-alert { background: #e8f8ef; border: 1px solid #bfe7cf; border-radius: 10px; padding: 10px 12px; margin: 0 0 18px; }
+.profile-summary {
+  display: flex; justify-content: space-between; align-items: center; gap: 24px;
+  background: var(--grad-dark); border-radius: var(--radius); box-shadow: var(--shadow);
+  color: #fff; padding: 22px 24px; margin-bottom: 20px;
+}
+.profile-summary-label, .profile-summary-email { display: block; color: #cabdea; font-size: 12px; }
+.profile-summary > div:first-child strong { display: block; font-size: 21px; margin: 4px 0; }
+.profile-summary-stats { display: flex; gap: 28px; }
+.profile-summary-stats div { display: flex; flex-direction: column; gap: 4px; }
+.profile-summary-stats span { color: #cabdea; font-size: 11px; }
+.profile-summary-stats strong { font-size: 14px; }
+.profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.profile-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 20px; }
+.profile-card-heading { border-bottom: 1px solid var(--border); margin-bottom: 18px; padding-bottom: 14px; }
+.profile-card-heading h2 { margin: 0 0 5px; color: var(--indigo); font-size: 18px; }
+.profile-card-heading p { margin: 0; color: var(--gray); font-size: 12px; }
+.profile-form { margin: 0; }
+.profile-field { margin: 0 0 16px; }
+.profile-field label { display: block; color: var(--indigo); font-size: 13px; font-weight: 700; margin-bottom: 7px; }
+.profile-submit { margin: 22px 0 0; }
+.profile-submit .btn-primary-lg { width: 100%; }
 
 /* ---------- Map / estimation ---------- */
 .map-section {
@@ -535,6 +564,9 @@ body.ignix-body {
 }
 @media (max-width: 560px) {
   .hero-row, .why-grid, .options-grid, .equivalents-grid { grid-template-columns: 1fr; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .profile-summary { align-items: flex-start; flex-direction: column; }
+  .profile-summary-stats { flex-wrap: wrap; gap: 16px; }
   .cta-banner { flex-direction: column; text-align: center; }
   #map { height: 320px; }
   .estimate-result-heading { flex-direction: column; }
