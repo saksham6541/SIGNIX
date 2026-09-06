@@ -119,3 +119,100 @@ def test_logged_in_users_only_see_their_own_saved_locations(app):
     assert [row["address"] for row in user_b_locations.get_json()] == ["User B rooftop"]
     assert "User B rooftop" not in user_a_locations.get_data(as_text=True)
     assert "User A rooftop" not in user_b_locations.get_data(as_text=True)
+
+
+def test_profile_page_requires_login(app):
+    response = app.test_client().get("/profile")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith("/login?next=")
+
+
+def test_profile_display_name_and_email_update_succeeds(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.post(
+        "/profile",
+        data={
+            "display_name": "Updated User",
+            "email": "updated@example.com",
+            "profile_action": "profile",
+            "submit": "Save changes",
+        },
+    )
+
+    assert response.status_code == 302
+    with app.app_context():
+        user = User.query.filter_by(email="updated@example.com").one()
+        assert user.display_name == "Updated User"
+
+
+def test_profile_email_update_fails_if_taken_by_another_user(app):
+    with app.app_context():
+        db.session.add(
+            User(
+                email="other@example.com",
+                password_hash=generate_password_hash("other-password"),
+                display_name="Other User",
+            )
+        )
+        db.session.commit()
+
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+    response = test_client.post(
+        "/profile",
+        data={
+            "display_name": "Test User",
+            "email": "other@example.com",
+            "profile_action": "profile",
+            "submit": "Save changes",
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"That email is already registered." in response.data
+    with app.app_context():
+        assert User.query.filter_by(email="test@example.com").one().display_name == (
+            "Test User"
+        )
+
+
+def test_password_change_fails_with_wrong_current_password(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.post(
+        "/profile",
+        data={
+            "current_password": "wrong-password",
+            "new_password": "new-password",
+            "confirm_new_password": "new-password",
+            "password_action": "password",
+            "submit": "Change password",
+        },
+    )
+
+    assert response.status_code == 200
+    assert b"Current password is incorrect." in response.data
+
+
+def test_password_change_succeeds_and_new_password_works_on_next_login(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.post(
+        "/profile",
+        data={
+            "current_password": "unused",
+            "new_password": "new-password",
+            "confirm_new_password": "new-password",
+            "password_action": "password",
+            "submit": "Change password",
+        },
+    )
+    assert response.status_code == 302
+
+    test_client.post("/logout")
+    assert login(test_client, "test@example.com", "new-password").status_code == 302

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Profile · Solar Setu{% endblock %}
+{% block content %}
+<section class="page-section">
+  <h1>Profile</h1>
+  {% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+      <p class="form-success">{{ message }}</p>
+    {% endfor %}
+  {% endwith %}
+
+  <p><strong>Account created:</strong> {{ current_user.created_at.strftime("%B %d, %Y") }}</p>
+  <p><strong>Saved locations:</strong> {{ location_count }}</p>
+
+  <h2>Edit Profile</h2>
+  <form method="post">
+    {{ profile_form.hidden_tag() }}
+    <p>{{ profile_form.display_name.label }} {{ profile_form.display_name() }} {% for error in profile_form.display_name.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ profile_form.email.label }} {{ profile_form.email() }} {% for error in profile_form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ profile_form.submit() }}</p>
+  </form>
+
+  <h2>Change Password</h2>
+  <form method="post">
+    {{ password_form.hidden_tag() }}
+    <p>{{ password_form.current_password.label }} {{ password_form.current_password() }} {% for error in password_form.current_password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ password_form.new_password.label }} {{ password_form.new_password() }} {% for error in password_form.new_password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ password_form.confirm_new_password.label }} {{ password_form.confirm_new_password() }} {% for error in password_form.confirm_new_password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ password_form.submit() }}</p>
+  </form>
+</section>
+{% endblock %}
