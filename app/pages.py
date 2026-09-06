@@ -3,6 +3,7 @@ from flask_login import current_user, login_required
 
 from app.report_generator import generate_pdf_report
 from app.services import location_service
+from app.solar_logic import calculate_environmental_equivalents
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -44,6 +45,34 @@ def compare():
         "compare.html",
         locations=locations,
         selected_locations=selected_locations,
+    )
+
+
+@pages_bp.route("/savings")
+@login_required
+def savings():
+    locations = location_service.list_locations(current_user.id)
+    monthly_savings = sum(location.monthly_savings or 0 for location in locations)
+    annual_savings = monthly_savings * 12
+    co2_reduction_tons = sum(location.co2_reduction_tons or 0 for location in locations)
+    environmental_equivalents = calculate_environmental_equivalents(co2_reduction_tons)
+    best_opportunity = max(
+        locations,
+        key=lambda location: (
+            location.monthly_savings or 0,
+            -(location.payback_years or float("inf")),
+        ),
+        default=None,
+    )
+
+    return render_template(
+        "savings.html",
+        locations=locations,
+        monthly_savings=monthly_savings,
+        annual_savings=annual_savings,
+        co2_reduction_tons=co2_reduction_tons,
+        environmental_equivalents=environmental_equivalents,
+        best_opportunity=best_opportunity,
     )
 
 

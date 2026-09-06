@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Savings · SIGNIX{% endblock %}
+{% block content %}
+<section class="savings-page">
+  <div class="savings-page-header">
+    <div>
+      <p class="eyebrow">Your solar portfolio</p>
+      <h1>Savings overview</h1>
+      <p>See the combined financial and environmental value of your saved estimates.</p>
+    </div>
+  </div>
+
+  {% if not locations %}
+  <div class="savings-empty">
+    <h2>Your savings story starts with an estimate</h2>
+    <p>Run and save your first rooftop estimate to see your potential savings here.</p>
+    <a class="btn-grad" href="{{ url_for('pages.index') }}">Start an estimate</a>
+  </div>
+  {% else %}
+  <div class="savings-overview-grid">
+    <div class="savings-card savings-total-card">
+      <div class="savings-card-copy">
+        <span class="savings-label">Total potential monthly savings</span>
+        <strong>&#8377;{{ "%.0f"|format(monthly_savings) }}</strong>
+        <span class="savings-subtitle">&#8377;{{ "%.0f"|format(annual_savings) }} potential savings per year</span>
+      </div>
+      <svg class="savings-trend" viewBox="0 0 260 120" aria-hidden="true">
+        <path d="M4 110 C48 104 55 72 91 80 S128 50 157 58 S201 18 256 8" />
+      </svg>
+    </div>
+
+    <div class="savings-stats-grid">
+      <div class="estimate-stat-card">
+        <span class="stat-icon green-icon">♻</span>
+        <span class="stat-label">CO2 reduction</span>
+        <strong>{{ "%.2f"|format(co2_reduction_tons) }} tons</strong>
+        <small>Across {{ locations|length }} saved estimate{% if locations|length != 1 %}s{% endif %}</small>
+      </div>
+      <div class="estimate-stat-card">
+        <span class="stat-icon pink-icon">🌳</span>
+        <span class="stat-label">Equivalent trees</span>
+        <strong>{{ environmental_equivalents.trees_planted|int }}</strong>
+        <small>CO2 absorption equivalent</small>
+      </div>
+      <div class="estimate-stat-card">
+        <span class="stat-icon orange-icon">⌁</span>
+        <span class="stat-label">Distance avoided</span>
+        <strong>{{ "%.0f"|format(environmental_equivalents.km_not_driven) }} km</strong>
+        <small>Car travel equivalent</small>
+      </div>
+      <div class="estimate-stat-card">
+        <span class="stat-icon indigo-icon">◉</span>
+        <span class="stat-label">Fuel saved</span>
+        <strong>{{ "%.0f"|format(environmental_equivalents.fuel_liters_saved) }} L</strong>
+        <small>Petrol equivalent</small>
+      </div>
+    </div>
+  </div>
+
+  <section class="savings-opportunity">
+    <div>
+      <p class="eyebrow">Best opportunity</p>
+      <h2>{{ best_opportunity.address }}</h2>
+      <p>The saved location with the highest potential monthly savings.</p>
+    </div>
+    <div class="opportunity-metrics">
+      <span><small>Monthly savings</small><strong>&#8377;{{ "%.0f"|format(best_opportunity.monthly_savings or 0) }}</strong></span>
+      <span><small>Payback period</small><strong>{{ "%.1f"|format(best_opportunity.payback_years or 0) }} years</strong></span>
+      <a class="btn-report" href="{{ url_for('pages.report', location_id=best_opportunity.id) }}">View report</a>
+    </div>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

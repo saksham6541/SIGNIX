@@ -56,7 +56,7 @@
         <a href="{{ url_for('pages.compare') }}" class="nav-item {% if request.endpoint == 'pages.compare' %}active{% endif %}">
           <span class="nav-ico">⇄</span> Compare
         </a>
-        <a href="{{ url_for('pages.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
+        <a href="{{ url_for('pages.savings') }}" class="nav-item {% if request.endpoint == 'pages.savings' %}active{% endif %}">
           <span class="nav-ico">₹</span> Savings
         </a>
         <a href="{{ url_for('auth.profile') }}" class="nav-item {% if request.endpoint == 'auth.profile' %}active{% endif %}">

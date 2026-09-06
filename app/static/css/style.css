@@ -427,6 +427,27 @@ body.ignix-body {
 .compare-empty p { color: var(--gray); font-size: 13px; margin: 0 0 20px; }
 .compare-selection-error { color: #b42318; background: #fff1f0; border: 1px solid #f4c7c3; border-radius: 10px; padding: 11px 13px; font-size: 13px; font-weight: 700; }
 
+/* ---------- Savings ---------- */
+.savings-page { padding: 18px 0 24px; }
+.savings-page-header { margin-bottom: 18px; }
+.savings-page-header h1 { margin: 0 0 6px; color: var(--indigo); font-size: 28px; }
+.savings-page-header p:last-child { margin: 0; color: var(--gray); font-size: 13px; }
+.savings-overview-grid { display: grid; grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.5fr); gap: 14px; margin-bottom: 20px; }
+.savings-total-card { min-height: 238px; }
+.savings-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.savings-empty, .savings-opportunity { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px 20px; }
+.savings-empty { text-align: center; padding: 42px 24px; }
+.savings-empty h2, .savings-opportunity h2 { margin: 0 0 6px; color: var(--indigo); font-size: 20px; }
+.savings-empty p, .savings-opportunity p { color: var(--gray); font-size: 13px; margin: 0 0 20px; }
+.savings-opportunity { display: flex; align-items: center; justify-content: space-between; gap: 24px; border-left: 5px solid var(--success); }
+.savings-opportunity .eyebrow { margin-bottom: 5px; }
+.savings-opportunity h2 { overflow-wrap: anywhere; }
+.opportunity-metrics { display: flex; align-items: center; gap: 22px; flex-shrink: 0; }
+.opportunity-metrics span { display: grid; gap: 4px; }
+.opportunity-metrics small { color: var(--gray); font-size: 11px; }
+.opportunity-metrics strong { color: var(--text); font-size: 18px; white-space: nowrap; }
+.opportunity-metrics .btn-report { width: auto; white-space: nowrap; }
+
 /* ---------- Report ---------- */
 .report-header {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -560,6 +581,8 @@ body.ignix-body {
   .sidebar-toggle { display: inline-block; }
   .hero-row, .why-grid, .options-grid, .equivalents-grid { grid-template-columns: 1fr 1fr; }
   .estimate-top-grid { grid-template-columns: 1fr; }
+  .savings-overview-grid { grid-template-columns: 1fr; }
+  .savings-opportunity { align-items: flex-start; flex-direction: column; }
   .page-content { padding: 8px 16px 32px; }
 }
 @media (max-width: 560px) {
@@ -572,6 +595,8 @@ body.ignix-body {
   .estimate-result-heading { flex-direction: column; }
   .estimate-source { text-align: left; }
   .estimate-stats-grid { grid-template-columns: 1fr; }
+  .savings-stats-grid { grid-template-columns: 1fr; }
+  .opportunity-metrics { align-items: flex-start; flex-wrap: wrap; gap: 14px 20px; }
   .savings-card { min-height: 190px; }
   .savings-card strong { font-size: 32px; }
 }
