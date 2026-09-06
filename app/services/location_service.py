@@ -8,22 +8,29 @@ from app.models import UserLocation
 from app.solar_logic import calculate_environmental_equivalents
 
 
-def list_recent_locations(limit=10):
+def list_recent_locations(user_id, limit=10):
     return (
-        UserLocation.query.order_by(UserLocation.created_at.desc()).limit(limit).all()
+        UserLocation.query.filter_by(user_id=user_id)
+        .order_by(UserLocation.created_at.desc())
+        .limit(limit)
+        .all()
     )
 
 
-def list_locations():
-    return UserLocation.query.order_by(UserLocation.created_at.desc()).all()
+def list_locations(user_id):
+    return (
+        UserLocation.query.filter_by(user_id=user_id)
+        .order_by(UserLocation.created_at.desc())
+        .all()
+    )
 
 
-def get_location(location_id):
-    return UserLocation.query.get(location_id)
+def get_location(location_id, user_id):
+    return UserLocation.query.filter_by(id=location_id, user_id=user_id).first()
 
 
-def get_report_context(location_id):
-    location = get_location(location_id)
+def get_report_context(location_id, user_id):
+    location = get_location(location_id, user_id)
     if location is None:
         return None
     loc_dict = location.to_dict()

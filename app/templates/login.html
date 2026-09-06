@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Log in · Solar Setu{% endblock %}
+{% block content %}
+<section class="page-section">
+  <h1>Log in</h1>
+  {% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+      <p class="form-error">{{ message }}</p>
+    {% endfor %}
+  {% endwith %}
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <p>{{ form.email.label }} {{ form.email() }} {% for error in form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ form.password.label }} {{ form.password() }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p>{{ form.submit() }}</p>
+  </form>
+  <p>New here? <a href="{{ url_for('auth.signup') }}">Create an account</a>.</p>
+</section>
+{% endblock %}

@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, jsonify, render_template, send_file
+from flask_login import current_user, login_required
 
 from app.report_generator import generate_pdf_report
 from app.services import location_service
@@ -12,14 +13,16 @@ def index():
 
 
 @pages_bp.route("/dashboard")
+@login_required
 def dashboard():
-    recent = location_service.list_recent_locations()
+    recent = location_service.list_recent_locations(current_user.id)
     return render_template("dashboard.html", locations=recent)
 
 
 @pages_bp.route("/report/<int:location_id>")
+@login_required
 def report(location_id):
-    report_data = location_service.get_report_context(location_id)
+    report_data = location_service.get_report_context(location_id, current_user.id)
     if report_data is None:
         abort(404)
     _, loc_dict = report_data
@@ -27,8 +30,9 @@ def report(location_id):
 
 
 @pages_bp.route("/report/<int:location_id>/pdf")
+@login_required
 def download_pdf(location_id):
-    location = location_service.get_location(location_id)
+    location = location_service.get_location(location_id, current_user.id)
     if location is None:
         abort(404)
     try:

@@ -80,10 +80,18 @@
         <div class="top-bar-right">
           <button type="button" class="icon-btn" title="Notifications" aria-label="Notifications">🔔</button>
           <div class="user-chip">
-            <span class="avatar">S</span>
-            <span class="user-name">Welcome</span>
+            <span class="avatar">{{ current_user.display_name[0]|upper if current_user.is_authenticated else 'S' }}</span>
+            <span class="user-name">{{ current_user.display_name if current_user.is_authenticated else 'Welcome' }}</span>
             <span class="chevron">▾</span>
           </div>
+          {% if current_user.is_authenticated %}
+          <form method="post" action="{{ url_for('auth.logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="icon-btn" title="Log out">↪</button>
+          </form>
+          {% else %}
+          <a href="{{ url_for('auth.login') }}" class="icon-btn">Log in</a>
+          {% endif %}
         </div>
       </header>
 

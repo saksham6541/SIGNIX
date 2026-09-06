@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, jsonify, request
+from flask_login import current_user, login_required
 
 from app.services import location_service
 
@@ -48,13 +49,20 @@ def api_parse_maps_url():
 
 
 @locations_bp.route("/api/locations")
+@login_required
 def api_locations():
-    return jsonify([location.to_dict() for location in location_service.list_locations()])
+    return jsonify(
+        [
+            location.to_dict()
+            for location in location_service.list_locations(current_user.id)
+        ]
+    )
 
 
 @locations_bp.route("/api/locations/<int:location_id>")
+@login_required
 def api_location_detail(location_id):
-    location = location_service.get_location(location_id)
+    location = location_service.get_location(location_id, current_user.id)
     if location is None:
         abort(404)
     return jsonify(location.to_dict())

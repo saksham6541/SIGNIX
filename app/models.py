@@ -1,8 +1,25 @@
 # filename: app/models.py
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 db = SQLAlchemy()
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(320), nullable=False, unique=True, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    display_name = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    locations = db.relationship(
+        "UserLocation",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class UserLocation(db.Model):
@@ -12,6 +29,13 @@ class UserLocation(db.Model):
     __tablename__ = "user_locations"
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user = db.relationship("User", back_populates="locations")
     address = db.Column(db.String(512), nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
@@ -24,21 +48,27 @@ class UserLocation(db.Model):
     # polygon. Subtracted from roof_area_sqm to get usable_area_sqm.
     obstructions_geojson = db.Column(db.JSON, nullable=True)
 
-    system_size = db.Column(db.Float, nullable=False, default=0.0)       # kWp
+    system_size = db.Column(db.Float, nullable=False, default=0.0)  # kWp
     annual_generation = db.Column(db.Float, nullable=False, default=0.0)  # kWh/year
-    monthly_data = db.Column(db.JSON, nullable=True)                     # {"Jan": kWh, ...}
+    monthly_data = db.Column(db.JSON, nullable=True)  # {"Jan": kWh, ...}
 
     # Cached financial figures so the report/PDF can be regenerated without
     # recomputation.
-    roof_area_sqm = db.Column(db.Float, nullable=True)          # gross rooftop area
-    obstructed_area_sqm = db.Column(db.Float, nullable=True)    # non-usable area subtracted
-    usable_area_sqm = db.Column(db.Float, nullable=True)        # roof_area_sqm - obstructed_area_sqm
+    roof_area_sqm = db.Column(db.Float, nullable=True)  # gross rooftop area
+    obstructed_area_sqm = db.Column(
+        db.Float, nullable=True
+    )  # non-usable area subtracted
+    usable_area_sqm = db.Column(
+        db.Float, nullable=True
+    )  # roof_area_sqm - obstructed_area_sqm
     system_cost = db.Column(db.Float, nullable=True)
     subsidy_amount = db.Column(db.Float, nullable=True)
     net_investment = db.Column(db.Float, nullable=True)
     monthly_savings = db.Column(db.Float, nullable=True)
     co2_reduction_tons = db.Column(db.Float, nullable=True)
-    irradiance_source = db.Column(db.String(32), nullable=True)  # nasa_power / pvgis / mock_fallback
+    irradiance_source = db.Column(
+        db.String(32), nullable=True
+    )  # nasa_power / pvgis / mock_fallback
 
     # Orientation & battery
     orientation_deg = db.Column(db.Float, nullable=True)
@@ -49,9 +79,9 @@ class UserLocation(db.Model):
     battery_cost = db.Column(db.Float, nullable=True, default=0.0)
 
     # Extra performance metrics (cached for report/PDF)
-    specific_yield = db.Column(db.Float, nullable=True)       # kWh/kWp/year
-    capacity_factor = db.Column(db.Float, nullable=True)      # %
-    lcoe = db.Column(db.Float, nullable=True)                 # ₹/kWh
+    specific_yield = db.Column(db.Float, nullable=True)  # kWh/kWp/year
+    capacity_factor = db.Column(db.Float, nullable=True)  # %
+    lcoe = db.Column(db.Float, nullable=True)  # ₹/kWh
     lifetime_kwh = db.Column(db.Float, nullable=True)
     self_consumption_frac = db.Column(db.Float, nullable=True)
     payback_years = db.Column(db.Float, nullable=True)
@@ -63,6 +93,7 @@ class UserLocation(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "address": self.address,
             "latitude": self.latitude,
             "longitude": self.longitude,
@@ -73,7 +104,9 @@ class UserLocation(db.Model):
             "monthly_data": self.monthly_data,
             "roof_area_sqm": round(self.roof_area_sqm or 0, 2),
             "obstructed_area_sqm": round(self.obstructed_area_sqm or 0, 2),
-            "usable_area_sqm": round(self.usable_area_sqm or (self.roof_area_sqm or 0), 2),
+            "usable_area_sqm": round(
+                self.usable_area_sqm or (self.roof_area_sqm or 0), 2
+            ),
             "system_cost": round(self.system_cost or 0, 2),
             "subsidy_amount": round(self.subsidy_amount or 0, 2),
             "net_investment": round(self.net_investment or 0, 2),

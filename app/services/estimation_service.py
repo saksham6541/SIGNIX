@@ -74,6 +74,7 @@ def prepare_estimate_inputs(payload):
 
 
 def create_estimate(
+    user_id,
     address,
     latitude,
     longitude,
@@ -107,6 +108,7 @@ def create_estimate(
 
     try:
         location = UserLocation(
+            user_id=user_id,
             address=address,
             latitude=latitude,
             longitude=longitude,

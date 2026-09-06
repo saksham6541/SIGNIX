@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_login import current_user, login_required
 
 from app.services import estimation_service
 
@@ -6,6 +7,7 @@ estimate_bp = Blueprint("estimate", __name__)
 
 
 @estimate_bp.route("/api/estimate", methods=["POST"])
+@login_required
 def api_estimate():
     payload = request.get_json(silent=True) or {}
 
@@ -16,6 +18,7 @@ def api_estimate():
 
     try:
         result, location = estimation_service.create_estimate(
+            user_id=current_user.id,
             **estimate_inputs,
         )
     except estimation_service.EstimationEngineError as exc:

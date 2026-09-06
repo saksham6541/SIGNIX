@@ -4,7 +4,9 @@ Entry point: creates the Flask app, initializes the database (creating
 tables if they don't exist), seeds mock tariff/subsidy reference data if
 empty, and runs the dev server.
 """
+
 from app import create_app
+from app.database import initialize_database
 from app.models import db, TariffTable, SubsidyScheme
 
 app = create_app()
@@ -43,7 +45,7 @@ def seed_reference_data():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        initialize_database()
         seed_reference_data()
 
     app.run(debug=True, host="0.0.0.0", port=5000)
