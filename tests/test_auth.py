@@ -57,6 +57,32 @@ def test_login_with_correct_password_succeeds(app):
     assert response.headers["Location"].endswith("/dashboard")
 
 
+def test_login_route_explains_when_user_is_already_authenticated(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.get("/login")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/dashboard")
+    with test_client.session_transaction() as session:
+        assert any(
+            message == "You're already logged in."
+            for _, message in session.get("_flashes", [])
+        )
+
+
+def test_authenticated_header_logout_clears_session(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.post("/logout")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/")
+    assert test_client.get("/dashboard").status_code == 302
+
+
 def test_login_with_incorrect_password_fails_cleanly(app):
     response = login(app.test_client(), "test@example.com", "wrong-password")
 

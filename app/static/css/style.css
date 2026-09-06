@@ -100,6 +100,8 @@ body.ignix-body {
   padding: 10px 16px; box-shadow: 0 4px 12px rgba(255, 122, 69, 0.22);
 }
 .auth-link-primary:hover { color: #1a1030; filter: brightness(1.05); }
+.logout-button { border: 0; background: transparent; cursor: pointer; font-family: inherit; }
+.logout-button:hover { color: var(--accent-pink); }
 .user-chip {
   display: flex; align-items: center; gap: 8px;
   background: #fff; border: 1px solid var(--border); border-radius: 24px;

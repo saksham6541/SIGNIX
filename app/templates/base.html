@@ -87,7 +87,7 @@
           </div>
           <form method="post" action="{{ url_for('auth.logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="icon-btn" title="Log out">↪</button>
+            <button type="submit" class="auth-link logout-button">Log out</button>
           </form>
           {% else %}
           <a href="{{ url_for('auth.login') }}" class="auth-link">Log in</a>

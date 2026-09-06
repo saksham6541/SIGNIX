@@ -87,6 +87,7 @@ def signup():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
+        flash("You're already logged in.", "info")
         return redirect(url_for("pages.dashboard"))
     form = LoginForm()
     if form.validate_on_submit():
