@@ -1,19 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Log in · Solar Setu{% endblock %}
+{% block title %}Log in · SIGNIX{% endblock %}
 {% block content %}
-<section class="page-section">
-  <h1>Log in</h1>
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-heading">
+      <p class="eyebrow">SIGNIX account</p>
+      <h1>Log in</h1>
+      <p>Continue to your rooftop solar estimates.</p>
+    </div>
   {% with messages = get_flashed_messages() %}
     {% for message in messages %}
-      <p class="form-error">{{ message }}</p>
+      <p class="form-error auth-alert">{{ message }}</p>
     {% endfor %}
   {% endwith %}
-  <form method="post">
+  <form method="post" class="auth-form">
     {{ form.hidden_tag() }}
-    <p>{{ form.email.label }} {{ form.email() }} {% for error in form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p>{{ form.password.label }} {{ form.password() }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p>{{ form.submit() }}</p>
+    <p class="auth-field">{{ form.email.label }} {{ form.email(class_="auth-input") }} {% for error in form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p class="auth-field">{{ form.password.label }} {{ form.password(class_="auth-input") }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p class="auth-submit">{{ form.submit(class_="btn-primary-lg") }}</p>
   </form>
-  <p>New here? <a href="{{ url_for('auth.signup') }}">Create an account</a>.</p>
+  <p class="auth-switch">New here? <a href="{{ url_for('auth.signup') }}">Create an account</a>.</p>
+  </div>
 </section>
 {% endblock %}

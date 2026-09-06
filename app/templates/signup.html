@@ -1,16 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Create account · Solar Setu{% endblock %}
+{% block title %}Create account · SIGNIX{% endblock %}
 {% block content %}
-<section class="page-section">
-  <h1>Create account</h1>
-  <form method="post">
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-heading">
+      <p class="eyebrow">SIGNIX account</p>
+      <h1>Create account</h1>
+      <p>Save estimates and keep your solar plans together.</p>
+    </div>
+  <form method="post" class="auth-form">
     {{ form.hidden_tag() }}
-    <p>{{ form.display_name.label }} {{ form.display_name() }} {% for error in form.display_name.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p>{{ form.email.label }} {{ form.email() }} {% for error in form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p>{{ form.password.label }} {{ form.password() }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p>{{ form.confirm_password.label }} {{ form.confirm_password() }} {% for error in form.confirm_password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p>{{ form.submit() }}</p>
+    <p class="auth-field">{{ form.display_name.label }} {{ form.display_name(class_="auth-input") }} {% for error in form.display_name.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p class="auth-field">{{ form.email.label }} {{ form.email(class_="auth-input") }} {% for error in form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p class="auth-field">{{ form.password.label }} {{ form.password(class_="auth-input") }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p class="auth-field">{{ form.confirm_password.label }} {{ form.confirm_password(class_="auth-input") }} {% for error in form.confirm_password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+    <p class="auth-submit">{{ form.submit(class_="btn-primary-lg") }}</p>
   </form>
-  <p>Already registered? <a href="{{ url_for('auth.login') }}">Log in</a>.</p>
+  <p class="auth-switch">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a>.</p>
+  </div>
 </section>
 {% endblock %}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Solar Setu — Bridging You to Clean Energy{% endblock %}</title>
+  <title>{% block title %}SIGNIX — Bridging You to Clean Energy{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
           </svg>
         </span>
         <span class="logo-text">
-          <span class="logo-name">Solar Setu</span>
+          <span class="logo-name">SIGNIX</span>
           <span class="logo-tagline">Bridging You to Clean Energy</span>
         </span>
       </a>
@@ -79,18 +79,19 @@
         <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">☰</button>
         <div class="top-bar-right">
           <button type="button" class="icon-btn" title="Notifications" aria-label="Notifications">🔔</button>
+          {% if current_user.is_authenticated %}
           <div class="user-chip">
-            <span class="avatar">{{ current_user.display_name[0]|upper if current_user.is_authenticated else 'S' }}</span>
-            <span class="user-name">{{ current_user.display_name if current_user.is_authenticated else 'Welcome' }}</span>
+            <span class="avatar">{{ current_user.display_name[0]|upper }}</span>
+            <span class="user-name">{{ current_user.display_name }}</span>
             <span class="chevron">▾</span>
           </div>
-          {% if current_user.is_authenticated %}
           <form method="post" action="{{ url_for('auth.logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="icon-btn" title="Log out">↪</button>
           </form>
           {% else %}
-          <a href="{{ url_for('auth.login') }}" class="icon-btn">Log in</a>
+          <a href="{{ url_for('auth.login') }}" class="auth-link">Log in</a>
+          <a href="{{ url_for('auth.signup') }}" class="auth-link auth-link-primary">Create account</a>
           {% endif %}
         </div>
       </header>
@@ -100,7 +101,7 @@
       </main>
 
       <footer class="site-footer">
-        <p>Solar Setu · Indicative estimates only · Verify DISCOM / MNRE rules before procurement</p>
+        <p>SIGNIX · Indicative estimates only · Verify DISCOM / MNRE rules before procurement</p>
       </footer>
     </div>
   </div>
