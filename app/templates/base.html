@@ -53,7 +53,7 @@
         <a href="{{ url_for('pages.dashboard') }}" class="nav-item">
           <span class="nav-ico">📍</span> Saved Locations
         </a>
-        <a href="{{ url_for('pages.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">
+        <a href="{{ url_for('pages.compare') }}" class="nav-item {% if request.endpoint == 'pages.compare' %}active{% endif %}">
           <span class="nav-ico">⇄</span> Compare
         </a>
         <a href="{{ url_for('pages.dashboard') }}" class="nav-item nav-disabled" title="Coming soon">

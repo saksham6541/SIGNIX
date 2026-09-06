@@ -361,6 +361,41 @@ body.ignix-body {
 }
 .loading-panel.hidden { display: none; }
 
+/* ---------- Compare ---------- */
+.compare-page { padding: 18px 0 24px; }
+.compare-header { margin-bottom: 18px; }
+.compare-header h1 { margin: 0 0 6px; color: var(--indigo); font-size: 28px; }
+.compare-header p:last-child { margin: 0; color: var(--gray); font-size: 13px; }
+.compare-picker, .comparison-card, .compare-empty {
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 20px;
+  margin-bottom: 20px;
+}
+.compare-picker-heading, .comparison-heading {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px;
+}
+.compare-picker h2, .comparison-heading h2, .compare-empty h2 { margin: 0 0 4px; color: var(--indigo); font-size: 19px; }
+.compare-picker p { margin: 0; color: var(--gray); font-size: 12px; }
+.location-checklist { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.location-option {
+  display: flex; align-items: flex-start; gap: 10px; padding: 13px; border: 1px solid var(--border);
+  border-radius: 12px; background: #faf8ff; cursor: pointer;
+}
+.location-option:hover { border-color: #cfc1ef; background: #fff; }
+.location-option input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--indigo); }
+.location-option strong { display: block; color: var(--indigo); font-size: 13px; line-height: 1.35; }
+.location-option small { display: block; color: var(--gray); font-size: 11px; margin-top: 4px; }
+.comparison-count { color: var(--gray); font-size: 12px; font-weight: 700; }
+.comparison-scroll { overflow-x: auto; }
+.comparison-table { width: 100%; min-width: 620px; border-collapse: collapse; }
+.comparison-table th, .comparison-table td { padding: 13px 12px; border-bottom: 1px solid var(--border); text-align: right; font-size: 13px; }
+.comparison-table thead th { color: var(--indigo); background: #faf8ff; font-weight: 800; }
+.comparison-table thead th:first-child, .comparison-table tbody th { text-align: left; }
+.comparison-table tbody th { color: var(--gray); font-weight: 700; white-space: nowrap; }
+.comparison-table tbody td { color: var(--text); font-weight: 700; }
+.compare-empty { text-align: center; padding: 42px 24px; }
+.compare-empty p { color: var(--gray); font-size: 13px; margin: 0 0 20px; }
+.compare-selection-error { color: #b42318; background: #fff1f0; border: 1px solid #f4c7c3; border-radius: 10px; padding: 11px 13px; font-size: 13px; font-weight: 700; }
+
 /* ---------- Report ---------- */
 .report-header {
   display: flex; justify-content: space-between; align-items: flex-start;

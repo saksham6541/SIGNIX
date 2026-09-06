@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Compare · SIGNIX{% endblock %}
+{% block content %}
+<section class="compare-page">
+  <div class="compare-header">
+    <div>
+      <p class="eyebrow">Saved locations</p>
+      <h1>Compare estimates</h1>
+      <p>Select two or three saved locations to compare their planning figures side by side.</p>
+    </div>
+  </div>
+
+  {% if locations|length < 2 %}
+  <div class="compare-empty">
+    <h2>Save at least 2 locations to compare them</h2>
+    <p>Run another estimate and save it to see the differences here.</p>
+    <a class="btn-grad" href="{{ url_for('pages.index') }}">Start an estimate</a>
+  </div>
+  {% else %}
+  <form method="post" class="compare-picker">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="compare-picker-heading">
+      <div>
+        <h2>Choose locations</h2>
+        <p>Pick 2 or 3 saved estimates.</p>
+      </div>
+      <button type="submit" class="btn-primary-lg">Compare selected</button>
+    </div>
+    <div class="location-checklist">
+      {% for location in locations %}
+      <label class="location-option">
+        <input type="checkbox" name="location_ids" value="{{ location.id }}" {% if location in selected_locations %}checked{% endif %}>
+        <span>
+          <strong>{{ location.address }}</strong>
+          <small>Saved {{ location.created_at.strftime("%b %d, %Y") }}</small>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+  </form>
+
+  {% if selected_locations|length >= 2 %}
+  <section class="comparison-card">
+    <div class="comparison-heading">
+      <div>
+        <p class="eyebrow">Side-by-side view</p>
+        <h2>Estimate comparison</h2>
+      </div>
+      <span class="comparison-count">{{ selected_locations|length }} locations</span>
+    </div>
+    <div class="comparison-scroll">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            {% for location in selected_locations %}
+            <th>{{ location.address }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>System size</th>{% for location in selected_locations %}<td>{{ "%.2f"|format(location.system_size or 0) }} kW</td>{% endfor %}</tr>
+          <tr><th>Annual generation</th>{% for location in selected_locations %}<td>{{ "%.0f"|format(location.annual_generation or 0) }} kWh</td>{% endfor %}</tr>
+          <tr><th>Monthly savings</th>{% for location in selected_locations %}<td>&#8377;{{ "%.0f"|format(location.monthly_savings or 0) }}</td>{% endfor %}</tr>
+          <tr><th>Payback period</th>{% for location in selected_locations %}<td>{{ "%.1f"|format(location.payback_years or 0) }} years</td>{% endfor %}</tr>
+          <tr><th>System cost</th>{% for location in selected_locations %}<td>&#8377;{{ "%.0f"|format(location.system_cost or 0) }}</td>{% endfor %}</tr>
+          <tr><th>Subsidy</th>{% for location in selected_locations %}<td>&#8377;{{ "%.0f"|format(location.subsidy_amount or 0) }}</td>{% endfor %}</tr>
+          <tr><th>Roof area</th>{% for location in selected_locations %}<td>{{ "%.2f"|format(location.roof_area_sqm or 0) }} m²</td>{% endfor %}</tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% elif request.method == "POST" %}
+  <p class="compare-selection-error">Select at least 2 of your saved locations to compare them.</p>
+  {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

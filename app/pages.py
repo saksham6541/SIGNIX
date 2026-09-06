@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, jsonify, render_template, send_file
+from flask import Blueprint, abort, jsonify, render_template, request, send_file
 from flask_login import current_user, login_required
 
 from app.report_generator import generate_pdf_report
@@ -17,6 +17,34 @@ def index():
 def dashboard():
     recent = location_service.list_recent_locations(current_user.id)
     return render_template("dashboard.html", locations=recent)
+
+
+@pages_bp.route("/compare", methods=["GET", "POST"])
+@login_required
+def compare():
+    locations = location_service.list_locations(current_user.id)
+    selected_locations = []
+
+    if request.method == "POST":
+        try:
+            selected_ids = [
+                int(location_id) for location_id in request.form.getlist("location_ids")
+            ]
+        except ValueError:
+            selected_ids = []
+
+        locations_by_id = {location.id: location for location in locations}
+        selected_locations = [
+            locations_by_id[location_id]
+            for location_id in selected_ids
+            if location_id in locations_by_id
+        ][:3]
+
+    return render_template(
+        "compare.html",
+        locations=locations,
+        selected_locations=selected_locations,
+    )
 
 
 @pages_bp.route("/report/<int:location_id>")
