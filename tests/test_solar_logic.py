@@ -22,6 +22,22 @@ def meters_to_degrees(meters):
     return math.degrees(meters / EARTH_RADIUS_M)
 
 
+def test_mock_irradiance_varies_by_latitude_and_longitude():
+    delhi = solar_logic._mock_irradiance_profile(28.6139, 77.2090)
+    shillong = solar_logic._mock_irradiance_profile(25.5788, 91.8933)
+    same_latitude_different_longitude = solar_logic._mock_irradiance_profile(
+        28.6139, 91.8933
+    )
+    same_longitude_different_latitude = solar_logic._mock_irradiance_profile(
+        25.5788, 77.2090
+    )
+
+    assert delhi != shillong
+    assert delhi["Jan"] != shillong["Jan"]
+    assert delhi != same_latitude_different_longitude
+    assert delhi != same_longitude_different_latitude
+
+
 def test_calculate_polygon_area_sqm_rectangle():
     width_m = 20.0
     height_m = 10.0
@@ -151,7 +167,7 @@ def test_fetch_solar_data_uses_mock_profile_when_external_fetches_fail():
 
     assert result == (mock_profile, None, "mock_fallback")
     assert http_get.call_count == 2
-    mock_profile_fetch.assert_called_once_with(28.6)
+    mock_profile_fetch.assert_called_once_with(28.6, 77.2)
     cache_writer.assert_called_once_with(
         28.6,
         77.2,

@@ -196,9 +196,22 @@ function initEstimationButton() {
     document.getElementById('result-area-summary').textContent =
       `Usable roof area: ${Number(data.usable_area_sqm || 0).toFixed(2)} m² ` +
       `of ${Number(data.roof_area_sqm || 0).toFixed(2)} m² total`;
-    document.getElementById('estimate-source').textContent = data.irradiance_source
-      ? `Irradiance: ${data.irradiance_source}`
+    const sourceLabel = {
+      nasa_power: 'NASA POWER',
+      pvgis: 'PVGIS',
+      mock_fallback: 'Estimated fallback'
+    }[data.irradiance_source] || data.irradiance_source || '';
+    document.getElementById('estimate-source').textContent = sourceLabel
+      ? `Irradiance: ${sourceLabel}`
       : '';
+    const sourceNote = document.getElementById('estimate-source-note');
+    if (sourceNote) {
+      const isFallback = data.irradiance_source === 'mock_fallback' || data.irradiance_source === 'estimated';
+      sourceNote.textContent = isFallback
+        ? 'Live irradiance services were unavailable. This result uses a rough location-adjusted estimate.'
+        : '';
+      sourceNote.classList.toggle('hidden', !isFallback);
+    }
 
     const reportLink = document.getElementById('view-full-report');
     if (reportLink && data.redirect_url) reportLink.href = data.redirect_url;

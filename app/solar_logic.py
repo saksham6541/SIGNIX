@@ -218,14 +218,20 @@ def calculate_usable_area(roof_area_sqm, obstruction_coordinates_list):
     return usable_area_sqm, obstructed_area_sqm
 
 
-def _mock_irradiance_profile(latitude):
-    """Deterministic mock monthly irradiance (kWh/m^2/day) as a safe
-    offline fallback. Latitude nudges the seasonal amplitude slightly so
-    northern vs southern locations feel distinct, without needing a real
-    climate model."""
+def _mock_irradiance_profile(latitude, longitude):
+    """Deterministic coordinate-aware mock irradiance for offline use.
+
+    This is deliberately a rough estimate, not a climate model. Latitude
+    adjusts the annual level by latitude band and longitude adds a small,
+    deterministic regional variation so nearby points do not all share one
+    national profile.
+    """
     hemisphere_shift = 0 if latitude >= 0 else 6  # flip seasons below equator
     profile = MOCK_MONTHLY_PSH[hemisphere_shift:] + MOCK_MONTHLY_PSH[:hemisphere_shift]
-    return {MONTH_NAMES[i]: profile[i] for i in range(12)}
+    latitude_factor = max(0.82, 1.08 - 0.0035 * abs(latitude))
+    longitude_factor = 1.0 + 0.04 * math.sin(math.radians(longitude))
+    location_factor = latitude_factor * longitude_factor
+    return {MONTH_NAMES[i]: round(profile[i] * location_factor, 2) for i in range(12)}
 
 
 def fetch_irradiance_nasa_power(latitude, longitude):
@@ -314,7 +320,7 @@ def fetch_irradiance_pvgis(latitude, longitude, peak_power_kw=1.0):
     except Exception:
         pass
 
-    return _mock_irradiance_profile(latitude), "mock_fallback"
+    return _mock_irradiance_profile(latitude, longitude), "mock_fallback"
 
 
 def fetch_solar_data(latitude, longitude, peak_power_kw=1.0):

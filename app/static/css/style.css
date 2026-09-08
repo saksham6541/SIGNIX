@@ -354,6 +354,11 @@ body.ignix-body {
 .estimate-result-heading h2 { margin: 0; color: var(--indigo); font-size: 20px; }
 .eyebrow { margin: 0 0 4px; color: var(--success); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
 .estimate-source { color: var(--gray); font-size: 11px; text-align: right; }
+.estimate-source-note {
+  margin: -6px 0 16px; padding: 10px 12px; border: 1px solid #f0d49a;
+  border-radius: 10px; background: #fff8e8; color: #795500; font-size: 12px;
+}
+.estimate-source-note.hidden { display: none; }
 .estimate-top-grid { display: grid; grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.5fr); gap: 14px; }
 .savings-card { position: relative; overflow: hidden; min-height: 220px; border-radius: 16px; padding: 24px; color: #1a1030; background: var(--grad-cta); box-shadow: 0 8px 22px rgba(255, 122, 69, 0.22); }
 .savings-card-copy { position: relative; z-index: 1; }
