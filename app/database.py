@@ -28,15 +28,14 @@ def initialize_database():
     if "user_id" in columns:
         return
 
-    if db.engine.dialect.name == "sqlite":
-        db.session.execute(text("DROP TABLE user_locations"))
-    else:
-        db.session.execute(text("DELETE FROM user_locations"))
-        db.session.execute(
-            text(
-                "ALTER TABLE user_locations "
-                "ADD COLUMN user_id INTEGER NOT NULL REFERENCES users(id)"
-            )
+    if db.engine.dialect.name != "sqlite":
+        raise RuntimeError(
+            "The PostgreSQL database contains a legacy user_locations table "
+            "without user_id. Run an explicit data migration before startup."
         )
+
+    # Legacy SQLite development databases had unowned locations. Recreate that
+    # table only for SQLite; never delete data automatically in PostgreSQL.
+    db.session.execute(text("DROP TABLE user_locations"))
     db.session.commit()
     db.create_all()

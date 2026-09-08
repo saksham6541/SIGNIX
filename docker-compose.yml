@@ -1,17 +1,50 @@
+x-web-common: &web-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .env
+  ports:
+    - "8000:8000"
+
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    <<: *web-common
     environment:
-      DATABASE_URL: sqlite:////app/data/solar_app.db
-    ports:
-      - "8000:8000"
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/solar_app.db}
     volumes:
       - solar_data:/app/data
+
+  web-postgres:
+    <<: *web-common
+    profiles:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql+psycopg2://solar:solar@postgres:5432/solar_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    profiles:
+      - postgres
+    environment:
+      POSTGRES_DB: solar_db
+      POSTGRES_USER: solar
+      POSTGRES_PASSWORD: solar
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solar -d solar_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   solar_data:
     name: rooftop_solar_estimator_data
+  postgres_data:
+    name: rooftop_solar_estimator_postgres_data

@@ -1,8 +1,7 @@
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DATABASE_URL=sqlite:////app/data/solar_app.db
+    PYTHONUNBUFFERED=1
 
 # Set SECRET_KEY at runtime. DATABASE_URL, NASA_POWER_URL, and PVGIS_URL may
 # also be overridden at runtime for a persistent database or alternate APIs.
