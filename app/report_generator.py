@@ -87,6 +87,10 @@ def generate_pdf_report(location):
     except Exception as weasy_err:
         # Fall through to ReportLab
         last_err = weasy_err
+        print(
+            "[WARN] WeasyPrint PDF generation unavailable; using ReportLab fallback: "
+            f"{type(weasy_err).__name__}: {weasy_err}"
+        )
 
     # --- ReportLab fallback (no system cairo/pango needed) ---
     try:

@@ -18,13 +18,22 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # External API endpoints
-    NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-    NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
-    PVGIS_URL = "https://re.jrc.ec.europa.eu/api/v5_2/PVcalc"
-    NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/climatology/point"
+    NOMINATIM_URL = os.environ.get(
+        "NOMINATIM_URL", "https://nominatim.openstreetmap.org/search"
+    )
+    NOMINATIM_REVERSE_URL = os.environ.get(
+        "NOMINATIM_REVERSE_URL", "https://nominatim.openstreetmap.org/reverse"
+    )
+    PVGIS_URL = os.environ.get(
+        "PVGIS_URL", "https://re.jrc.ec.europa.eu/api/v5_2/PVcalc"
+    )
+    NASA_POWER_URL = os.environ.get(
+        "NASA_POWER_URL",
+        "https://power.larc.nasa.gov/api/temporal/climatology/point",
+    )
 
     # Domain constants — aligned with India PV planning guide (Aug 2026)
-    SQM_PER_KWP = 10.0          # ~1 kWp per 10 m² usable shadow-free roof
+    SQM_PER_KWP = 10.0  # ~1 kWp per 10 m² usable shadow-free roof
     CO2_TONS_PER_KW_YEAR = 1.4  # Environmental impact factor
     # Residential installed cost band ~₹55k–85k/kW; use mid for estimates
     SYSTEM_COST_PER_KW = 65000
@@ -38,7 +47,7 @@ class Config:
     DEFAULT_TARIFF = 10.0
     DAILY_UNITS_PER_KW_LOW = 4.0
     DAILY_UNITS_PER_KW_HIGH = 5.5
-    MONTHLY_UNITS_PER_KW = 135.0      # ~4.5 units/day × 30
+    MONTHLY_UNITS_PER_KW = 135.0  # ~4.5 units/day × 30
     ANNUAL_UNITS_PER_KW = 135.0 * 12  # ~1620 kWh/kWp/year
     DEFAULT_PERFORMANCE_RATIO = 0.80
     DEFAULT_PEAK_SUN_HOURS = 5.0
