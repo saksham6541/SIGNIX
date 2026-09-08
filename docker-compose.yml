@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/solar_app.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - solar_data:/app/data
+
+volumes:
+  solar_data:
+    name: rooftop_solar_estimator_data
