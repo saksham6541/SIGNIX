@@ -232,6 +232,11 @@ function initEstimationButton() {
     const monthlyBill = monthlyBillRaw !== undefined && monthlyBillRaw !== ''
       ? parseFloat(monthlyBillRaw)
       : null;
+    const tariffRaw = document.getElementById('tariff-per-kwh')?.value;
+    const tariffPerKwh = tariffRaw !== undefined && tariffRaw !== ''
+      ? parseFloat(tariffRaw)
+      : null;
+    const state = document.getElementById('state')?.value || null;
     const propertyType = document.getElementById('property-type')?.value || 'residential';
     const needsBackup = document.getElementById('needs-backup')?.checked || false;
     const inverterPreference = document.getElementById('inverter-preference')?.value || 'auto';
@@ -249,6 +254,8 @@ function initEstimationButton() {
           longitude: selectedLatLng.lng,
           polygon: polygon,
           obstructions: obstructions,
+          state: state,
+          tariff_per_kwh: tariffPerKwh,
           orientation: orientationValue,
           battery_kwh: batteryKwh,
           monthly_bill: monthlyBill,

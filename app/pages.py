@@ -4,13 +4,25 @@ from flask_login import current_user, login_required
 from app.report_generator import generate_pdf_report
 from app.services import location_service
 from app.solar_logic import calculate_environmental_equivalents
+from app.forms import INDIAN_STATES
 
 pages_bp = Blueprint("pages", __name__)
 
 
 @pages_bp.route("/")
 def index():
-    return render_template("index.html")
+    user_settings = current_user if current_user.is_authenticated else None
+    return render_template(
+        "index.html",
+        default_tariff_per_kwh=(
+            user_settings.default_tariff_per_kwh if user_settings else None
+        ),
+        default_state=user_settings.default_state if user_settings else None,
+        default_property_type=(
+            user_settings.default_property_type if user_settings else None
+        ),
+        state_choices=INDIAN_STATES,
+    )
 
 
 @pages_bp.route("/dashboard")

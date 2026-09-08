@@ -62,7 +62,7 @@
         <a href="{{ url_for('auth.profile') }}" class="nav-item {% if request.endpoint == 'auth.profile' %}active{% endif %}">
           <span class="nav-ico">👤</span> Profile
         </a>
-        <a href="#" class="nav-item nav-disabled" title="Coming soon">
+        <a href="{{ url_for('auth.settings') }}" class="nav-item {% if request.endpoint == 'auth.settings' %}active{% endif %}">
           <span class="nav-ico">⚙</span> Settings
         </a>
       </nav>

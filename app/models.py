@@ -14,6 +14,9 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     display_name = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    default_tariff_per_kwh = db.Column(db.Float, nullable=True)
+    default_state = db.Column(db.String(128), nullable=True)
+    default_property_type = db.Column(db.String(32), nullable=True)
 
     locations = db.relationship(
         "UserLocation",

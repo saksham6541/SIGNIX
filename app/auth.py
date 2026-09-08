@@ -2,7 +2,13 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.forms import ChangePasswordForm, EditProfileForm, LoginForm, SignupForm
+from app.forms import (
+    ChangePasswordForm,
+    EditProfileForm,
+    LoginForm,
+    SettingsForm,
+    SignupForm,
+)
 from app.models import User, UserLocation, db
 
 auth_bp = Blueprint("auth", __name__)
@@ -60,6 +66,25 @@ def profile():
         password_form=password_form,
         location_count=location_count,
     )
+
+
+@auth_bp.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    form = SettingsForm(
+        default_tariff_per_kwh=current_user.default_tariff_per_kwh,
+        default_state=current_user.default_state or "",
+        default_property_type=current_user.default_property_type or "residential",
+    )
+    if form.validate_on_submit():
+        current_user.default_tariff_per_kwh = form.default_tariff_per_kwh.data
+        current_user.default_state = form.default_state.data or None
+        current_user.default_property_type = form.default_property_type.data or None
+        db.session.commit()
+        flash("Settings updated.", "success")
+        return redirect(url_for("auth.settings"))
+
+    return render_template("settings.html", form=form)
 
 
 @auth_bp.route("/signup", methods=["GET", "POST"])

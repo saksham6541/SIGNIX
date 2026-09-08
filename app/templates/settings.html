@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Settings · SIGNIX{% endblock %}
+{% block content %}
+<section class="profile-page">
+  <div class="profile-header">
+    <div>
+      <p class="eyebrow">Estimate defaults</p>
+      <h1>Settings</h1>
+      <p>Save the values you use most often for new solar estimates.</p>
+    </div>
+  </div>
+  {% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+      <p class="form-success profile-alert">{{ message }}</p>
+    {% endfor %}
+  {% endwith %}
+
+  <section class="profile-card" style="max-width: 620px;">
+    <div class="profile-card-heading">
+      <h2>Default Estimate Values</h2>
+      <p>These values will be pre-filled whenever you start a new estimate.</p>
+    </div>
+    <form method="post" class="profile-form">
+      {{ form.hidden_tag() }}
+      <p class="profile-field">{{ form.default_tariff_per_kwh.label }} {{ form.default_tariff_per_kwh(class_="auth-input", placeholder="e.g. 10") }} {% for error in form.default_tariff_per_kwh.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+      <p class="profile-field">{{ form.default_state.label }} {{ form.default_state(class_="auth-input") }} {% for error in form.default_state.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+      <p class="profile-field">{{ form.default_property_type.label }} {{ form.default_property_type(class_="auth-input") }} {% for error in form.default_property_type.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
+      <p class="profile-submit">{{ form.submit(class_="btn-primary-lg") }}</p>
+    </form>
+  </section>
+</section>
+{% endblock %}

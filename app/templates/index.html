@@ -109,11 +109,29 @@
     </div>
 
     <div class="option-card">
+      <label for="tariff-per-kwh">Tariff per kWh (₹)</label>
+      <input type="number" id="tariff-per-kwh" min="0" step="0.01" placeholder="e.g. 10"
+             value="{% if default_tariff_per_kwh is not none %}{{ default_tariff_per_kwh }}{% endif %}">
+      <small>Used for savings calculations when set.</small>
+    </div>
+
+    <div class="option-card">
+      <label for="state">State</label>
+      <select id="state">
+        <option value="">Use the default tariff</option>
+        {% for state in state_choices %}
+        <option value="{{ state }}" {% if default_state == state %}selected{% endif %}>{{ state }}</option>
+        {% endfor %}
+      </select>
+      <small>Used to look up a state tariff when no custom tariff is set.</small>
+    </div>
+
+    <div class="option-card">
       <label for="property-type">Property type</label>
       <select id="property-type">
-        <option value="residential">Residential home</option>
-        <option value="commercial">Shop / office / commercial</option>
-        <option value="remote">Remote / unreliable grid</option>
+        <option value="residential" {% if default_property_type in (none, 'residential') %}selected{% endif %}>Residential home</option>
+        <option value="commercial" {% if default_property_type == 'commercial' %}selected{% endif %}>Shop / office / commercial</option>
+        <option value="remote" {% if default_property_type == 'remote' %}selected{% endif %}>Remote / unreliable grid</option>
       </select>
       <small>Affects inverter recommendation (On-Grid / Hybrid / Off-Grid).</small>
     </div>

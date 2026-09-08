@@ -154,6 +154,61 @@ def test_profile_page_requires_login(app):
     assert response.headers["Location"].startswith("/login?next=")
 
 
+def test_settings_page_requires_login(app):
+    response = app.test_client().get("/settings")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith("/login?next=")
+
+
+def test_settings_save_persists_user_defaults(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.post(
+        "/settings",
+        data={
+            "default_tariff_per_kwh": "8.75",
+            "default_state": "Maharashtra",
+            "default_property_type": "commercial",
+            "submit": "Save settings",
+        },
+    )
+
+    assert response.status_code == 302
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").one()
+        assert user.default_tariff_per_kwh == 8.75
+        assert user.default_state == "Maharashtra"
+        assert user.default_property_type == "commercial"
+
+    settings_page = test_client.get("/settings")
+    assert settings_page.status_code == 200
+    assert b"Settings updated." in settings_page.data
+
+
+def test_saved_settings_prefill_new_estimate_form(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+    test_client.post(
+        "/settings",
+        data={
+            "default_tariff_per_kwh": "7.25",
+            "default_state": "Delhi",
+            "default_property_type": "remote",
+            "submit": "Save settings",
+        },
+    )
+
+    estimate_page = test_client.get("/")
+
+    assert estimate_page.status_code == 200
+    assert b'id="tariff-per-kwh"' in estimate_page.data
+    assert b'value="7.25"' in estimate_page.data
+    assert b'<option value="Delhi" selected>' in estimate_page.data
+    assert b'<option value="remote" selected>' in estimate_page.data
+
+
 def test_profile_display_name_and_email_update_succeeds(app):
     test_client = app.test_client()
     assert login(test_client, "test@example.com", "unused").status_code == 302

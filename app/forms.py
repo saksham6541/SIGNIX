@@ -1,6 +1,37 @@
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, PasswordField, StringField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms import (
+    FloatField,
+    HiddenField,
+    PasswordField,
+    SelectField,
+    StringField,
+    SubmitField,
+)
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    NumberRange,
+    Optional,
+)
+
+INDIAN_STATES = [
+    "Delhi",
+    "Uttar Pradesh",
+    "Maharashtra",
+    "Karnataka",
+    "Tamil Nadu",
+    "Gujarat",
+    "West Bengal",
+    "Rajasthan",
+]
+
+PROPERTY_TYPES = [
+    ("residential", "Residential home"),
+    ("commercial", "Shop / office / commercial"),
+    ("remote", "Remote / unreliable grid"),
+]
 
 
 class LoginForm(FlaskForm):
@@ -42,3 +73,21 @@ class ChangePasswordForm(FlaskForm):
         validators=[DataRequired(), EqualTo("new_password")],
     )
     submit = SubmitField("Change password")
+
+
+class SettingsForm(FlaskForm):
+    default_tariff_per_kwh = FloatField(
+        "Tariff per kWh (₹)",
+        validators=[Optional(), NumberRange(min=0)],
+    )
+    default_state = SelectField(
+        "State",
+        choices=[("", "Select a state")] + [(state, state) for state in INDIAN_STATES],
+        validators=[Optional()],
+    )
+    default_property_type = SelectField(
+        "Property type",
+        choices=PROPERTY_TYPES,
+        validators=[Optional()],
+    )
+    submit = SubmitField("Save settings")
