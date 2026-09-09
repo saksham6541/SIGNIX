@@ -1,120 +1,175 @@
 # SIGNIX
 
-**Track · Save · Impact**<br>
-Rooftop solar potential and subsidy estimator for Indian homes.
+**Track · Save · Impact**
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0.3-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]
+A rooftop solar potential and subsidy estimator for Indian homes. Draw your rooftop on a map, get a data-backed solar generation estimate, PM Surya Ghar subsidy calculation, and a downloadable PDF report — all scoped to your own account.
 
-SIGNIX helps homeowners in India understand the solar potential of their rooftop. Draw a rooftop footprint on a map, receive an estimated solar generation and financial outlook, and see an indicative PM Surya Ghar subsidy estimate. Results can be saved, reviewed from a dashboard, and exported as a PDF report.
+🔗 **Live app:** [https://signix.onrender.com](https://signix.onrender.com)
+*(Free-tier hosting — the app sleeps after 15 minutes of inactivity, so the first request after a while may take 30–60 seconds to wake up.)*
 
-## Key features
+![Python](https://img.shields.io/badge/python-3.11-blue)
+![Flask](https://img.shields.io/badge/flask-web%20framework-black)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-- Draw and edit rooftop polygons and obstructions on an interactive map.
-- Look up solar irradiance and temperature data through NASA POWER, with PVGIS and mock-data fallbacks.
-- Estimate system size, monthly and annual generation, savings, payback, environmental impact, and related metrics.
-- Calculate indicative PM Surya Ghar subsidy amounts based on system size and eligibility inputs.
-- Save estimates and browse recent results in a dashboard view.
-- Generate downloadable PDF reports using WeasyPrint, with a ReportLab fallback when required system libraries are unavailable.
+---
+
+## What it does
+
+SIGNIX estimates how much solar potential a rooftop has and what it would cost/save, using real location data rather than flat assumptions:
+
+1. Search for an address or paste a Google Maps link
+2. Draw your rooftop boundary on a satellite map, and mark non-usable areas (water tanks, staircases, AC units)
+3. Get an estimate: system size, annual generation, monthly savings, payback period, and PM Surya Ghar subsidy — calculated from real irradiance data for that exact latitude/longitude, not a generic national average
+4. Save estimates to your account, compare them side by side, and download a full PDF report
+
+---
+
+## Features
+
+- **Location-aware solar estimation** — pulls real irradiance data from NASA POWER and PVGIS for the exact coordinates drawn, with a location-sensitive offline fallback if both external APIs are unavailable (clearly flagged in the results, not silently substituted)
+- **Interactive rooftop drawing** — Leaflet-based polygon drawing for roof boundary and obstructions, with live area/capacity calculation
+- **PM Surya Ghar subsidy calculation** — indicative subsidy based on system size and property type
+- **Financial modeling** — system cost, net investment, monthly/annual savings, payback period, 25-year cashflow, LCOE
+- **PDF report generation** — a downloadable, detailed report per saved estimate (WeasyPrint, with a fallback renderer)
+- **User accounts** — signup/login/logout, with every saved location and estimate scoped privately to your account
+- **Dashboard** — quick overview of your recent estimates
+- **Compare** — put 2–3 of your saved locations side by side across system size, generation, savings, payback, and cost
+- **Savings** — aggregated view of total potential savings and environmental impact (CO₂ reduction, equivalent trees planted, fuel saved) across all your saved estimates
+- **Profile** — manage your display name, email, and password
+- **Settings** — save default tariff rate, state, and property type so new estimates start pre-filled
+- **Irradiance caching** — repeated lookups for the same location are cached, cutting estimate time from several seconds to well under 50ms on a cache hit
+
+---
 
 ## Tech stack
 
-| Layer           | Technology                           |
-| --------------- | ------------------------------------ |
-| Backend         | Flask 3.0.3                          |
-| Templates       | Jinja2                               |
-| Mapping         | Leaflet.js and Leaflet Draw          |
-| Persistence     | Flask-SQLAlchemy, SQLAlchemy, SQLite |
-| Solar modelling | pvlib, pandas, NumPy                 |
-| Data services   | NASA POWER, PVGIS, requests          |
-| Reports         | WeasyPrint, ReportLab fallback       |
-| Charts          | Chart.js                             |
+| Layer | Technology |
+|---|---|
+| Backend | Flask (blueprints + service layer) |
+| Database | PostgreSQL (production) / SQLite (local dev) via SQLAlchemy |
+| Auth | Flask-Login, Flask-WTF (CSRF), Werkzeug password hashing |
+| Solar calculations | pvlib-style modeling, NASA POWER & PVGIS APIs |
+| Caching | diskcache (irradiance lookups) |
+| PDF generation | WeasyPrint (primary), ReportLab (fallback) |
+| Frontend | Jinja2 templates, vanilla JS, Leaflet.js (maps), Chart.js (charts) |
+| Testing | pytest |
+| Containerization | Docker, docker-compose |
+| Deployment | Render (web service + PostgreSQL) |
+
+---
 
 ## Screenshots
 
-Screenshots will be added as the interface is documented:
+*(Add screenshots to a `docs/` folder and reference them here, e.g.)*
 
+```markdown
 ![Dashboard](docs/screenshot-dashboard.png)
+![Rooftop drawing](docs/screenshot-estimate.png)
+![Results panel](docs/screenshot-results.png)
+```
 
-![Rooftop estimate](docs/screenshot-estimate.png)
+---
 
-![Solar report](docs/screenshot-report.png)
+## Running locally
 
-## Setup
-
-### 1. Clone the repository
+### Option 1: Docker (recommended, matches production)
 
 ```bash
 git clone https://github.com/saksham6541/SIGNIX.git
-cd SIGNIX/solar_app
+cd SIGNIX
+cp .env.example .env   # then set a real SECRET_KEY
+docker compose up --build
+```
+Visit `http://localhost:8000`. This runs against local SQLite by default.
+
+To test against PostgreSQL locally (matching the production setup):
+```bash
+docker compose --profile postgres up --build web-postgres postgres
 ```
 
-### 2. Create and activate a virtual environment
+### Option 2: Local Python environment
 
-Windows PowerShell:
-
-```powershell
+```bash
+git clone https://github.com/saksham6541/SIGNIX.git
+cd SIGNIX
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-macOS or Linux:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
+.venv\Scripts\activate      # Windows
+# source .venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
-```
-
-### 4. Run the application
-
-```bash
 python run.py
 ```
+Visit `http://localhost:5000`.
 
-The development server runs at [http://127.0.0.1:5000](http://127.0.0.1:5000) by default.
+### Running tests
+
+```bash
+pytest
+```
+
+---
 
 ## Project structure
 
-```text
-app/
-├── __init__.py          # Flask application factory
-├── config.py            # Application and solar-model configuration
-├── models.py            # SQLAlchemy models and database setup
-├── report_generator.py  # HTML-to-PDF reports and fallback generation
-├── pages.py             # Page and report routes
-├── estimate.py          # Estimation API route
-├── locations.py         # Location and geocoding API routes
-├── services/
-│   ├── estimation_service.py # Estimation and persistence service
-│   └── location_service.py   # Location queries and geocoding service
-├── solar_logic.py       # Rooftop, irradiance, generation, and finance logic
-├── static/
-│   ├── css/style.css    # Application styles
-│   └── js/              # Map and dashboard interactions
-└── templates/           # Jinja2 page and report templates
 ```
+app/
+├── __init__.py
+├── config.py
+├── database.py            # schema init + safe startup migrations
+├── models.py               # User, UserLocation, TariffTable, SubsidyScheme
+├── solar_logic.py          # geometry, irradiance, financials, orchestration
+├── report_generator.py     # PDF generation (WeasyPrint + fallback)
+├── auth.py                 # signup, login, logout
+├── forms.py                # WTForms definitions
+├── services/
+│   ├── estimation_service.py
+│   ├── location_service.py
+│   └── cache.py             # diskcache-backed irradiance caching
+├── pages.py                 # dashboard, profile, compare, savings, settings
+├── estimate.py               # /api/estimate
+├── locations.py               # location CRUD, geocoding
+├── static/
+│   ├── css/style.css
+│   └── js/ (main.js, map.js)
+└── templates/
+tests/
+├── test_solar_logic.py
+├── test_routes.py
+├── test_auth.py
+├── test_compare.py
+├── test_savings.py
+└── conftest.py
+```
+
+---
 
 ## Roadmap
 
-SIGNIX is being improved incrementally rather than treated as a finished production platform. Current improvement areas include:
+This project is being built incrementally rather than all at once. Completed so far:
 
-- Add focused tests for geometry, solar calculations, subsidy rules, and API routes.
-- Cache repeated irradiance lookups and continue measuring endpoint performance.
-- Improve validation, observability, and error handling around external data services.
-- Containerize the application for more repeatable development and deployment.
-- Evaluate a larger frontend or backend migration only when product scope and usage justify it.
+- ✅ Core estimation engine with real irradiance data and location-sensitive fallback
+- ✅ Test suite covering calculations, routes, auth, and cross-user data isolation
+- ✅ Services-layer refactor (routes split into blueprints, business logic extracted)
+- ✅ Irradiance caching
+- ✅ Frontend polish (inline results panel, no full-page reload on estimate)
+- ✅ Full authentication with per-user data scoping
+- ✅ Compare, Savings, Profile, and Settings pages
+- ✅ Dockerized, deployed on Render with PostgreSQL
+
+Possible future directions: PDF comparison exports, richer savings tracking against real utility bills, notification preferences.
+
+---
 
 ## License
 
-This project is intended to be released under the MIT License.
+MIT — see [LICENSE](LICENSE).
+
+---
 
 ## Author
 
-Saksham Kaushik - [github.com/saksham6541/SIGNIX](https://github.com/saksham6541/SIGNIX)
+**Saksham Kaushik**
+[github.com/saksham6541/SIGNIX](https://github.com/saksham6541/SIGNIX)
+
+---
+
+*Indicative estimates only. Verify DISCOM / MNRE rules before procurement.*
