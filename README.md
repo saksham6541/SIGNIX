@@ -5,7 +5,7 @@
 A rooftop solar potential and subsidy estimator for Indian homes. Draw your rooftop on a map, get a data-backed solar generation estimate, PM Surya Ghar subsidy calculation, and a downloadable PDF report — all scoped to your own account.
 
 🔗 **Live app:** [https://signix.onrender.com](https://signix.onrender.com)
-*(Free-tier hosting — the app sleeps after 15 minutes of inactivity, so the first request after a while may take 30–60 seconds to wake up.)*
+_(Free-tier hosting — the app sleeps after 15 minutes of inactivity, so the first request after a while may take 30–60 seconds to wake up.)_
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![Flask](https://img.shields.io/badge/flask-web%20framework-black)
@@ -43,24 +43,24 @@ SIGNIX estimates how much solar potential a rooftop has and what it would cost/s
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Backend | Flask (blueprints + service layer) |
-| Database | PostgreSQL (production) / SQLite (local dev) via SQLAlchemy |
-| Auth | Flask-Login, Flask-WTF (CSRF), Werkzeug password hashing |
-| Solar calculations | pvlib-style modeling, NASA POWER & PVGIS APIs |
-| Caching | diskcache (irradiance lookups) |
-| PDF generation | WeasyPrint (primary), ReportLab (fallback) |
-| Frontend | Jinja2 templates, vanilla JS, Leaflet.js (maps), Chart.js (charts) |
-| Testing | pytest |
-| Containerization | Docker, docker-compose |
-| Deployment | Render (web service + PostgreSQL) |
+| Layer              | Technology                                                         |
+| ------------------ | ------------------------------------------------------------------ |
+| Backend            | Flask (blueprints + service layer)                                 |
+| Database           | PostgreSQL (production) / SQLite (local dev) via SQLAlchemy        |
+| Auth               | Flask-Login, Flask-WTF (CSRF), Werkzeug password hashing           |
+| Solar calculations | pvlib-style modeling, NASA POWER & PVGIS APIs                      |
+| Caching            | diskcache (irradiance lookups)                                     |
+| PDF generation     | WeasyPrint (primary), ReportLab (fallback)                         |
+| Frontend           | Jinja2 templates, vanilla JS, Leaflet.js (maps), Chart.js (charts) |
+| Testing            | pytest                                                             |
+| Containerization   | Docker, docker-compose                                             |
+| Deployment         | Render (web service + PostgreSQL)                                  |
 
 ---
 
 ## Screenshots
 
-*(Add screenshots to a `docs/` folder and reference them here, e.g.)*
+_(Add screenshots to a `docs/` folder and reference them here, e.g.)_
 
 ```markdown
 ![Dashboard](docs/screenshot-dashboard.png)
@@ -79,10 +79,31 @@ git clone https://github.com/saksham6541/SIGNIX.git
 cd SIGNIX
 cp .env.example .env   # then set a real SECRET_KEY
 docker compose up --build
+Visit `http://localhost:8000`. This runs against local SQLite by default.
 ```
+
 Visit `http://localhost:8000`. This runs against local SQLite by default.
 
+Set `GEMINI_API_KEY` in `.env` to enable the authenticated `POST /api/assistant`
+general FAQ endpoint. It accepts JSON such as `{"message":"How is subsidy estimated?"}`
+and returns `{"response":"..."}`. The endpoint allows 20 messages per user per
+UTC day. The first implementation keeps this counter in memory, so deployments
+with multiple worker processes or instances need a shared store such as Redis
+for a reliable global limit.
+
+To verify the real Gemini call locally, set `SIGNIX_TEST_EMAIL` and
+`SIGNIX_TEST_PASSWORD` in `.env`, start the app, then run:
+
+```bash
+python scripts/verify_assistant.py
+```
+
+Use `SIGNIX_BASE_URL` or `--base-url` when the app is not running at
+`http://localhost:5000`. The script logs in with a session, handles the login
+CSRF token, sends one sample question, and prints the assistant response.
+
 To test against PostgreSQL locally (matching the production setup):
+
 ```bash
 docker compose --profile postgres up --build web-postgres postgres
 ```
@@ -97,7 +118,9 @@ python -m venv .venv
 # source .venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
 python run.py
+Visit `http://localhost:5000`.
 ```
+
 Visit `http://localhost:5000`.
 
 ### Running tests
@@ -172,4 +195,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-*Indicative estimates only. Verify DISCOM / MNRE rules before procurement.*
+_Indicative estimates only. Verify DISCOM / MNRE rules before procurement._

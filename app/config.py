@@ -9,6 +9,9 @@ class Config:
     one-line change (just set SQLALCHEMY_DATABASE_URI via env var in prod)."""
 
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+    GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
+    ASSISTANT_DAILY_MESSAGE_LIMIT = 20
 
     # Prototype uses SQLite. For PostgreSQL in production, set DATABASE_URL, e.g.
     # postgresql+psycopg2://user:password@host:5432/solar_db
