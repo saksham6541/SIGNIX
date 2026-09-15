@@ -112,5 +112,45 @@
       document.querySelector('.app-shell')?.classList.toggle('sidebar-open');
     });
   </script>
+
+  {% if current_user.is_authenticated %}
+  <div id="assistant-widget" class="assistant-widget">
+    <button type="button" id="assistant-toggle" class="assistant-toggle-btn" aria-label="Open Assistant Chat" aria-expanded="false" aria-controls="assistant-panel" title="Ask Assistant">
+      <span class="assistant-icon-open">💬</span>
+      <span class="assistant-icon-close">✕</span>
+    </button>
+    <div id="assistant-panel" class="assistant-panel hidden" role="dialog" aria-label="SIGNIX Assistant" aria-hidden="true">
+      <div class="assistant-header">
+        <div class="assistant-header-title">
+          <span class="assistant-avatar">✨</span>
+          <div>
+            <h3>SIGNIX Assistant</h3>
+            <span class="assistant-status">Online · FAQ & Solar Info</span>
+          </div>
+        </div>
+        <button type="button" id="assistant-close-btn" class="assistant-close-btn" aria-label="Close Chat">✕</button>
+      </div>
+      <div class="assistant-disclaimer">
+        This assistant can make mistakes — verify important details with your DISCOM.
+      </div>
+      <div id="assistant-messages" class="assistant-messages" role="log" aria-live="polite" aria-relevant="additions">
+        <div class="chat-bubble assistant-bubble">
+          Hello, {{ current_user.display_name }}! 👋 How can I help you with rooftop solar or SIGNIX today?
+        </div>
+      </div>
+      <form id="assistant-form" class="assistant-input-area">
+        <input type="hidden" name="csrf_token" id="assistant-csrf" value="{{ csrf_token() }}">
+        <input type="text" id="assistant-input" class="assistant-input" placeholder="Ask a question..." autocomplete="off" required />
+        <button type="submit" id="assistant-send-btn" class="assistant-send-btn" aria-label="Send message">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/assistant.js') }}"></script>
+  {% endif %}
 </body>
 </html>
