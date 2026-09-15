@@ -687,14 +687,188 @@ def _azimuth_to_label(az):
 def orientation_factor(azimuth_deg):
     """
     Simple relative yield factor vs optimal south orientation for northern
-    India (approximate, based on typical Indian PV literature).
-    South ≈ 1.00, SE/SW ≈ 0.94–0.96, E/W ≈ 0.82–0.88, North ≈ 0.65–0.72.
+    India. The current cosine-like formula produces approximately:
+    South ≈ 1.00, SE/SW ≈ 0.90, E/W ≈ 0.65, and North ≈ 0.65.
+    Values are clamped to the range 0.65–1.00.
     """
     # Distance from south (180)
     d = min(abs((azimuth_deg % 360) - 180), 360 - abs((azimuth_deg % 360) - 180))
     # Cosine-like falloff
     factor = 0.70 + 0.30 * math.cos(math.radians(d * 1.1))
     return round(max(0.65, min(1.0, factor)), 3)
+
+
+def _tier_score(tier):
+    return {
+        "excellent": 100,
+        "good": 75,
+        "fair": 50,
+        "poor": 25,
+        "not_viable": 0,
+        "unavailable": 0,
+    }[tier]
+
+
+def _payback_tier(payback_years):
+    if payback_years is None or payback_years <= 0:
+        return "unavailable"
+    if payback_years <= 5:
+        return "excellent"
+    if payback_years <= 8:
+        return "good"
+    if payback_years <= 12:
+        return "fair"
+    return "poor"
+
+
+def _orientation_tier(factor):
+    if factor is None:
+        return "unavailable"
+    if factor >= 0.95:
+        return "excellent"
+    if factor >= 0.85:
+        return "good"
+    if factor > 0.65:
+        return "fair"
+    return "poor"
+
+
+def _roof_fit_tier(usable_area_sqm, system_size_kw):
+    if usable_area_sqm is None or system_size_kw is None or system_size_kw <= 0:
+        return "unavailable", None
+    ratio = usable_area_sqm / system_size_kw
+    if 10 <= ratio <= 16:
+        tier = "excellent"
+    elif 8 <= ratio < 10 or 16 < ratio <= 20:
+        tier = "good"
+    elif 6 <= ratio < 8 or 20 < ratio <= 25:
+        tier = "fair"
+    else:
+        tier = "poor"
+    return tier, round(ratio, 2)
+
+
+def _financial_viability_tier(net_investment, cashflow_25yr):
+    if net_investment is None or not cashflow_25yr:
+        return "unavailable", None
+    lifetime_savings = cashflow_25yr[-1] + net_investment
+    if lifetime_savings <= 0:
+        return "not_viable", None
+    ratio = net_investment / lifetime_savings
+    if ratio >= 1.0:
+        tier = "not_viable"
+    elif ratio <= 0.25:
+        tier = "excellent"
+    elif ratio <= 0.40:
+        tier = "good"
+    elif ratio <= 0.60:
+        tier = "fair"
+    else:
+        tier = "poor"
+    return tier, round(ratio, 3)
+
+
+def calculate_suitability_rating(estimate, user_priority="no_preference"):
+    """Score estimate suitability and data confidence separately."""
+    estimate = estimate or {}
+    payback_tier = _payback_tier(estimate.get("payback_years"))
+    orientation_tier = _orientation_tier(estimate.get("orientation_factor"))
+    roof_tier, roof_ratio = _roof_fit_tier(
+        estimate.get("usable_area_sqm"), estimate.get("system_size")
+    )
+    financial_tier, financial_ratio = _financial_viability_tier(
+        estimate.get("net_investment"), estimate.get("cashflow_25yr")
+    )
+
+    co2 = estimate.get("co2_reduction_tons")
+    if co2 is None or co2 < 0:
+        co2_score = 0
+        co2_tier = "unavailable"
+    else:
+        co2_score = round(min(100, co2 / 3 * 100))
+        co2_tier = (
+            "excellent" if co2_score >= 75
+            else "good" if co2_score >= 50
+            else "fair" if co2_score >= 25
+            else "poor"
+        )
+
+    inverter = str(estimate.get("inverter_type") or "").lower()
+    battery_kwh = float(estimate.get("battery_kwh") or 0)
+    if inverter == "off-grid":
+        backup_score = 100 if battery_kwh > 0 else 55
+    elif inverter == "hybrid":
+        backup_score = 90 if battery_kwh > 0 else 55
+    elif battery_kwh > 0:
+        backup_score = 45
+    else:
+        backup_score = 10
+
+    factors = {
+        "payback": {"tier": payback_tier, "score": _tier_score(payback_tier)},
+        "financial_viability": {
+            "tier": financial_tier,
+            "score": _tier_score(financial_tier),
+            "ratio": financial_ratio,
+        },
+        "roof_fit": {
+            "tier": roof_tier,
+            "score": _tier_score(roof_tier),
+            "usable_area_per_kw": roof_ratio,
+        },
+        "orientation": {
+            "tier": orientation_tier,
+            "score": _tier_score(orientation_tier),
+            "factor": estimate.get("orientation_factor"),
+        },
+        "co2_reduction": {
+            "tier": co2_tier,
+            "score": co2_score,
+            "tons": co2,
+        },
+        "backup_capability": {"score": backup_score},
+    }
+
+    weights = {
+        "payback": 25,
+        "financial_viability": 25,
+        "roof_fit": 15,
+        "orientation": 10,
+        "co2_reduction": 15,
+        "backup_capability": 10,
+    }
+    priority_weights = {
+        "fastest_payback": {"payback": 40, "financial_viability": 25, "roof_fit": 10, "orientation": 10, "co2_reduction": 5, "backup_capability": 10},
+        "maximum_savings": {"payback": 20, "financial_viability": 40, "roof_fit": 15, "orientation": 10, "co2_reduction": 5, "backup_capability": 10},
+        "environmental_impact": {"payback": 10, "financial_viability": 10, "roof_fit": 10, "orientation": 10, "co2_reduction": 50, "backup_capability": 10},
+        "backup_power": {"payback": 15, "financial_viability": 10, "roof_fit": 10, "orientation": 5, "co2_reduction": 5, "backup_capability": 55},
+    }
+    weights.update(priority_weights.get(user_priority, {}))
+    score = sum(
+        factors[name]["score"] * weight / 100
+        for name, weight in weights.items()
+    )
+    viability_score = round(score)
+    viability_tier = (
+        "excellent" if viability_score >= 85
+        else "good" if viability_score >= 65
+        else "fair" if viability_score >= 45
+        else "poor"
+    )
+    source = estimate.get("irradiance_source")
+    confidence = {
+        "pvgis": ("high", 100),
+        "nasa_power": ("high", 100),
+        "mock_fallback": ("low", 60),
+    }.get(source, ("low", 50))
+
+    return {
+        "overall_viability": {"tier": viability_tier, "score": viability_score},
+        "data_confidence": {"tier": confidence[0], "score": confidence[1]},
+        "user_priority": user_priority,
+        "weights": weights,
+        "factors": factors,
+    }
 
 
 def resolve_orientation(orientation_input, coordinates):
@@ -853,6 +1027,7 @@ def run_full_estimation(
     battery_kwh=0.0,
     monthly_bill=None,
     property_type="residential",
+    user_priority="no_preference",
     needs_backup=False,
     inverter_preference="auto",
 ):
@@ -984,6 +1159,9 @@ def run_full_estimation(
         "dc_note": "System size is DC kWp. AC output depends on PR, irradiance and grid availability.",
         **financials,
     }
+    result["suitability_rating"] = calculate_suitability_rating(
+        result, user_priority=user_priority or "no_preference"
+    )
     if bill_sizing:
         result["bill_sizing"] = bill_sizing
     return result

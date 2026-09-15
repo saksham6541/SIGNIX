@@ -38,6 +38,85 @@ def test_mock_irradiance_varies_by_latitude_and_longitude():
     assert delhi != same_longitude_different_latitude
 
 
+def rating_estimate(**overrides):
+    estimate = {
+        "payback_years": 4,
+        "orientation_factor": 1.0,
+        "usable_area_sqm": 12,
+        "system_size": 1,
+        "net_investment": 20000,
+        "cashflow_25yr": [100000],
+        "co2_reduction_tons": 3,
+        "irradiance_source": "pvgis",
+        "inverter_type": "off-grid",
+        "battery_kwh": 10,
+    }
+    estimate.update(overrides)
+    return estimate
+
+
+def test_suitability_rating_excellent_everything():
+    rating = solar_logic.calculate_suitability_rating(rating_estimate())
+
+    assert rating["overall_viability"]["tier"] == "excellent"
+    assert rating["overall_viability"]["score"] == 100
+    assert rating["data_confidence"] == {"tier": "high", "score": 100}
+
+
+def test_suitability_rating_poor_everything():
+    rating = solar_logic.calculate_suitability_rating(
+        rating_estimate(
+            payback_years=15,
+            orientation_factor=0.65,
+            usable_area_sqm=3,
+            system_size=1,
+            net_investment=100000,
+            cashflow_25yr=[-10000],
+            co2_reduction_tons=0.1,
+            irradiance_source="mock_fallback",
+            inverter_type="on-grid",
+            battery_kwh=0,
+        )
+    )
+
+    assert rating["overall_viability"]["tier"] == "poor"
+    assert rating["data_confidence"] == {"tier": "low", "score": 60}
+
+
+def test_suitability_rating_marks_not_viable_financial_case():
+    rating = solar_logic.calculate_suitability_rating(
+        rating_estimate(net_investment=100000, cashflow_25yr=[0])
+    )
+
+    financial = rating["factors"]["financial_viability"]
+    assert financial["ratio"] == 1.0
+    assert financial["tier"] == "not_viable"
+    assert financial["score"] == 0
+
+
+def test_suitability_rating_priority_changes_weighting():
+    estimate = rating_estimate(
+        payback_years=4,
+        co2_reduction_tons=0.3,
+        inverter_type="on-grid",
+        battery_kwh=0,
+    )
+
+    payback_rating = solar_logic.calculate_suitability_rating(
+        estimate, user_priority="fastest_payback"
+    )
+    environmental_rating = solar_logic.calculate_suitability_rating(
+        estimate, user_priority="environmental_impact"
+    )
+
+    assert (
+        payback_rating["overall_viability"]["score"]
+        > environmental_rating["overall_viability"]["score"]
+    )
+    assert payback_rating["weights"]["payback"] == 40
+    assert environmental_rating["weights"]["co2_reduction"] == 50
+
+
 def test_calculate_polygon_area_sqm_rectangle():
     width_m = 20.0
     height_m = 10.0

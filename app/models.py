@@ -91,6 +91,7 @@ class UserLocation(db.Model):
     lifetime_kwh = db.Column(db.Float, nullable=True)
     self_consumption_frac = db.Column(db.Float, nullable=True)
     payback_years = db.Column(db.Float, nullable=True)
+    suitability_rating = db.Column(db.JSON, nullable=True)
     # Flexible bag for any extra numbers / labels
     extras = db.Column(db.JSON, nullable=True)
 
@@ -132,6 +133,7 @@ class UserLocation(db.Model):
             "lifetime_kwh": self.lifetime_kwh,
             "self_consumption_frac": self.self_consumption_frac,
             "payback_years": self.payback_years,
+            "suitability_rating": self.suitability_rating,
             "extras": self.extras,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

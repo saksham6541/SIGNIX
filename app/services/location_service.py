@@ -34,6 +34,7 @@ def get_report_context(location_id, user_id):
     if location is None:
         return None
     loc_dict = location.to_dict()
+    loc_dict["suitability_rating"] = location.suitability_rating
     extras = loc_dict.get("extras") or {}
     loc_dict["environmental_equivalents"] = extras.get(
         "environmental_equivalents"

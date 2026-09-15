@@ -102,6 +102,7 @@ def create_estimate(
             battery_kwh=battery_kwh,
             monthly_bill=monthly_bill,
             property_type=property_type,
+            user_priority=user_priority,
             needs_backup=needs_backup,
             inverter_preference=inverter_preference,
         )
@@ -145,6 +146,7 @@ def create_estimate(
             lifetime_kwh=result.get("lifetime_kwh"),
             self_consumption_frac=result.get("self_consumption_frac"),
             payback_years=result.get("payback_years"),
+            suitability_rating=result.get("suitability_rating"),
             extras={
                 "orientation_source": result.get("orientation_source"),
                 "cashflow_25yr": result.get("cashflow_25yr"),

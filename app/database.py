@@ -48,3 +48,13 @@ def initialize_database():
             )
         )
         db.session.commit()
+        columns.add("user_priority")
+
+    if "suitability_rating" not in columns:
+        db.session.execute(
+            text(
+                "ALTER TABLE user_locations "
+                "ADD COLUMN suitability_rating JSON"
+            )
+        )
+        db.session.commit()
