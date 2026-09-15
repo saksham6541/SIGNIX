@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
   const widget = document.getElementById('assistant-widget');
   if (!widget) return;
 

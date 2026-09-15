@@ -52,6 +52,7 @@ def get_report_context(location_id, user_id):
         "rule_of_thumb_monthly_units",
         "rule_of_thumb_annual_units",
         "property_type",
+        "user_priority",
         "needs_backup",
         "planning_notes",
         "system_cost_low",

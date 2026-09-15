@@ -25,17 +25,26 @@ def initialize_database():
         return
 
     columns = {column["name"] for column in inspector.get_columns("user_locations")}
-    if "user_id" in columns:
+    if "user_id" not in columns:
+        if db.engine.dialect.name != "sqlite":
+            raise RuntimeError(
+                "The PostgreSQL database contains a legacy user_locations table "
+                "without user_id. Run an explicit data migration before startup."
+            )
+
+        # Legacy SQLite development databases had unowned locations. Recreate
+        # that table only for SQLite; never delete data automatically in
+        # PostgreSQL.
+        db.session.execute(text("DROP TABLE user_locations"))
+        db.session.commit()
+        db.create_all()
         return
 
-    if db.engine.dialect.name != "sqlite":
-        raise RuntimeError(
-            "The PostgreSQL database contains a legacy user_locations table "
-            "without user_id. Run an explicit data migration before startup."
+    if "user_priority" not in columns:
+        db.session.execute(
+            text(
+                "ALTER TABLE user_locations "
+                "ADD COLUMN user_priority VARCHAR(32)"
+            )
         )
-
-    # Legacy SQLite development databases had unowned locations. Recreate that
-    # table only for SQLite; never delete data automatically in PostgreSQL.
-    db.session.execute(text("DROP TABLE user_locations"))
-    db.session.commit()
-    db.create_all()
+        db.session.commit()

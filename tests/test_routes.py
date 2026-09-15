@@ -1,9 +1,10 @@
 from unittest.mock import patch
 
 from app import solar_logic
+from app.models import UserLocation, db
 
 
-def test_api_estimate_returns_estimate_for_valid_polygon(client):
+def test_api_estimate_returns_estimate_for_valid_polygon(client, app):
     payload = {
         "address": "Test rooftop",
         "latitude": 28.6139,
@@ -32,7 +33,39 @@ def test_api_estimate_returns_estimate_for_valid_polygon(client):
     assert data["irradiance_source"] == "test_fixture"
     assert data["roof_area_sqm"] > 0
     assert data["annual_generation"] > 0
+    with app.app_context():
+        location = db.session.get(UserLocation, data["location_id"])
+        assert location.user_priority == "no_preference"
     solar_data_fetch.assert_called_once()
+
+
+def test_api_estimate_saves_and_retrieves_user_priority(client, app):
+    payload = {
+        "address": "Priority rooftop",
+        "latitude": 28.6139,
+        "longitude": 77.2090,
+        "polygon": [
+            [28.6139, 77.2090],
+            [28.6139, 77.2092],
+            [28.6141, 77.2092],
+            [28.6141, 77.2090],
+        ],
+        "user_priority": "backup_power",
+    }
+    irradiance = {month: 5.0 for month in solar_logic.MONTH_NAMES}
+
+    with patch.object(
+        solar_logic,
+        "fetch_solar_data",
+        return_value=(irradiance, None, "test_fixture"),
+    ):
+        response = client.post("/api/estimate", json=payload)
+
+    assert response.status_code == 200
+    with app.app_context():
+        location = db.session.get(UserLocation, response.get_json()["location_id"])
+        assert location.user_priority == "backup_power"
+        assert location.to_dict()["user_priority"] == "backup_power"
 
 
 def test_api_estimate_rejects_malformed_polygon(client):

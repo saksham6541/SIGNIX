@@ -68,6 +68,7 @@ def prepare_estimate_inputs(payload):
         "battery_kwh": battery_kwh,
         "monthly_bill": monthly_bill,
         "property_type": payload.get("property_type") or "residential",
+        "user_priority": payload.get("user_priority") or "no_preference",
         "needs_backup": bool(payload.get("needs_backup")),
         "inverter_preference": payload.get("inverter_preference") or "auto",
     }
@@ -85,6 +86,7 @@ def create_estimate(
     battery_kwh=0.0,
     monthly_bill=None,
     property_type="residential",
+    user_priority="no_preference",
     needs_backup=False,
     inverter_preference="auto",
 ):
@@ -112,6 +114,7 @@ def create_estimate(
             address=address,
             latitude=latitude,
             longitude=longitude,
+            user_priority=user_priority or "no_preference",
             polygon_geojson={"type": "Polygon", "coordinates": [polygon]},
             obstructions_geojson=(
                 {"type": "MultiPolygon", "coordinates": [[o] for o in obstructions]}

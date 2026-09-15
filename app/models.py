@@ -42,6 +42,9 @@ class UserLocation(db.Model):
     address = db.Column(db.String(512), nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
+    user_priority = db.Column(
+        db.String(32), nullable=True, default="no_preference"
+    )
 
     # GeoJSON polygon of the drawn rooftop, stored as JSON text (SQLite has
     # no native JSON type, SQLAlchemy's JSON type handles serialization).
@@ -100,6 +103,7 @@ class UserLocation(db.Model):
             "address": self.address,
             "latitude": self.latitude,
             "longitude": self.longitude,
+            "user_priority": self.user_priority or "no_preference",
             "polygon_geojson": self.polygon_geojson,
             "obstructions_geojson": self.obstructions_geojson,
             "system_size": round(self.system_size, 2),

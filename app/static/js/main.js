@@ -251,6 +251,7 @@ function initEstimationButton() {
       : null;
     const state = document.getElementById('state')?.value || null;
     const propertyType = document.getElementById('property-type')?.value || 'residential';
+    const userPriority = document.getElementById('user-priority')?.value || 'no_preference';
     const needsBackup = document.getElementById('needs-backup')?.checked || false;
     const inverterPreference = document.getElementById('inverter-preference')?.value || 'auto';
 
@@ -273,6 +274,7 @@ function initEstimationButton() {
           battery_kwh: batteryKwh,
           monthly_bill: monthlyBill,
           property_type: propertyType,
+          user_priority: userPriority,
           needs_backup: needsBackup,
           inverter_preference: inverterPreference
         })
