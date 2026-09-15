@@ -30,6 +30,17 @@
   .footer-note { margin-top: 18px; font-size: 8.5px; color: #888; border-top: 1px solid #eee; padding-top: 8px; }
   .two-col { width: 100%; }
   .two-col td { width: 50%; vertical-align: top; padding-right: 10px; }
+  .rating-box { background: #faf8ff; border: 1px solid #e0d6f0; padding: 8px 10px; margin: 8px 0 10px; }
+  .rating-box td { border: 0; padding: 3px 6px; }
+  .rating-score { color: #3d2570; font-size: 15px; font-weight: bold; }
+  .rating-good { color: #247447; }
+  .rating-fair { color: #a65d0a; }
+  .rating-poor { color: #a13b3b; }
+  .rating-bar { height: 7px; width: 100%; background: #eee8f7; border-radius: 4px; }
+  .rating-bar-fill { height: 7px; border-radius: 4px; }
+  .rating-bar-fill.rating-excellent, .rating-bar-fill.rating-good { background: #3f9d68; }
+  .rating-bar-fill.rating-fair { background: #c47a0b; }
+  .rating-bar-fill.rating-poor { background: #b84d55; }
 </style>
 </head>
 <body>
@@ -85,6 +96,29 @@
     {% endif %}
     <tr><td>Recommended range</td><td>{{ loc.bill_sizing.recommended_min_kw }}–{{ loc.bill_sizing.recommended_max_kw }} kW</td></tr>
     <tr><td>Design size used</td><td><strong>{{ loc.system_size }} kW</strong> (capped by roof if needed)</td></tr>
+  </table>
+  {% endif %}
+
+  {% if loc.suitability_rating %}
+  {% set rating = loc.suitability_rating %}
+  <h2>Suitability rating</h2>
+  <table class="rating-box">
+    <tr><td>Overall viability</td><td class="rating-score rating-{{ rating.overall_viability.tier or 'fair' }}">{{ (rating.overall_viability.tier or 'Unknown')|title }} — {{ rating.overall_viability.score }}/100</td></tr>
+    <tr><td>Estimate confidence</td><td><strong>{{ (rating.data_confidence.tier or 'Unknown')|title }}</strong> ({{ rating.data_confidence.score }}/100)</td></tr>
+    {% if rating.user_priority %}<tr><td>Priority</td><td>{{ rating.user_priority|replace('_', ' ')|title }}</td></tr>{% endif %}
+  </table>
+  <table>
+    <tr><th>Factor</th><th>Score</th><th>Tier / detail</th></tr>
+    {% for key, label in [('payback', 'Payback'), ('financial_viability', 'Financial viability'), ('roof_fit', 'Roof fit'), ('orientation', 'Orientation'), ('co2_reduction', 'CO2 reduction'), ('backup_capability', 'Backup capability')] %}
+    {% set factor = (rating.factors or {}).get(key) %}
+    {% if factor %}
+    <tr>
+      <td>{{ label }}</td>
+      <td style="width:32%;"><div class="rating-bar"><div class="rating-bar-fill rating-{{ factor.tier or 'fair' }}" style="width:{{ factor.score or 0 }}%;"></div></div><span class="muted">{{ factor.score or 0 }}/100</span></td>
+      <td>{% if factor.tier %}{{ factor.tier|title }} — {% endif %}{% if key == 'roof_fit' %}{{ factor.usable_area_per_kw }} m² usable area per kW{% elif key == 'orientation' %}{{ factor.factor }} relative yield factor{% elif key == 'co2_reduction' %}{{ factor.tons }} tons CO2 reduction per year{% elif key == 'backup_capability' %}{{ factor.score }}/100 backup capability{% else %}{{ factor.tier|title }}{% endif %}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
   </table>
   {% endif %}
 

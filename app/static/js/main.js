@@ -180,6 +180,56 @@ function initEstimationButton() {
     const resultPanel = document.getElementById('estimate-result');
     if (!resultPanel) return;
 
+    const ratingHost = document.getElementById('result-suitability-rating');
+    if (ratingHost) {
+      ratingHost.innerHTML = '';
+      const rating = data.suitability_rating;
+      if (rating) {
+        const viability = rating.overall_viability || {};
+        const confidence = rating.data_confidence || {};
+        const factors = rating.factors || {};
+        const score = Math.max(0, Math.min(100, Number(viability.score || 0)));
+        const tier = (viability.tier || 'fair').toLowerCase();
+        const confidenceTier = (confidence.tier || 'unknown').replace(/_/g, ' ');
+        const priorityLabels = {
+          fastest_payback: 'Fastest payback',
+          maximum_savings: 'Maximum long-term savings',
+          environmental_impact: 'Environmental impact',
+          backup_power: 'Backup power',
+          no_preference: 'No strong preference'
+        };
+        const labels = {
+          payback: 'Payback',
+          financial_viability: 'Financial viability',
+          roof_fit: 'Roof fit',
+          orientation: 'Orientation',
+          co2_reduction: 'CO2 reduction',
+          backup_capability: 'Backup capability'
+        };
+        const detail = (key, factor) => {
+          if (key === 'payback') return `${factor.tier || 'Unavailable'} payback period`;
+          if (key === 'financial_viability') return `${factor.tier || 'Unavailable'} lifetime savings margin`;
+          if (key === 'roof_fit') return `${factor.usable_area_per_kw ?? '—'} m² usable area per kW`;
+          if (key === 'orientation') return `${factor.factor ?? '—'} relative yield factor`;
+          if (key === 'co2_reduction') return `${factor.tons ?? '—'} tons CO2 reduction per year`;
+          return `${factor.score ?? 0}/100 backup capability`;
+        };
+        const factorMarkup = Object.entries(labels).filter(([key]) => factors[key]).map(([key, label]) => {
+          const factor = factors[key];
+          const factorScore = Math.max(0, Math.min(100, Number(factor.score || 0)));
+          const factorTier = (factor.tier || 'fair').toLowerCase();
+          return `<div class="suitability-factor"><div class="factor-heading"><strong>${label}</strong>${factor.tier ? `<span class="factor-tier suitability-${factorTier}">${factor.tier.replace(/_/g, ' ')}</span>` : ''}<span class="factor-score">${factorScore}/100</span></div><div class="factor-bar" role="progressbar" aria-valuenow="${factorScore}" aria-valuemin="0" aria-valuemax="100"><span class="factor-bar-fill suitability-${factorTier}" style="width: ${factorScore}%"></span></div><span class="factor-detail">${detail(key, factor)}</span></div>`;
+        }).join('');
+        ratingHost.innerHTML = `
+          <section class="suitability-card">
+            <div class="suitability-primary">
+              <div class="score-ring-wrap" aria-label="Overall suitability score ${score} out of 100"><svg class="score-ring" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle class="score-ring-track" cx="50" cy="50" r="40"></circle><circle class="score-ring-progress suitability-${tier}" cx="50" cy="50" r="40" pathLength="100" style="stroke-dasharray: ${score} 100"></circle></svg><span class="score-ring-value"><strong>${score}</strong><small>/100</small></span></div>
+              <div class="suitability-primary-copy"><span class="suitability-label">Overall suitability</span><div class="suitability-badges"><span class="suitability-tier suitability-${tier}">${(viability.tier || 'Unknown').replace(/_/g, ' ')}</span><span class="confidence-badge">Estimate confidence: ${confidenceTier}</span></div>${rating.user_priority ? `<span class="suitability-priority">Priority: ${priorityLabels[rating.user_priority] || rating.user_priority.replace(/_/g, ' ')}</span>` : ''}</div>
+            </div>
+            <details class="suitability-details"><summary>View factor breakdown</summary><div class="suitability-factors">${factorMarkup}</div></details>
+          </section>`;
+      }
+    }
     const formatCurrency = value => `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
     document.getElementById('result-system-size').textContent = Number(data.system_size || 0).toFixed(2);
     document.getElementById('result-annual-generation').textContent = Number(data.annual_generation || 0).toLocaleString();

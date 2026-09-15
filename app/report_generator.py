@@ -129,6 +129,7 @@ def _generate_pdf_reportlab(loc):
         ListFlowable,
         ListItem,
     )
+    from reportlab.graphics.shapes import Drawing, Rect
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -232,6 +233,19 @@ def _generate_pdf_reportlab(loc):
         )
         story.append(t)
 
+    def rating_bar(score, tier):
+        score = max(0, min(100, float(score or 0)))
+        colors = {
+            "excellent": HexColor("#247447"),
+            "good": HexColor("#3f9d68"),
+            "fair": HexColor("#c47a0b"),
+            "poor": HexColor("#b84d55"),
+        }
+        drawing = Drawing(88 * mm, 5 * mm)
+        drawing.add(Rect(0, 1.5 * mm, 88 * mm, 2 * mm, fillColor=HexColor("#eee8f7"), strokeColor=None))
+        drawing.add(Rect(0, 1.5 * mm, 88 * mm * score / 100, 2 * mm, fillColor=colors.get(tier, colors["fair"]), strokeColor=None))
+        return drawing
+
     # Overview cards
     section("1. System overview")
     cards = [
@@ -309,6 +323,71 @@ def _generate_pdf_reportlab(loc):
                 ("Design size used", f"{loc.get('system_size')} kW"),
             ]
         )
+
+    rating = loc.get("suitability_rating")
+    if rating:
+        section("Suitability rating")
+        viability = rating.get("overall_viability") or {}
+        confidence = rating.get("data_confidence") or {}
+        rating_summary = [
+            ["Overall viability", f"{str(viability.get('tier') or 'Unknown').title()} — {viability.get('score', 0)}/100"],
+            ["Estimate confidence", f"{str(confidence.get('tier') or 'Unknown').title()} ({confidence.get('score', 0)}/100)"],
+        ]
+        if rating.get("user_priority"):
+            rating_summary.append(["Priority", str(rating["user_priority"]).replace("_", " ").title()])
+        summary_table = Table(rating_summary, colWidths=[48 * mm, 122 * mm])
+        summary_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), HexColor("#faf8ff")),
+            ("BOX", (0, 0), (-1, -1), 0.5, HexColor("#e0d6f0")),
+            ("TEXTCOLOR", (0, 0), (0, -1), purple),
+            ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        story.append(summary_table)
+        factor_labels = {
+            "payback": "Payback",
+            "financial_viability": "Financial viability",
+            "roof_fit": "Roof fit",
+            "orientation": "Orientation",
+            "co2_reduction": "CO2 reduction",
+            "backup_capability": "Backup capability",
+        }
+        factor_rows = [["Factor", "Score", "Tier / detail"]]
+        for key, label in factor_labels.items():
+            factor = (rating.get("factors") or {}).get(key)
+            if not factor:
+                continue
+            if key == "roof_fit":
+                detail = f"{factor.get('usable_area_per_kw')} m² usable area per kW"
+            elif key == "orientation":
+                detail = f"{factor.get('factor')} relative yield factor"
+            elif key == "co2_reduction":
+                detail = f"{factor.get('tons')} tons CO2 reduction per year"
+            elif key == "backup_capability":
+                detail = f"{factor.get('score', 0)}/100 backup capability"
+            else:
+                detail = str(factor.get("tier") or "Unavailable").title()
+            tier = str(factor.get("tier") or "fair").lower()
+            factor_rows.append([label, [rating_bar(factor.get("score", 0), tier), Paragraph(f"{factor.get('score', 0)}/100", styles["Muted"])], f"{str(factor.get('tier') or 'Unavailable').title()} — {detail}"])
+        if len(factor_rows) > 1:
+            factor_table = Table(factor_rows, colWidths=[35 * mm, 55 * mm, 80 * mm])
+            factor_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), light),
+                ("TEXTCOLOR", (0, 0), (-1, 0), purple),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("GRID", (0, 0), (-1, -1), 0.3, HexColor("#eeeeee")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]))
+            story.append(factor_table)
 
     section("2. Performance indicators")
     perf = []

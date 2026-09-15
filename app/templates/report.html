@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_suitability_rating.html" import rating_display %}
 {% block title %}SIGNIX — Detailed Report{% endblock %}
 
 {% block content %}
@@ -48,6 +49,7 @@
 </nav>
 
 <section id="tab-overview" class="tab-panel active">
+  {{ rating_display(loc.suitability_rating, 'report') }}
   <div class="area-breakdown-card">
     <div class="area-row"><span>Total Roof Area</span><span>{{ loc.roof_area_sqm }} m²</span></div>
     <div class="area-row obstructed"><span>Obstructed Area (tanks, rooms, coverings)</span><span>-{{ loc.obstructed_area_sqm or 0 }} m²</span></div>

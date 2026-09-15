@@ -1,0 +1,52 @@
+{% macro rating_display(rating, id_prefix='saved') %}
+{% if rating %}
+{% set viability = rating.get('overall_viability') or {} %}
+{% set confidence = rating.get('data_confidence') or {} %}
+{% set overall_score = viability.get('score', 0)|int %}
+{% set priority_labels = {'fastest_payback': 'Fastest payback', 'maximum_savings': 'Maximum long-term savings', 'environmental_impact': 'Environmental impact', 'backup_power': 'Backup power', 'no_preference': 'No strong preference'} %}
+<section class="suitability-card" id="{{ id_prefix }}-suitability">
+  <div class="suitability-primary">
+    <div class="score-ring-wrap" aria-label="Overall suitability score {{ overall_score }} out of 100">
+      <svg class="score-ring" viewBox="0 0 100 100" role="img" aria-hidden="true">
+        <circle class="score-ring-track" cx="50" cy="50" r="40"></circle>
+        <circle class="score-ring-progress suitability-{{ viability.get('tier', 'fair') }}" cx="50" cy="50" r="40" pathLength="100" style="stroke-dasharray: {{ overall_score }} 100"></circle>
+      </svg>
+      <span class="score-ring-value"><strong>{{ overall_score }}</strong><small>/100</small></span>
+    </div>
+    <div class="suitability-primary-copy">
+      <span class="suitability-label">Overall suitability</span>
+      <div class="suitability-badges">
+        <span class="suitability-tier suitability-{{ viability.get('tier', 'fair') }}">{{ (viability.get('tier') or 'Unknown')|title }}</span>
+        <span class="confidence-badge">Estimate confidence: {{ (confidence.get('tier') or 'unknown')|title }}</span>
+      </div>
+      {% if rating.get('user_priority') %}
+      <span class="suitability-priority">Priority: {{ priority_labels.get(rating.get('user_priority'), rating.get('user_priority')|replace('_', ' ')|title) }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <details class="suitability-details">
+    <summary>View factor breakdown</summary>
+    <div class="suitability-factors">
+      {% for key, label in [('payback', 'Payback'), ('financial_viability', 'Financial viability'), ('roof_fit', 'Roof fit'), ('orientation', 'Orientation'), ('co2_reduction', 'CO2 reduction'), ('backup_capability', 'Backup capability')] %}
+      {% set factor = (rating.get('factors') or {}).get(key) %}
+      {% if factor %}
+      <div class="suitability-factor">
+        {% set factor_score = factor.get('score', 0)|int %}
+        <div class="factor-heading"><strong>{{ label }}</strong>{% if factor.get('tier') %}<span class="factor-tier suitability-{{ factor.get('tier') }}">{{ factor.get('tier')|title }}</span>{% endif %}<span class="factor-score">{{ factor_score }}/100</span></div>
+        <div class="factor-bar" role="progressbar" aria-valuenow="{{ factor_score }}" aria-valuemin="0" aria-valuemax="100"><span class="factor-bar-fill suitability-{{ factor.get('tier', 'fair') }}" style="width: {{ factor_score }}%"></span></div>
+        <span class="factor-detail">
+          {% if key == 'payback' %}{{ factor.get('tier', 'Unavailable')|title }} payback period
+          {% elif key == 'financial_viability' %}{{ factor.get('tier', 'Unavailable')|title }} lifetime savings margin
+          {% elif key == 'roof_fit' %}{{ factor.get('usable_area_per_kw', '—') }} m² usable area per kW
+          {% elif key == 'orientation' %}{{ factor.get('factor', '—') }} relative yield factor
+          {% elif key == 'co2_reduction' %}{{ factor.get('tons', '—') }} tons CO2 reduction per year
+          {% else %}{{ factor.get('score', 0) }}/100 backup capability{% endif %}
+        </span>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </details>
+</section>
+{% endif %}
+{% endmacro %}
