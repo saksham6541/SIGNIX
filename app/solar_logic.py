@@ -743,7 +743,11 @@ def _roof_fit_tier(usable_area_sqm, system_size_kw):
         tier = "good"
     elif 6 <= ratio < 8 or 20 < ratio <= 25:
         tier = "fair"
+    elif ratio > 25:
+        # Extra roof area is unused potential, not a physical fit failure.
+        tier = "fair"
     else:
+        # Less than 6 m²/kW may not physically fit the proposed system.
         tier = "poor"
     return tier, round(ratio, 2)
 

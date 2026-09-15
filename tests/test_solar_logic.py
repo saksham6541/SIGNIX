@@ -94,6 +94,20 @@ def test_suitability_rating_marks_not_viable_financial_case():
     assert financial["score"] == 0
 
 
+def test_suitability_rating_distinguishes_oversized_and_undersized_roofs():
+    oversized = solar_logic.calculate_suitability_rating(
+        rating_estimate(usable_area_sqm=80, system_size=1)
+    )
+    undersized = solar_logic.calculate_suitability_rating(
+        rating_estimate(usable_area_sqm=5, system_size=1)
+    )
+
+    assert oversized["factors"]["roof_fit"]["tier"] == "fair"
+    assert oversized["factors"]["roof_fit"]["score"] == 50
+    assert undersized["factors"]["roof_fit"]["tier"] == "poor"
+    assert undersized["factors"]["roof_fit"]["score"] == 25
+
+
 def test_suitability_rating_priority_changes_weighting():
     estimate = rating_estimate(
         payback_years=4,
