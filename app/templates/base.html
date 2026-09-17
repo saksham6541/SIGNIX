@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ get_locale() }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -79,6 +79,11 @@
         <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">☰</button>
         <div class="top-bar-right">
           <button type="button" class="icon-btn" title="Notifications" aria-label="Notifications">🔔</button>
+          <span class="language-switcher" aria-label="Language">
+            <a href="{{ url_for('auth.set_language', language='en') }}" class="auth-link {% if get_locale() == 'en' %}active{% endif %}">EN</a>
+            <span aria-hidden="true">/</span>
+            <a href="{{ url_for('auth.set_language', language='hi') }}" class="auth-link {% if get_locale() == 'hi' %}active{% endif %}">हिंदी</a>
+          </span>
           {% if current_user.is_authenticated %}
           <div class="user-chip">
             <span class="avatar">{{ current_user.display_name[0]|upper }}</span>

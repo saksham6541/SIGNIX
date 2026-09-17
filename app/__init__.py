@@ -1,5 +1,6 @@
 # filename: app/__init__.py
-from flask import Flask
+from flask import Flask, session
+from flask_babel import Babel, get_locale
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 
@@ -9,6 +10,10 @@ from app.models import db
 csrf = CSRFProtect()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
+babel = Babel()
+
+SUPPORTED_LOCALES = ("en", "hi")
+DEFAULT_LOCALE = "en"
 
 
 def create_app():
@@ -20,6 +25,21 @@ def create_app():
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+
+    def select_locale():
+        from flask_login import current_user
+
+        if current_user.is_authenticated:
+            return current_user.language_preference or DEFAULT_LOCALE
+        return session.get("language", DEFAULT_LOCALE)
+
+    app.config.setdefault("BABEL_DEFAULT_LOCALE", DEFAULT_LOCALE)
+    app.config.setdefault("BABEL_TRANSLATION_DIRECTORIES", "translations")
+    babel.init_app(app, locale_selector=select_locale)
+
+    @app.context_processor
+    def inject_locale():
+        return {"get_locale": get_locale}
 
     from app.models import User
 

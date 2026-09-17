@@ -57,6 +57,33 @@ def test_login_with_correct_password_succeeds(app):
     assert response.headers["Location"].endswith("/dashboard")
 
 
+def test_language_switch_changes_active_locale_for_anonymous_request(app):
+    test_client = app.test_client()
+
+    response = test_client.get("/language/hi", follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'<html lang="hi">' in response.data
+    with test_client.session_transaction() as session:
+        assert session["language"] == "hi"
+
+
+def test_logged_in_language_preference_persists_across_sessions(app):
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    assert test_client.get("/language/hi").status_code == 302
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").one()
+        assert user.language_preference == "hi"
+
+    new_client = app.test_client()
+    assert login(new_client, "test@example.com", "unused").status_code == 302
+    response = new_client.get("/")
+    assert response.status_code == 200
+    assert b'<html lang="hi">' in response.data
+
+
 def test_login_route_explains_when_user_is_already_authenticated(app):
     test_client = app.test_client()
     assert login(test_client, "test@example.com", "unused").status_code == 302

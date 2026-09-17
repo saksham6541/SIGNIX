@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -9,9 +9,23 @@ from app.forms import (
     SettingsForm,
     SignupForm,
 )
+from app import SUPPORTED_LOCALES
 from app.models import User, UserLocation, db
 
 auth_bp = Blueprint("auth", __name__)
+
+
+@auth_bp.get("/language/<language>")
+def set_language(language):
+    if language not in SUPPORTED_LOCALES:
+        return redirect(request.referrer or url_for("pages.index"))
+
+    session["language"] = language
+    if current_user.is_authenticated:
+        current_user.language_preference = language
+        db.session.commit()
+
+    return redirect(request.referrer or url_for("pages.index"))
 
 
 @auth_bp.route("/profile", methods=["GET", "POST"])

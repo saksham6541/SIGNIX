@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     default_tariff_per_kwh = db.Column(db.Float, nullable=True)
     default_state = db.Column(db.String(128), nullable=True)
     default_property_type = db.Column(db.String(32), nullable=True)
+    language_preference = db.Column(db.String(8), nullable=True, default="en")
 
     locations = db.relationship(
         "UserLocation",
@@ -42,9 +43,7 @@ class UserLocation(db.Model):
     address = db.Column(db.String(512), nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    user_priority = db.Column(
-        db.String(32), nullable=True, default="no_preference"
-    )
+    user_priority = db.Column(db.String(32), nullable=True, default="no_preference")
 
     # GeoJSON polygon of the drawn rooftop, stored as JSON text (SQLite has
     # no native JSON type, SQLAlchemy's JSON type handles serialization).

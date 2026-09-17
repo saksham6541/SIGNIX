@@ -13,6 +13,7 @@ def initialize_database():
         "default_tariff_per_kwh": "FLOAT",
         "default_state": "VARCHAR(128)",
         "default_property_type": "VARCHAR(32)",
+        "language_preference": "VARCHAR(8)",
     }
     for column_name, column_type in user_settings_columns.items():
         if column_name not in user_columns:
@@ -42,19 +43,13 @@ def initialize_database():
 
     if "user_priority" not in columns:
         db.session.execute(
-            text(
-                "ALTER TABLE user_locations "
-                "ADD COLUMN user_priority VARCHAR(32)"
-            )
+            text("ALTER TABLE user_locations " "ADD COLUMN user_priority VARCHAR(32)")
         )
         db.session.commit()
         columns.add("user_priority")
 
     if "suitability_rating" not in columns:
         db.session.execute(
-            text(
-                "ALTER TABLE user_locations "
-                "ADD COLUMN suitability_rating JSON"
-            )
+            text("ALTER TABLE user_locations " "ADD COLUMN suitability_rating JSON")
         )
         db.session.commit()
