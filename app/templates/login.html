@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Log in · SIGNIX{% endblock %}
+{% block title %}{{ _('Log in') }} · SIGNIX{% endblock %}
 {% block content %}
 <section class="auth-page">
   <div class="auth-card">
     <div class="auth-heading">
-      <p class="eyebrow">SIGNIX account</p>
-      <h1>Log in</h1>
-      <p>Continue to your rooftop solar estimates.</p>
+      <p class="eyebrow">{{ _('SIGNIX account') }}</p>
+      <h1>{{ _('Log in') }}</h1>
+      <p>{{ _('Continue to your rooftop solar estimates.') }}</p>
     </div>
   {% with messages = get_flashed_messages() %}
     {% for message in messages %}
@@ -19,7 +19,7 @@
     <p class="auth-field">{{ form.password.label }} {{ form.password(class_="auth-input") }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
     <p class="auth-submit">{{ form.submit(class_="btn-primary-lg") }}</p>
   </form>
-  <p class="auth-switch">New here? <a href="{{ url_for('auth.signup') }}">Create an account</a>.</p>
+  <p class="auth-switch">{{ _('New here?') }} <a href="{{ url_for('auth.signup') }}">{{ _('Create an account') }}</a>.</p>
   </div>
 </section>
 {% endblock %}

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Settings · SIGNIX{% endblock %}
+{% block title %}{{ _('Settings') }} · SIGNIX{% endblock %}
 {% block content %}
 <section class="profile-page">
   <div class="profile-header">
     <div>
-      <p class="eyebrow">Estimate defaults</p>
-      <h1>Settings</h1>
-      <p>Save the values you use most often for new solar estimates.</p>
+      <p class="eyebrow">{{ _('Estimate defaults') }}</p>
+      <h1>{{ _('Settings') }}</h1>
+      <p>{{ _('Save the values you use most often for new solar estimates.') }}</p>
     </div>
   </div>
   {% with messages = get_flashed_messages() %}
@@ -17,8 +17,8 @@
 
   <section class="profile-card" style="max-width: 620px;">
     <div class="profile-card-heading">
-      <h2>Default Estimate Values</h2>
-      <p>These values will be pre-filled whenever you start a new estimate.</p>
+      <h2>{{ _('Default Estimate Values') }}</h2>
+      <p>{{ _('These values will be pre-filled whenever you start a new estimate.') }}</p>
     </div>
     <form method="post" class="profile-form">
       {{ form.hidden_tag() }}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-17 11:58+0530\n"
+"POT-Creation-Date: 2026-09-17 16:40+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app/forms.py:41 app/templates/base.html:98
+#: app/forms.py:39 app/forms.py:48 app/forms.py:62
+msgid "Email"
+msgstr ""
+
+#: app/forms.py:40 app/forms.py:49
+msgid "Password"
+msgstr ""
+
+#: app/forms.py:41 app/templates/base.html:98 app/templates/login.html:2
+#: app/templates/login.html:8 app/templates/signup.html:19
 msgid "Log in"
 msgstr ""
 
-#: app/forms.py:54 app/templates/base.html:99
+#: app/forms.py:46 app/forms.py:60
+msgid "Display name"
+msgstr ""
+
+#: app/forms.py:51
+msgid "Confirm password"
+msgstr ""
+
+#: app/forms.py:54 app/templates/base.html:99 app/templates/signup.html:2
+#: app/templates/signup.html:8
 msgid "Create account"
 msgstr ""
 
@@ -29,11 +47,39 @@ msgstr ""
 msgid "Save changes"
 msgstr ""
 
+#: app/forms.py:68
+msgid "Current password"
+msgstr ""
+
+#: app/forms.py:70
+msgid "New password"
+msgstr ""
+
+#: app/forms.py:73
+msgid "Confirm new password"
+msgstr ""
+
 #: app/forms.py:76
 msgid "Change password"
 msgstr ""
 
-#: app/forms.py:94
+#: app/forms.py:81
+msgid "Tariff per kWh (₹)"
+msgstr ""
+
+#: app/forms.py:85
+msgid "State"
+msgstr ""
+
+#: app/forms.py:86
+msgid "Select a state"
+msgstr ""
+
+#: app/forms.py:91
+msgid "Property type"
+msgstr ""
+
+#: app/forms.py:95
 msgid "Save settings"
 msgstr ""
 
@@ -61,19 +107,21 @@ msgstr ""
 msgid "Saved Locations"
 msgstr ""
 
-#: app/templates/base.html:57
+#: app/templates/base.html:57 app/templates/compare.html:2
 msgid "Compare"
 msgstr ""
 
-#: app/templates/base.html:60
+#: app/templates/base.html:60 app/templates/savings.html:2
 msgid "Savings"
 msgstr ""
 
-#: app/templates/base.html:63
+#: app/templates/base.html:63 app/templates/profile.html:2
+#: app/templates/profile.html:8
 msgid "Profile"
 msgstr ""
 
-#: app/templates/base.html:66
+#: app/templates/base.html:66 app/templates/settings.html:2
+#: app/templates/settings.html:8
 msgid "Settings"
 msgstr ""
 
@@ -146,25 +194,124 @@ msgstr ""
 msgid "Send message"
 msgstr ""
 
+#: app/templates/compare.html:7 app/templates/profile.html:26
+msgid "Saved locations"
+msgstr ""
+
+#: app/templates/compare.html:8
+msgid "Compare estimates"
+msgstr ""
+
+#: app/templates/compare.html:9
+msgid ""
+"Select two or three saved locations to compare their planning figures "
+"side by side."
+msgstr ""
+
+#: app/templates/compare.html:15
+msgid "Save at least 2 locations to compare them"
+msgstr ""
+
+#: app/templates/compare.html:16
+msgid "Run another estimate and save it to see the differences here."
+msgstr ""
+
 #: app/templates/compare.html:17 app/templates/savings.html:17
 msgid "Start an estimate"
+msgstr ""
+
+#: app/templates/compare.html:24
+msgid "Choose locations"
+msgstr ""
+
+#: app/templates/compare.html:25
+msgid "Pick 2 or 3 saved estimates."
 msgstr ""
 
 #: app/templates/compare.html:27
 msgid "Compare selected"
 msgstr ""
 
+#: app/templates/compare.html:35
+msgid "Saved"
+msgstr ""
+
+#: app/templates/compare.html:46
+msgid "Side-by-side view"
+msgstr ""
+
+#: app/templates/compare.html:47
+msgid "Estimate comparison"
+msgstr ""
+
+#: app/templates/compare.html:49
+msgid "locations"
+msgstr ""
+
+#: app/templates/compare.html:55
+msgid "Metric"
+msgstr ""
+
+#: app/templates/compare.html:62
+msgid "System size"
+msgstr ""
+
+#: app/templates/compare.html:63
+msgid "Annual generation"
+msgstr ""
+
+#: app/templates/compare.html:64 app/templates/savings.html:67
+msgid "Monthly savings"
+msgstr ""
+
+#: app/templates/compare.html:65 app/templates/savings.html:68
+msgid "Payback period"
+msgstr ""
+
+#: app/templates/compare.html:66
+msgid "System cost"
+msgstr ""
+
+#: app/templates/compare.html:67
+msgid "Subsidy"
+msgstr ""
+
+#: app/templates/compare.html:68
+msgid "Roof area"
+msgstr ""
+
+#: app/templates/compare.html:74
+msgid "Select at least 2 of your saved locations to compare them."
+msgstr ""
+
 #: app/templates/dashboard.html:2
 msgid "SIGNIX — Dashboard"
+msgstr ""
+
+#: app/templates/dashboard.html:11
+msgid "Recent Reports"
 msgstr ""
 
 #: app/templates/dashboard.html:36
 msgid "No estimates yet."
 msgstr ""
 
-#: app/templates/dashboard.html:36 app/templates/index.html:31
-#: app/templates/index.html:200
+#: app/templates/dashboard.html:36 app/templates/index.html:30
+#: app/templates/index.html:199
 msgid "Start Estimation"
+msgstr ""
+
+#: app/templates/index.html:2
+msgid "SIGNIX — Estimates"
+msgstr ""
+
+#: app/templates/index.html:7
+#, python-format
+msgid "Welcome to %(brand)s"
+msgstr ""
+
+#: app/templates/index.html:8
+msgid "Let's build a smarter, cleaner tomorrow."
 msgstr ""
 
 #: app/templates/index.html:15
@@ -179,23 +326,484 @@ msgstr ""
 msgid "Use current location"
 msgstr ""
 
+#: app/templates/index.html:20
+msgid "Or paste a Google Maps link (maps.app.goo.gl / maps.google.com)"
+msgstr ""
+
 #: app/templates/index.html:21
 msgid "Use link"
 msgstr ""
 
-#: app/templates/index.html:95
+#: app/templates/index.html:28
+#, python-format
+msgid "Get your rooftop solar estimate in under %(minutes)s minutes"
+msgstr ""
+
+#: app/templates/index.html:36
+msgid "Why Go Solar?"
+msgstr ""
+
+#: app/templates/index.html:41
+#, python-format
+msgid "Save up to 90%%"
+msgstr ""
+
+#: app/templates/index.html:42
+msgid "on electricity bills"
+msgstr ""
+
+#: app/templates/index.html:49
+msgid "Payback on investment"
+msgstr ""
+
+#: app/templates/index.html:56
+msgid "PM Surya Ghar subsidy"
+msgstr ""
+
+#: app/templates/index.html:63
+msgid "CO₂/kW/Year Carbon Reduction"
+msgstr ""
+
+#: app/templates/index.html:70
+msgid "Location"
+msgstr ""
+
+#: app/templates/index.html:72
+msgid "Rooftop Analysis"
+msgstr ""
+
+#: app/templates/index.html:74
+msgid "Results"
+msgstr ""
+
+#: app/templates/index.html:79
+msgid "High-resolution satellite view is on by default."
+msgstr ""
+
+#: app/templates/index.html:79
+msgid "Step 1:"
+msgstr ""
+
+#: app/templates/index.html:79
+msgid "Draw your rooftop boundary."
+msgstr ""
+
+#: app/templates/index.html:80
+msgid "Step 2:"
+msgstr ""
+
+#: app/templates/index.html:80
+msgid ""
+"Mark non-usable areas with a light dashed outline (water tank, staircase,"
+" AC units) — fill stays almost transparent so the roof stays visible. "
+"Usable area = roof − obstructions."
+msgstr ""
+
+#: app/templates/index.html:84
+msgid "Rooftop Boundary"
+msgstr ""
+
+#: app/templates/index.html:85
+msgid "Mark Obstruction"
+msgstr ""
+
+#: app/templates/index.html:86
+msgid "Draw"
+msgstr ""
+
+#: app/templates/index.html:92
+msgid ""
+"Total roof: -- m² · Obstructed: -- m² = Usable: -- m² | Est. system size:"
+" -- kW"
+msgstr ""
+
+#: app/templates/index.html:94
 msgid "Clear obstructions"
 msgstr ""
 
-#: app/templates/index.html:96
+#: app/templates/index.html:95
 msgid "Clear all"
+msgstr ""
+
+#: app/templates/index.html:101
+msgid "System Options"
+msgstr ""
+
+#: app/templates/index.html:102
+msgid ""
+"Size from your electricity bill (₹10/unit · 135 units/kW/month), then "
+"fine-tune orientation, inverter &amp; storage."
+msgstr ""
+
+#: app/templates/index.html:106
+msgid "Average monthly electricity bill (₹)"
+msgstr ""
+
+#: app/templates/index.html:107
+msgid "e.g. 5000"
+msgstr ""
+
+#: app/templates/index.html:108
+msgid "Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW."
+msgstr ""
+
+#: app/templates/index.html:115
+msgid "Used for savings calculations when set."
+msgstr ""
+
+#: app/templates/index.html:121
+msgid "Use the default tariff"
+msgstr ""
+
+#: app/templates/index.html:126
+msgid "Used to look up a state tariff when no custom tariff is set."
+msgstr ""
+
+#: app/templates/index.html:132
+msgid "Residential home"
+msgstr ""
+
+#: app/templates/index.html:133
+msgid "Shop / office / commercial"
+msgstr ""
+
+#: app/templates/index.html:134
+msgid "Remote / unreliable grid"
+msgstr ""
+
+#: app/templates/index.html:136
+msgid "Affects inverter recommendation (On-Grid / Hybrid / Off-Grid)."
+msgstr ""
+
+#: app/templates/index.html:140
+msgid "What matters most to you?"
+msgstr ""
+
+#: app/templates/index.html:142
+msgid "Fastest payback / lowest upfront risk"
+msgstr ""
+
+#: app/templates/index.html:143
+msgid "Maximum long-term savings"
+msgstr ""
+
+#: app/templates/index.html:144
+msgid "Environmental impact (CO2 reduction)"
+msgstr ""
+
+#: app/templates/index.html:145
+msgid "Backup power during outages"
+msgstr ""
+
+#: app/templates/index.html:146
+msgid "No strong preference"
+msgstr ""
+
+#: app/templates/index.html:148
+msgid "Helps us understand what to emphasize in your estimate."
+msgstr ""
+
+#: app/templates/index.html:152
+msgid "Roof Orientation (Azimuth)"
+msgstr ""
+
+#: app/templates/index.html:154
+msgid "Auto-detect from drawing"
+msgstr ""
+
+#: app/templates/index.html:155
+msgid "South (best for India)"
+msgstr ""
+
+#: app/templates/index.html:156
+msgid "South-East"
+msgstr ""
+
+#: app/templates/index.html:157
+msgid "South-West"
+msgstr ""
+
+#: app/templates/index.html:158
+msgid "East"
+msgstr ""
+
+#: app/templates/index.html:159
+msgid "West"
+msgstr ""
+
+#: app/templates/index.html:160
+msgid "North (lowest yield)"
+msgstr ""
+
+#: app/templates/index.html:162
+msgid ""
+"South-facing roofs in North India typically yield the highest annual "
+"generation."
+msgstr ""
+
+#: app/templates/index.html:166
+msgid "Preferred inverter"
+msgstr ""
+
+#: app/templates/index.html:168
+msgid "Auto-recommend"
+msgstr ""
+
+#: app/templates/index.html:169
+msgid "On-Grid (bill savings, stable supply)"
+msgstr ""
+
+#: app/templates/index.html:170
+msgid "Hybrid (backup + battery)"
+msgstr ""
+
+#: app/templates/index.html:171
+msgid "Off-Grid (full independence)"
+msgstr ""
+
+#: app/templates/index.html:173
+msgid "On-Grid & Hybrid often subsidy-eligible; Off-Grid usually not."
+msgstr ""
+
+#: app/templates/index.html:179
+msgid "Need backup during power cuts"
+msgstr ""
+
+#: app/templates/index.html:183
+msgid "Include battery storage"
+msgstr ""
+
+#: app/templates/index.html:186
+msgid "Battery capacity"
+msgstr ""
+
+#: app/templates/index.html:188
+msgid "5 kWh (small home)"
+msgstr ""
+
+#: app/templates/index.html:189
+msgid "10 kWh (recommended)"
+msgstr ""
+
+#: app/templates/index.html:191
+msgid "20 kWh (larger home)"
+msgstr ""
+
+#: app/templates/index.html:193
+msgid "~₹9,000 per kWh (LFP). Improves self-consumption & backup."
+msgstr ""
+
+#: app/templates/index.html:206
+msgid "Your rooftop snapshot"
+msgstr ""
+
+#: app/templates/index.html:207
+msgid "Estimated solar system"
+msgstr ""
+
+#: app/templates/index.html:215
+msgid "Estimated Monthly Savings"
+msgstr ""
+
+#: app/templates/index.html:217
+#, python-format
+msgid "up to 90%% off on electricity bills"
+msgstr ""
+
+#: app/templates/index.html:231
+msgid "Annual Generation"
+msgstr ""
+
+#: app/templates/index.html:239
+msgid "CO2 Reduction"
+msgstr ""
+
+#: app/templates/index.html:247
+msgid "System Size"
+msgstr ""
+
+#: app/templates/index.html:255
+msgid "Payback Period"
+msgstr ""
+
+#: app/templates/index.html:263
+msgid "Investment & Payback"
+msgstr ""
+
+#: app/templates/index.html:265
+msgid "Estimated System Cost"
+msgstr ""
+
+#: app/templates/index.html:266
+msgid "PM Surya Ghar Subsidy"
+msgstr ""
+
+#: app/templates/index.html:267
+msgid "Your Net Investment"
+msgstr ""
+
+#: app/templates/index.html:273
+msgid "View Full Report"
+msgstr ""
+
+#: app/templates/index.html:277
+msgid "Crunching irradiance data, orientation & storage options…"
+msgstr ""
+
+#: app/templates/login.html:7 app/templates/signup.html:7
+msgid "SIGNIX account"
+msgstr ""
+
+#: app/templates/login.html:9
+msgid "Continue to your rooftop solar estimates."
+msgstr ""
+
+#: app/templates/login.html:22
+msgid "New here?"
+msgstr ""
+
+#: app/templates/login.html:22
+msgid "Create an account"
+msgstr ""
+
+#: app/templates/profile.html:7
+msgid "Account settings"
+msgstr ""
+
+#: app/templates/profile.html:9
+msgid "Manage your SIGNIX account details and password."
+msgstr ""
+
+#: app/templates/profile.html:20
+msgid "Signed in as"
+msgstr ""
+
+#: app/templates/profile.html:25
+msgid "Account created"
+msgstr ""
+
+#: app/templates/profile.html:33
+msgid "Edit Profile"
+msgstr ""
+
+#: app/templates/profile.html:34
+msgid "Keep your account information up to date."
+msgstr ""
+
+#: app/templates/profile.html:46
+msgid "Change Password"
+msgstr ""
+
+#: app/templates/profile.html:47
+msgid "Use a strong password you do not reuse elsewhere."
 msgstr ""
 
 #: app/templates/report.html:32
 msgid "Download PDF"
 msgstr ""
 
+#: app/templates/savings.html:7
+msgid "Your solar portfolio"
+msgstr ""
+
+#: app/templates/savings.html:8
+msgid "Savings overview"
+msgstr ""
+
+#: app/templates/savings.html:9
+msgid ""
+"See the combined financial and environmental value of your saved "
+"estimates."
+msgstr ""
+
+#: app/templates/savings.html:15
+msgid "Your savings story starts with an estimate"
+msgstr ""
+
+#: app/templates/savings.html:16
+msgid ""
+"Run and save your first rooftop estimate to see your potential savings "
+"here."
+msgstr ""
+
+#: app/templates/savings.html:23
+msgid "Total potential monthly savings"
+msgstr ""
+
+#: app/templates/savings.html:25
+msgid "potential savings per year"
+msgstr ""
+
+#: app/templates/savings.html:35
+msgid "CO2 reduction"
+msgstr ""
+
+#: app/templates/savings.html:37
+#, python-format
+msgid "Across %(count)s saved estimate(s)"
+msgstr ""
+
+#: app/templates/savings.html:41
+msgid "Equivalent trees"
+msgstr ""
+
+#: app/templates/savings.html:43
+msgid "CO2 absorption equivalent"
+msgstr ""
+
+#: app/templates/savings.html:47
+msgid "Distance avoided"
+msgstr ""
+
+#: app/templates/savings.html:49
+msgid "Car travel equivalent"
+msgstr ""
+
+#: app/templates/savings.html:53
+msgid "Fuel saved"
+msgstr ""
+
+#: app/templates/savings.html:55
+msgid "Petrol equivalent"
+msgstr ""
+
+#: app/templates/savings.html:62
+msgid "Best opportunity"
+msgstr ""
+
+#: app/templates/savings.html:64
+msgid "The saved location with the highest potential monthly savings."
+msgstr ""
+
+#: app/templates/savings.html:68
+msgid "years"
+msgstr ""
+
 #: app/templates/savings.html:69
 msgid "View report"
+msgstr ""
+
+#: app/templates/settings.html:7
+msgid "Estimate defaults"
+msgstr ""
+
+#: app/templates/settings.html:9
+msgid "Save the values you use most often for new solar estimates."
+msgstr ""
+
+#: app/templates/settings.html:20
+msgid "Default Estimate Values"
+msgstr ""
+
+#: app/templates/settings.html:21
+msgid "These values will be pre-filled whenever you start a new estimate."
+msgstr ""
+
+#: app/templates/signup.html:9
+msgid "Save estimates and keep your solar plans together."
+msgstr ""
+
+#: app/templates/signup.html:19
+msgid "Already registered?"
 msgstr ""
 

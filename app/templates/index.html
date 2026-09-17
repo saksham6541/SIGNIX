@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}SIGNIX — Estimates{% endblock %}
+{% block title %}{{ _('SIGNIX — Estimates') }}{% endblock %}
 
 {% block content %}
 <section class="hero-row">
   <div class="hero-copy">
-    <h1>Welcome to <span class="grad-text">SIGNIX</span> 👋</h1>
-    <p class="subtitle">Let's build a smarter, cleaner tomorrow.</p>
+    <h1>{{ _('Welcome to %(brand)s', brand='SIGNIX') }} 👋</h1>
+    <p class="subtitle">{{ _('Let\'s build a smarter, cleaner tomorrow.') }}</p>
   </div>
   <div class="hero-art" aria-hidden="true">🏠☀️</div>
 </section>
@@ -17,7 +17,7 @@
     <button id="locate-btn" type="button" title="{{ _('Use current location') }}">📍</button>
   </div>
   <div class="maps-link-box">
-    <input type="text" id="maps-link-input" placeholder="Or paste a Google Maps link (maps.app.goo.gl / maps.google.com)">
+    <input type="text" id="maps-link-input" placeholder="{{ _('Or paste a Google Maps link (maps.app.goo.gl / maps.google.com)') }}">
     <button id="maps-link-btn" type="button">{{ _('Use link') }}</button>
   </div>
   <div id="search-results" class="search-results"></div>
@@ -25,8 +25,7 @@
 
 <section class="cta-banner">
   <div>
-    <p class="cta-label">Get your rooftop solar estimate in under</p>
-    <p class="cta-big">5<span>minutes</span></p>
+    <p class="cta-label">{{ _('Get your rooftop solar estimate in under %(minutes)s minutes', minutes=5) }}</p>
   <p id="estimate-source-note" class="estimate-source-note hidden" role="status"></p>
     <a class="btn-grad" href="#map-section">{{ _('Start Estimation') }} →</a>
   </div>
@@ -34,63 +33,63 @@
 </section>
 
 <section>
-  <h2 class="section-title">Why Go Solar?</h2>
+  <h2 class="section-title">{{ _('Why Go Solar?') }}</h2>
   <div class="why-grid">
     <div class="why-card">
       <span class="icon-chip purple">₹</span>
       <div>
-        <span class="value">Save up to 90%</span>
-        <span class="label">on electricity bills</span>
+        <span class="value">{{ _('Save up to 90%%') }}</span>
+        <span class="label">{{ _('on electricity bills') }}</span>
       </div>
     </div>
     <div class="why-card">
       <span class="icon-chip orange">⏱</span>
       <div>
         <span class="value orange">3–4 Years</span>
-        <span class="label">Payback on investment</span>
+        <span class="label">{{ _('Payback on investment') }}</span>
       </div>
     </div>
     <div class="why-card">
       <span class="icon-chip purple">🏛</span>
       <div>
         <span class="value">₹30,000 – ₹78,000</span>
-        <span class="label">PM Surya Ghar subsidy</span>
+        <span class="label">{{ _('PM Surya Ghar subsidy') }}</span>
       </div>
     </div>
     <div class="why-card">
       <span class="icon-chip green">🌿</span>
       <div>
         <span class="value green">~1.4 Tons</span>
-        <span class="label">CO₂/kW/Year Carbon Reduction</span>
+        <span class="label">{{ _('CO₂/kW/Year Carbon Reduction') }}</span>
       </div>
     </div>
   </div>
 </section>
 
 <div class="step-indicator">
-  <div class="step-item current"><span class="step-dot">1</span> Location</div>
+  <div class="step-item current"><span class="step-dot">1</span> {{ _('Location') }}</div>
   <div class="step-line"></div>
-  <div class="step-item"><span class="step-dot">2</span> Rooftop Analysis</div>
+  <div class="step-item"><span class="step-dot">2</span> {{ _('Rooftop Analysis') }}</div>
   <div class="step-line"></div>
-  <div class="step-item"><span class="step-dot">3</span> Results</div>
+  <div class="step-item"><span class="step-dot">3</span> {{ _('Results') }}</div>
 </div>
 
 <section class="map-section" id="map-section">
   <p class="map-instructions">
-    High-resolution satellite view is on by default. <strong>Step 1:</strong> Draw your rooftop boundary.
-    <strong>Step 2:</strong> Mark non-usable areas with a light dashed outline (water tank, staircase, AC units) — fill stays almost transparent so the roof stays visible. Usable area = roof − obstructions.
+    {{ _('High-resolution satellite view is on by default.') }} <strong>{{ _('Step 1:') }}</strong> {{ _('Draw your rooftop boundary.') }}
+    <strong>{{ _('Step 2:') }}</strong> {{ _('Mark non-usable areas with a light dashed outline (water tank, staircase, AC units) — fill stays almost transparent so the roof stays visible. Usable area = roof − obstructions.') }}
   </p>
 
   <div class="draw-mode-toolbar">
-    <button id="mode-roof-btn" type="button" class="mode-btn active">🏠 Rooftop Boundary</button>
-    <button id="mode-obstruction-btn" type="button" class="mode-btn">🚫 Mark Obstruction</button>
-    <button id="draw-btn" type="button" class="draw-btn">✏️ Draw</button>
+    <button id="mode-roof-btn" type="button" class="mode-btn active">🏠 {{ _('Rooftop Boundary') }}</button>
+    <button id="mode-obstruction-btn" type="button" class="mode-btn">🚫 {{ _('Mark Obstruction') }}</button>
+    <button id="draw-btn" type="button" class="draw-btn">✏️ {{ _('Draw') }}</button>
   </div>
 
   <div id="map"></div>
 
   <div class="map-toolbar">
-    <span id="area-readout">Total roof: -- m²  ·  Obstructed: -- m²  =  Usable: -- m² | Est. system size: -- kW</span>
+    <span id="area-readout">{{ _('Total roof: -- m² · Obstructed: -- m² = Usable: -- m² | Est. system size: -- kW') }}</span>
     <div class="map-toolbar-actions">
       <button id="clear-obstructions-btn" type="button" class="btn-text">{{ _('Clear obstructions') }}</button>
       <button id="clear-all-btn" type="button" class="btn-text">{{ _('Clear all') }}</button>
@@ -99,99 +98,99 @@
 </section>
 
 <section class="system-options-panel">
-  <h3>System Options</h3>
-  <p class="options-hint">Size from your electricity bill (₹10/unit · 135 units/kW/month), then fine-tune orientation, inverter &amp; storage.</p>
+  <h3>{{ _('System Options') }}</h3>
+  <p class="options-hint">{{ _('Size from your electricity bill (₹10/unit · 135 units/kW/month), then fine-tune orientation, inverter &amp; storage.') }}</p>
 
   <div class="options-grid">
     <div class="option-card">
-      <label for="monthly-bill">Average monthly electricity bill (₹)</label>
-      <input type="number" id="monthly-bill" min="0" step="100" placeholder="e.g. 5000">
-      <small>Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW.</small>
+      <label for="monthly-bill">{{ _('Average monthly electricity bill (₹)') }}</label>
+      <input type="number" id="monthly-bill" min="0" step="100" placeholder="{{ _('e.g. 5000') }}">
+      <small>{{ _('Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW.') }}</small>
     </div>
 
     <div class="option-card">
       <label for="tariff-per-kwh">Tariff per kWh (₹)</label>
       <input type="number" id="tariff-per-kwh" min="0" step="0.01" placeholder="e.g. 10"
              value="{% if default_tariff_per_kwh is not none %}{{ default_tariff_per_kwh }}{% endif %}">
-      <small>Used for savings calculations when set.</small>
+      <small>{{ _('Used for savings calculations when set.') }}</small>
     </div>
 
     <div class="option-card">
       <label for="state">State</label>
       <select id="state">
-        <option value="">Use the default tariff</option>
+        <option value="">{{ _('Use the default tariff') }}</option>
         {% for state in state_choices %}
         <option value="{{ state }}" {% if default_state == state %}selected{% endif %}>{{ state }}</option>
         {% endfor %}
       </select>
-      <small>Used to look up a state tariff when no custom tariff is set.</small>
+      <small>{{ _('Used to look up a state tariff when no custom tariff is set.') }}</small>
     </div>
 
     <div class="option-card">
       <label for="property-type">Property type</label>
       <select id="property-type">
-        <option value="residential" {% if default_property_type in (none, 'residential') %}selected{% endif %}>Residential home</option>
-        <option value="commercial" {% if default_property_type == 'commercial' %}selected{% endif %}>Shop / office / commercial</option>
-        <option value="remote" {% if default_property_type == 'remote' %}selected{% endif %}>Remote / unreliable grid</option>
+        <option value="residential" {% if default_property_type in (none, 'residential') %}selected{% endif %}>{{ _('Residential home') }}</option>
+        <option value="commercial" {% if default_property_type == 'commercial' %}selected{% endif %}>{{ _('Shop / office / commercial') }}</option>
+        <option value="remote" {% if default_property_type == 'remote' %}selected{% endif %}>{{ _('Remote / unreliable grid') }}</option>
       </select>
-      <small>Affects inverter recommendation (On-Grid / Hybrid / Off-Grid).</small>
+      <small>{{ _('Affects inverter recommendation (On-Grid / Hybrid / Off-Grid).') }}</small>
     </div>
 
     <div class="option-card">
-      <label for="user-priority">What matters most to you?</label>
+      <label for="user-priority">{{ _('What matters most to you?') }}</label>
       <select id="user-priority">
-        <option value="fastest_payback">Fastest payback / lowest upfront risk</option>
-        <option value="maximum_savings">Maximum long-term savings</option>
-        <option value="environmental_impact">Environmental impact (CO2 reduction)</option>
-        <option value="backup_power">Backup power during outages</option>
-        <option value="no_preference" selected>No strong preference</option>
+        <option value="fastest_payback">{{ _('Fastest payback / lowest upfront risk') }}</option>
+        <option value="maximum_savings">{{ _('Maximum long-term savings') }}</option>
+        <option value="environmental_impact">{{ _('Environmental impact (CO2 reduction)') }}</option>
+        <option value="backup_power">{{ _('Backup power during outages') }}</option>
+        <option value="no_preference" selected>{{ _('No strong preference') }}</option>
       </select>
-      <small>Helps us understand what to emphasize in your estimate.</small>
+      <small>{{ _('Helps us understand what to emphasize in your estimate.') }}</small>
     </div>
 
     <div class="option-card">
-      <label for="orientation-select">Roof Orientation (Azimuth)</label>
+      <label for="orientation-select">{{ _('Roof Orientation (Azimuth)') }}</label>
       <select id="orientation-select">
-        <option value="auto">Auto-detect from drawing</option>
-        <option value="180">South (best for India)</option>
-        <option value="135">South-East</option>
-        <option value="225">South-West</option>
-        <option value="90">East</option>
-        <option value="270">West</option>
-        <option value="0">North (lowest yield)</option>
+        <option value="auto">{{ _('Auto-detect from drawing') }}</option>
+        <option value="180">{{ _('South (best for India)') }}</option>
+        <option value="135">{{ _('South-East') }}</option>
+        <option value="225">{{ _('South-West') }}</option>
+        <option value="90">{{ _('East') }}</option>
+        <option value="270">{{ _('West') }}</option>
+        <option value="0">{{ _('North (lowest yield)') }}</option>
       </select>
-      <small id="orientation-hint">South-facing roofs in North India typically yield the highest annual generation.</small>
+      <small id="orientation-hint">{{ _('South-facing roofs in North India typically yield the highest annual generation.') }}</small>
     </div>
 
     <div class="option-card">
-      <label for="inverter-preference">Preferred inverter</label>
+      <label for="inverter-preference">{{ _('Preferred inverter') }}</label>
       <select id="inverter-preference">
-        <option value="auto">Auto-recommend</option>
-        <option value="on-grid">On-Grid (bill savings, stable supply)</option>
-        <option value="hybrid">Hybrid (backup + battery)</option>
-        <option value="off-grid">Off-Grid (full independence)</option>
+        <option value="auto">{{ _('Auto-recommend') }}</option>
+        <option value="on-grid">{{ _('On-Grid (bill savings, stable supply)') }}</option>
+        <option value="hybrid">{{ _('Hybrid (backup + battery)') }}</option>
+        <option value="off-grid">{{ _('Off-Grid (full independence)') }}</option>
       </select>
-      <small>On-Grid &amp; Hybrid often subsidy-eligible; Off-Grid usually not.</small>
+      <small>{{ _('On-Grid & Hybrid often subsidy-eligible; Off-Grid usually not.') }}</small>
     </div>
 
     <div class="option-card">
       <label class="checkbox-label">
         <input type="checkbox" id="needs-backup">
-        Need backup during power cuts
+        {{ _('Need backup during power cuts') }}
       </label>
       <label class="checkbox-label" style="margin-top:10px;">
         <input type="checkbox" id="battery-toggle">
-        Include battery storage
+        {{ _('Include battery storage') }}
       </label>
       <div id="battery-size-wrap" class="battery-size-wrap hidden">
-        <label for="battery-size">Battery capacity</label>
+        <label for="battery-size">{{ _('Battery capacity') }}</label>
         <select id="battery-size">
-          <option value="5">5 kWh (small home)</option>
-          <option value="10" selected>10 kWh (recommended)</option>
+          <option value="5">{{ _('5 kWh (small home)') }}</option>
+          <option value="10" selected>{{ _('10 kWh (recommended)') }}</option>
           <option value="15">15 kWh</option>
-          <option value="20">20 kWh (larger home)</option>
+          <option value="20">{{ _('20 kWh (larger home)') }}</option>
         </select>
-        <small>~₹9,000 per kWh (LFP). Improves self-consumption &amp; backup.</small>
+        <small>{{ _('~₹9,000 per kWh (LFP). Improves self-consumption & backup.') }}</small>
       </div>
     </div>
   </div>
@@ -204,8 +203,8 @@
 <section id="estimate-result" class="estimate-result hidden" aria-live="polite">
   <div class="estimate-result-heading">
     <div>
-      <p class="eyebrow">Your rooftop snapshot</p>
-      <h2>Estimated solar system</h2>
+      <p class="eyebrow">{{ _('Your rooftop snapshot') }}</p>
+      <h2>{{ _('Estimated solar system') }}</h2>
     </div>
     <span id="estimate-source" class="estimate-source"></span>
   </div>
@@ -213,9 +212,9 @@
   <div class="estimate-top-grid">
     <div class="savings-card">
       <div class="savings-card-copy">
-        <span class="savings-label">Estimated Monthly Savings</span>
+        <span class="savings-label">{{ _('Estimated Monthly Savings') }}</span>
         <strong id="result-monthly-savings">₹—</strong>
-        <span class="savings-subtitle">up to 90% off on electricity bills</span>
+        <span class="savings-subtitle">{{ _('up to 90%% off on electricity bills') }}</span>
       </div>
       <svg class="savings-trend" viewBox="0 0 150 90" aria-hidden="true">
         <path d="M8 76H142" />
@@ -229,7 +228,7 @@
         <span class="stat-icon orange-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M7 16v-4M12 16V8M17 16V4" /></svg>
         </span>
-        <span class="stat-label">Annual Generation</span>
+        <span class="stat-label">{{ _('Annual Generation') }}</span>
         <strong id="result-annual-generation">—</strong>
         <small>kWh</small>
       </div>
@@ -237,7 +236,7 @@
         <span class="stat-icon pink-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 3v18M17 7.5c0-1.7-2.2-3-5-3s-5 1.3-5 3 2.2 3 5 3 5 1.3 5 3-2.2 3-5 3-5-1.3-5-3" /></svg>
         </span>
-        <span class="stat-label">CO2 Reduction</span>
+        <span class="stat-label">{{ _('CO2 Reduction') }}</span>
         <strong id="result-co2-reduction">—</strong>
         <small>Tons/Year</small>
       </div>
@@ -245,7 +244,7 @@
         <span class="stat-icon indigo-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M4 16l8-10 8 10H4ZM7 16v4h10v-4" /></svg>
         </span>
-        <span class="stat-label">System Size</span>
+        <span class="stat-label">{{ _('System Size') }}</span>
         <strong id="result-system-size">—</strong>
         <small>kW</small>
       </div>
@@ -253,7 +252,7 @@
         <span class="stat-icon green-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2" /></svg>
         </span>
-        <span class="stat-label">Payback Period</span>
+        <span class="stat-label">{{ _('Payback Period') }}</span>
         <strong id="result-payback">—</strong>
         <small>Years</small>
       </div>
@@ -261,21 +260,21 @@
   </div>
 
   <div class="investment-section">
-    <h3>Investment &amp; Payback</h3>
+    <h3>{{ _('Investment & Payback') }}</h3>
     <div class="investment-list">
-      <div><span>Estimated System Cost</span><strong id="result-system-cost">—</strong></div>
-      <div><span>PM Surya Ghar Subsidy</span><strong id="result-subsidy" class="deduction">—</strong></div>
-      <div class="investment-total"><span>Your Net Investment</span><strong id="result-net-investment">—</strong></div>
+      <div><span>{{ _('Estimated System Cost') }}</span><strong id="result-system-cost">—</strong></div>
+      <div><span>{{ _('PM Surya Ghar Subsidy') }}</span><strong id="result-subsidy" class="deduction">—</strong></div>
+      <div class="investment-total"><span>{{ _('Your Net Investment') }}</span><strong id="result-net-investment">—</strong></div>
     </div>
   </div>
 
   <div id="result-subsidy-note" class="subsidy-note"></div>
   <p id="result-area-summary" class="estimate-area-summary"></p>
-  <a id="view-full-report" class="btn-report" href="#" target="_blank" rel="noopener">View Full Report ↗</a>
+  <a id="view-full-report" class="btn-report" href="#" target="_blank" rel="noopener">{{ _('View Full Report') }} ↗</a>
 </section>
 
 <section id="loading-panel" class="loading-panel hidden">
-  <p>Crunching irradiance data, orientation &amp; storage options…</p>
+  <p>{{ _('Crunching irradiance data, orientation & storage options…') }}</p>
 </section>
 {% endblock %}
 
