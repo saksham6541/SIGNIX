@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}SIGNIX — Dashboard{% endblock %}
+{% block title %}{{ _('SIGNIX — Dashboard') }}{% endblock %}
 
 {% block content %}
 <section class="dashboard-hero">
-  <h1>Dashboard</h1>
+  <h1>{{ _('Dashboard') }}</h1>
   <p class="tagline">Your saved rooftop solar estimates</p>
 </section>
 
 <section>
-  <h2 class="section-title">Recent Reports</h2>
+  <h2 class="section-title">{{ _('Recent Reports') }}</h2>
   {% if locations %}
   <table class="reports-table">
     <thead>
@@ -33,7 +33,7 @@
     </tbody>
   </table>
   {% else %}
-  <p class="empty-state">No estimates yet. <a href="{{ url_for('pages.index') }}">Start Estimation →</a></p>
+  <p class="empty-state">{{ _('No estimates yet.') }} <a href="{{ url_for('pages.index') }}">{{ _('Start Estimation') }} →</a></p>
   {% endif %}
 </section>
 {% endblock %}

@@ -1,0 +1,212 @@
+# Hindi translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-09-17 11:58+0530\n"
+"PO-Revision-Date: 2026-09-17 11:22+0530\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: hi\n"
+"Language-Team: hi <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/forms.py:41 app/templates/base.html:98
+msgid "Log in"
+msgstr "लॉग इन करें"
+
+#: app/forms.py:54 app/templates/base.html:99
+msgid "Create account"
+msgstr "खाता बनाएं"
+
+#: app/forms.py:63
+msgid "Save changes"
+msgstr "बदलाव सहेजें"
+
+#: app/forms.py:76
+msgid "Change password"
+msgstr "पासवर्ड बदलें"
+
+#: app/forms.py:94
+msgid "Save settings"
+msgstr "सेटिंग्स सहेजें"
+
+#: app/templates/base.html:6
+msgid "SIGNIX — Bridging You to Clean Energy"
+msgstr "SIGNIX — आपको स्वच्छ ऊर्जा से जोड़ता है"
+
+#: app/templates/base.html:39
+msgid "Track, Save, Impact."
+msgstr "ट्रैक · बचत · प्रभाव"
+
+#: app/templates/base.html:45 app/templates/dashboard.html:6
+msgid "Dashboard"
+msgstr "डैशबोर्ड"
+
+#: app/templates/base.html:48
+msgid "Estimates"
+msgstr "अनुमान"
+
+#: app/templates/base.html:51
+msgid "Reports"
+msgstr "रिपोर्ट"
+
+#: app/templates/base.html:54
+msgid "Saved Locations"
+msgstr "सहेजे गए स्थान"
+
+#: app/templates/base.html:57
+msgid "Compare"
+msgstr "तुलना"
+
+#: app/templates/base.html:60
+msgid "Savings"
+msgstr "बचत"
+
+#: app/templates/base.html:63
+msgid "Profile"
+msgstr "प्रोफ़ाइल"
+
+#: app/templates/base.html:66
+msgid "Settings"
+msgstr "सेटिंग्स"
+
+#: app/templates/base.html:71
+msgid "India's Clean Energy Goal"
+msgstr "भारत का स्वच्छ ऊर्जा लक्ष्य"
+
+#: app/templates/base.html:72
+msgid "1 crore rooftop / 500 GW clean-energy target by 2030."
+msgstr "2030 तक 1 करोड़ रूफटॉप / 500 GW स्वच्छ ऊर्जा का लक्ष्य।"
+
+#: app/templates/base.html:79
+msgid "Toggle menu"
+msgstr "मेनू टॉगल करें"
+
+#: app/templates/base.html:81
+msgid "Notifications"
+msgstr "सूचनाएं"
+
+#: app/templates/base.html:82
+msgid "Language"
+msgstr "भाषा"
+
+#: app/templates/base.html:95
+msgid "Log out"
+msgstr "लॉग आउट करें"
+
+#: app/templates/base.html:109
+msgid ""
+"SIGNIX · Indicative estimates only · Verify DISCOM / MNRE rules before "
+"procurement"
+msgstr ""
+"SIGNIX · केवल सांकेतिक अनुमान · खरीद से पहले DISCOM / MNRE नियमों की "
+"पुष्टि करें"
+
+#: app/templates/base.html:123
+msgid "Open Assistant Chat"
+msgstr "सहायक चैट खोलें"
+
+#: app/templates/base.html:123
+msgid "Ask Assistant"
+msgstr "सहायक से पूछें"
+
+#: app/templates/base.html:127 app/templates/base.html:132
+msgid "SIGNIX Assistant"
+msgstr "SIGNIX सहायक"
+
+#: app/templates/base.html:133
+msgid "Online · FAQ & Solar Info"
+msgstr "ऑनलाइन · सामान्य प्रश्न और सोलर जानकारी"
+
+#: app/templates/base.html:136
+msgid "Close Chat"
+msgstr "चैट बंद करें"
+
+#: app/templates/base.html:139
+msgid ""
+"This assistant can make mistakes — verify important details with your "
+"DISCOM."
+msgstr ""
+"यह सहायक गलतियां कर सकता है — महत्वपूर्ण जानकारी की पुष्टि अपने DISCOM से"
+" करें।"
+
+#: app/templates/base.html:143
+#, python-format
+msgid "Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?"
+msgstr ""
+"नमस्ते, %(name)s! 👋 आज मैं रूफटॉप सोलर या SIGNIX में आपकी कैसे मदद कर "
+"सकता हूँ?"
+
+#: app/templates/base.html:148
+msgid "Ask a question..."
+msgstr "एक सवाल पूछें..."
+
+#: app/templates/base.html:149
+msgid "Send message"
+msgstr "संदेश भेजें"
+
+#: app/templates/compare.html:17 app/templates/savings.html:17
+msgid "Start an estimate"
+msgstr "अनुमान शुरू करें"
+
+#: app/templates/compare.html:27
+msgid "Compare selected"
+msgstr "चयनित की तुलना करें"
+
+#: app/templates/dashboard.html:2
+msgid "SIGNIX — Dashboard"
+msgstr "SIGNIX — डैशबोर्ड"
+
+#: app/templates/dashboard.html:36
+msgid "No estimates yet."
+msgstr "अभी तक कोई अनुमान नहीं।"
+
+#: app/templates/dashboard.html:11
+msgid "Recent Reports"
+msgstr "हाल की रिपोर्ट"
+
+#: app/templates/dashboard.html:36 app/templates/index.html:31
+#: app/templates/index.html:200
+msgid "Start Estimation"
+msgstr "अनुमान शुरू करें"
+
+#: app/templates/index.html:15
+msgid "Search place, society, college, or full address"
+msgstr "स्थान, सोसाइटी, कॉलेज या पूरा पता खोजें"
+
+#: app/templates/index.html:16
+msgid "Search"
+msgstr "खोजें"
+
+#: app/templates/index.html:17
+msgid "Use current location"
+msgstr "वर्तमान स्थान का उपयोग करें"
+
+#: app/templates/index.html:21
+msgid "Use link"
+msgstr "लिंक का उपयोग करें"
+
+#: app/templates/index.html:95
+msgid "Clear obstructions"
+msgstr "अवरोध हटाएं"
+
+#: app/templates/index.html:96
+msgid "Clear all"
+msgstr "सभी हटाएं"
+
+#: app/templates/report.html:32
+msgid "Download PDF"
+msgstr "PDF डाउनलोड करें"
+
+#: app/templates/savings.html:69
+msgid "View report"
+msgstr "रिपोर्ट देखें"
+

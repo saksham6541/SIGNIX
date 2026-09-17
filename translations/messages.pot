@@ -1,0 +1,201 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-09-17 11:58+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/forms.py:41 app/templates/base.html:98
+msgid "Log in"
+msgstr ""
+
+#: app/forms.py:54 app/templates/base.html:99
+msgid "Create account"
+msgstr ""
+
+#: app/forms.py:63
+msgid "Save changes"
+msgstr ""
+
+#: app/forms.py:76
+msgid "Change password"
+msgstr ""
+
+#: app/forms.py:94
+msgid "Save settings"
+msgstr ""
+
+#: app/templates/base.html:6
+msgid "SIGNIX — Bridging You to Clean Energy"
+msgstr ""
+
+#: app/templates/base.html:39
+msgid "Track, Save, Impact."
+msgstr ""
+
+#: app/templates/base.html:45 app/templates/dashboard.html:6
+msgid "Dashboard"
+msgstr ""
+
+#: app/templates/base.html:48
+msgid "Estimates"
+msgstr ""
+
+#: app/templates/base.html:51
+msgid "Reports"
+msgstr ""
+
+#: app/templates/base.html:54
+msgid "Saved Locations"
+msgstr ""
+
+#: app/templates/base.html:57
+msgid "Compare"
+msgstr ""
+
+#: app/templates/base.html:60
+msgid "Savings"
+msgstr ""
+
+#: app/templates/base.html:63
+msgid "Profile"
+msgstr ""
+
+#: app/templates/base.html:66
+msgid "Settings"
+msgstr ""
+
+#: app/templates/base.html:71
+msgid "India's Clean Energy Goal"
+msgstr ""
+
+#: app/templates/base.html:72
+msgid "1 crore rooftop / 500 GW clean-energy target by 2030."
+msgstr ""
+
+#: app/templates/base.html:79
+msgid "Toggle menu"
+msgstr ""
+
+#: app/templates/base.html:81
+msgid "Notifications"
+msgstr ""
+
+#: app/templates/base.html:82
+msgid "Language"
+msgstr ""
+
+#: app/templates/base.html:95
+msgid "Log out"
+msgstr ""
+
+#: app/templates/base.html:109
+msgid ""
+"SIGNIX · Indicative estimates only · Verify DISCOM / MNRE rules before "
+"procurement"
+msgstr ""
+
+#: app/templates/base.html:123
+msgid "Open Assistant Chat"
+msgstr ""
+
+#: app/templates/base.html:123
+msgid "Ask Assistant"
+msgstr ""
+
+#: app/templates/base.html:127 app/templates/base.html:132
+msgid "SIGNIX Assistant"
+msgstr ""
+
+#: app/templates/base.html:133
+msgid "Online · FAQ & Solar Info"
+msgstr ""
+
+#: app/templates/base.html:136
+msgid "Close Chat"
+msgstr ""
+
+#: app/templates/base.html:139
+msgid ""
+"This assistant can make mistakes — verify important details with your "
+"DISCOM."
+msgstr ""
+
+#: app/templates/base.html:143
+#, python-format
+msgid "Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?"
+msgstr ""
+
+#: app/templates/base.html:148
+msgid "Ask a question..."
+msgstr ""
+
+#: app/templates/base.html:149
+msgid "Send message"
+msgstr ""
+
+#: app/templates/compare.html:17 app/templates/savings.html:17
+msgid "Start an estimate"
+msgstr ""
+
+#: app/templates/compare.html:27
+msgid "Compare selected"
+msgstr ""
+
+#: app/templates/dashboard.html:2
+msgid "SIGNIX — Dashboard"
+msgstr ""
+
+#: app/templates/dashboard.html:36
+msgid "No estimates yet."
+msgstr ""
+
+#: app/templates/dashboard.html:36 app/templates/index.html:31
+#: app/templates/index.html:200
+msgid "Start Estimation"
+msgstr ""
+
+#: app/templates/index.html:15
+msgid "Search place, society, college, or full address"
+msgstr ""
+
+#: app/templates/index.html:16
+msgid "Search"
+msgstr ""
+
+#: app/templates/index.html:17
+msgid "Use current location"
+msgstr ""
+
+#: app/templates/index.html:21
+msgid "Use link"
+msgstr ""
+
+#: app/templates/index.html:95
+msgid "Clear obstructions"
+msgstr ""
+
+#: app/templates/index.html:96
+msgid "Clear all"
+msgstr ""
+
+#: app/templates/report.html:32
+msgid "Download PDF"
+msgstr ""
+
+#: app/templates/savings.html:69
+msgid "View report"
+msgstr ""
+

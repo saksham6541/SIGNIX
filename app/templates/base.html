@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}SIGNIX — Bridging You to Clean Energy{% endblock %}</title>
+  <title>{% block title %}{{ _('SIGNIX — Bridging You to Clean Energy') }}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,50 +36,50 @@
         </span>
         <span class="logo-text">
           <span class="logo-name">SIGNIX</span>
-          <span class="logo-tagline">Track, Save, Impact. </span>
+          <span class="logo-tagline">{{ _('Track, Save, Impact.') }} </span>
         </span>
       </a>
 
       <nav class="side-nav">
         <a href="{{ url_for('pages.dashboard') }}" class="nav-item {% if request.endpoint == 'pages.dashboard' %}active{% endif %}">
-          <span class="nav-ico">▦</span> Dashboard
+          <span class="nav-ico">▦</span> {{ _('Dashboard') }}
         </a>
         <a href="{{ url_for('pages.index') }}" class="nav-item {% if request.endpoint == 'pages.index' %}active{% endif %}">
-          <span class="nav-ico">☀</span> Estimates
+          <span class="nav-ico">☀</span> {{ _('Estimates') }}
         </a>
         <a href="{{ url_for('pages.dashboard') }}" class="nav-item">
-          <span class="nav-ico">📄</span> Reports
+          <span class="nav-ico">📄</span> {{ _('Reports') }}
         </a>
         <a href="{{ url_for('pages.dashboard') }}" class="nav-item">
-          <span class="nav-ico">📍</span> Saved Locations
+          <span class="nav-ico">📍</span> {{ _('Saved Locations') }}
         </a>
         <a href="{{ url_for('pages.compare') }}" class="nav-item {% if request.endpoint == 'pages.compare' %}active{% endif %}">
-          <span class="nav-ico">⇄</span> Compare
+          <span class="nav-ico">⇄</span> {{ _('Compare') }}
         </a>
         <a href="{{ url_for('pages.savings') }}" class="nav-item {% if request.endpoint == 'pages.savings' %}active{% endif %}">
-          <span class="nav-ico">₹</span> Savings
+          <span class="nav-ico">₹</span> {{ _('Savings') }}
         </a>
         <a href="{{ url_for('auth.profile') }}" class="nav-item {% if request.endpoint == 'auth.profile' %}active{% endif %}">
-          <span class="nav-ico">👤</span> Profile
+          <span class="nav-ico">👤</span> {{ _('Profile') }}
         </a>
         <a href="{{ url_for('auth.settings') }}" class="nav-item {% if request.endpoint == 'auth.settings' %}active{% endif %}">
-          <span class="nav-ico">⚙</span> Settings
+          <span class="nav-ico">⚙</span> {{ _('Settings') }}
         </a>
       </nav>
 
       <div class="sidebar-goal-card">
-        <h4>India's Clean Energy Goal</h4>
-        <p>1 crore rooftop / 500 GW clean-energy target by 2030.</p>
+        <h4>{{ _('India\'s Clean Energy Goal') }}</h4>
+        <p>{{ _('1 crore rooftop / 500 GW clean-energy target by 2030.') }}</p>
         <span class="goal-icon" aria-hidden="true">🎯</span>
       </div>
     </aside>
 
     <div class="main-column">
       <header class="top-bar">
-        <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">☰</button>
+        <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="{{ _('Toggle menu') }}">☰</button>
         <div class="top-bar-right">
-          <button type="button" class="icon-btn" title="Notifications" aria-label="Notifications">🔔</button>
-          <span class="language-switcher" aria-label="Language">
+          <button type="button" class="icon-btn" title="{{ _('Notifications') }}" aria-label="{{ _('Notifications') }}">🔔</button>
+          <span class="language-switcher" aria-label="{{ _('Language') }}">
             <a href="{{ url_for('auth.set_language', language='en') }}" class="auth-link {% if get_locale() == 'en' %}active{% endif %}">EN</a>
             <span aria-hidden="true">/</span>
             <a href="{{ url_for('auth.set_language', language='hi') }}" class="auth-link {% if get_locale() == 'hi' %}active{% endif %}">हिंदी</a>
@@ -92,11 +92,11 @@
           </div>
           <form method="post" action="{{ url_for('auth.logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="auth-link logout-button">Log out</button>
+            <button type="submit" class="auth-link logout-button">{{ _('Log out') }}</button>
           </form>
           {% else %}
-          <a href="{{ url_for('auth.login') }}" class="auth-link">Log in</a>
-          <a href="{{ url_for('auth.signup') }}" class="auth-link auth-link-primary">Create account</a>
+          <a href="{{ url_for('auth.login') }}" class="auth-link">{{ _('Log in') }}</a>
+          <a href="{{ url_for('auth.signup') }}" class="auth-link auth-link-primary">{{ _('Create account') }}</a>
           {% endif %}
         </div>
       </header>
@@ -106,7 +106,7 @@
       </main>
 
       <footer class="site-footer">
-        <p>SIGNIX · Indicative estimates only · Verify DISCOM / MNRE rules before procurement</p>
+        <p>{{ _('SIGNIX · Indicative estimates only · Verify DISCOM / MNRE rules before procurement') }}</p>
       </footer>
     </div>
   </div>
@@ -120,33 +120,33 @@
 
   {% if current_user.is_authenticated %}
   <div id="assistant-widget" class="assistant-widget">
-    <button type="button" id="assistant-toggle" class="assistant-toggle-btn" aria-label="Open Assistant Chat" aria-expanded="false" aria-controls="assistant-panel" title="Ask Assistant">
+    <button type="button" id="assistant-toggle" class="assistant-toggle-btn" aria-label="{{ _('Open Assistant Chat') }}" aria-expanded="false" aria-controls="assistant-panel" title="{{ _('Ask Assistant') }}">
       <span class="assistant-icon-open">💬</span>
       <span class="assistant-icon-close">✕</span>
     </button>
-    <div id="assistant-panel" class="assistant-panel hidden" role="dialog" aria-label="SIGNIX Assistant" aria-hidden="true">
+    <div id="assistant-panel" class="assistant-panel hidden" role="dialog" aria-label="{{ _('SIGNIX Assistant') }}" aria-hidden="true">
       <div class="assistant-header">
         <div class="assistant-header-title">
           <span class="assistant-avatar">✨</span>
           <div>
-            <h3>SIGNIX Assistant</h3>
-            <span class="assistant-status">Online · FAQ & Solar Info</span>
+            <h3>{{ _('SIGNIX Assistant') }}</h3>
+            <span class="assistant-status">{{ _('Online · FAQ & Solar Info') }}</span>
           </div>
         </div>
-        <button type="button" id="assistant-close-btn" class="assistant-close-btn" aria-label="Close Chat">✕</button>
+        <button type="button" id="assistant-close-btn" class="assistant-close-btn" aria-label="{{ _('Close Chat') }}">✕</button>
       </div>
       <div class="assistant-disclaimer">
-        This assistant can make mistakes — verify important details with your DISCOM.
+        {{ _('This assistant can make mistakes — verify important details with your DISCOM.') }}
       </div>
       <div id="assistant-messages" class="assistant-messages" role="log" aria-live="polite" aria-relevant="additions">
         <div class="chat-bubble assistant-bubble">
-          Hello, {{ current_user.display_name }}! 👋 How can I help you with rooftop solar or SIGNIX today?
+          {{ _('Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?', name=current_user.display_name) }}
         </div>
       </div>
       <form id="assistant-form" class="assistant-input-area">
         <input type="hidden" name="csrf_token" id="assistant-csrf" value="{{ csrf_token() }}">
-        <input type="text" id="assistant-input" class="assistant-input" placeholder="Ask a question..." autocomplete="off" required />
-        <button type="submit" id="assistant-send-btn" class="assistant-send-btn" aria-label="Send message">
+        <input type="text" id="assistant-input" class="assistant-input" placeholder="{{ _('Ask a question...') }}" autocomplete="off" required />
+        <button type="submit" id="assistant-send-btn" class="assistant-send-btn" aria-label="{{ _('Send message') }}">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"></line>
             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>

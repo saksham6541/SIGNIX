@@ -14,7 +14,7 @@
   <div class="savings-empty">
     <h2>Your savings story starts with an estimate</h2>
     <p>Run and save your first rooftop estimate to see your potential savings here.</p>
-    <a class="btn-grad" href="{{ url_for('pages.index') }}">Start an estimate</a>
+    <a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Start an estimate') }}</a>
   </div>
   {% else %}
   <div class="savings-overview-grid">
@@ -66,7 +66,7 @@
     <div class="opportunity-metrics">
       <span><small>Monthly savings</small><strong>&#8377;{{ "%.0f"|format(best_opportunity.monthly_savings or 0) }}</strong></span>
       <span><small>Payback period</small><strong>{{ "%.1f"|format(best_opportunity.payback_years or 0) }} years</strong></span>
-      <a class="btn-report" href="{{ url_for('pages.report', location_id=best_opportunity.id) }}">View report</a>
+      <a class="btn-report" href="{{ url_for('pages.report', location_id=best_opportunity.id) }}">{{ _('View report') }}</a>
     </div>
   </section>
   {% endif %}

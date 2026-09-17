@@ -14,7 +14,7 @@
   <div class="compare-empty">
     <h2>Save at least 2 locations to compare them</h2>
     <p>Run another estimate and save it to see the differences here.</p>
-    <a class="btn-grad" href="{{ url_for('pages.index') }}">Start an estimate</a>
+    <a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Start an estimate') }}</a>
   </div>
   {% else %}
   <form method="post" class="compare-picker">
@@ -24,7 +24,7 @@
         <h2>Choose locations</h2>
         <p>Pick 2 or 3 saved estimates.</p>
       </div>
-      <button type="submit" class="btn-primary-lg">Compare selected</button>
+      <button type="submit" class="btn-primary-lg">{{ _('Compare selected') }}</button>
     </div>
     <div class="location-checklist">
       {% for location in locations %}

@@ -4,7 +4,7 @@ from flask_babel import Babel, get_locale
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 
-from app.config import Config
+from app.config import BASE_DIR, Config
 from app.models import db
 
 csrf = CSRFProtect()
@@ -34,7 +34,10 @@ def create_app():
         return session.get("language", DEFAULT_LOCALE)
 
     app.config.setdefault("BABEL_DEFAULT_LOCALE", DEFAULT_LOCALE)
-    app.config.setdefault("BABEL_TRANSLATION_DIRECTORIES", "translations")
+    app.config.setdefault(
+        "BABEL_TRANSLATION_DIRECTORIES",
+        f"{BASE_DIR}/translations",
+    )
     babel.init_app(app, locale_selector=select_locale)
 
     @app.context_processor

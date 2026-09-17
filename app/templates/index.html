@@ -12,13 +12,13 @@
 
 <section class="search-panel">
   <div class="search-box">
-    <input type="text" id="address-search" placeholder="Search place, society, college, or full address">
-    <button id="search-btn" type="button">Search</button>
-    <button id="locate-btn" type="button" title="Use current location">📍</button>
+    <input type="text" id="address-search" placeholder="{{ _('Search place, society, college, or full address') }}">
+    <button id="search-btn" type="button">{{ _('Search') }}</button>
+    <button id="locate-btn" type="button" title="{{ _('Use current location') }}">📍</button>
   </div>
   <div class="maps-link-box">
     <input type="text" id="maps-link-input" placeholder="Or paste a Google Maps link (maps.app.goo.gl / maps.google.com)">
-    <button id="maps-link-btn" type="button">Use link</button>
+    <button id="maps-link-btn" type="button">{{ _('Use link') }}</button>
   </div>
   <div id="search-results" class="search-results"></div>
 </section>
@@ -28,7 +28,7 @@
     <p class="cta-label">Get your rooftop solar estimate in under</p>
     <p class="cta-big">5<span>minutes</span></p>
   <p id="estimate-source-note" class="estimate-source-note hidden" role="status"></p>
-    <a class="btn-grad" href="#map-section">Start Estimation →</a>
+    <a class="btn-grad" href="#map-section">{{ _('Start Estimation') }} →</a>
   </div>
   <div class="cta-timer" aria-hidden="true">⏱️</div>
 </section>
@@ -92,8 +92,8 @@
   <div class="map-toolbar">
     <span id="area-readout">Total roof: -- m²  ·  Obstructed: -- m²  =  Usable: -- m² | Est. system size: -- kW</span>
     <div class="map-toolbar-actions">
-      <button id="clear-obstructions-btn" type="button" class="btn-text">Clear obstructions</button>
-      <button id="clear-all-btn" type="button" class="btn-text">Clear all</button>
+      <button id="clear-obstructions-btn" type="button" class="btn-text">{{ _('Clear obstructions') }}</button>
+      <button id="clear-all-btn" type="button" class="btn-text">{{ _('Clear all') }}</button>
     </div>
   </div>
 </section>
@@ -197,7 +197,7 @@
   </div>
 
   <div class="options-actions">
-    <button id="start-estimation-btn" type="button" class="btn-primary-lg" disabled>Start Estimation →</button>
+    <button id="start-estimation-btn" type="button" class="btn-primary-lg" disabled>{{ _('Start Estimation') }} →</button>
   </div>
 </section>
 

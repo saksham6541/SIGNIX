@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_babel import lazy_gettext as _
 from wtforms import (
     FloatField,
     HiddenField,
@@ -37,7 +38,7 @@ PROPERTY_TYPES = [
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Log in")
+    submit = SubmitField(_("Log in"))
 
 
 class SignupForm(FlaskForm):
@@ -50,7 +51,7 @@ class SignupForm(FlaskForm):
         "Confirm password",
         validators=[DataRequired(), EqualTo("password")],
     )
-    submit = SubmitField("Create account")
+    submit = SubmitField(_("Create account"))
 
 
 class EditProfileForm(FlaskForm):
@@ -59,7 +60,7 @@ class EditProfileForm(FlaskForm):
         "Display name", validators=[DataRequired(), Length(max=128)]
     )
     email = StringField("Email", validators=[DataRequired(), Email()])
-    submit = SubmitField("Save changes")
+    submit = SubmitField(_("Save changes"))
 
 
 class ChangePasswordForm(FlaskForm):
@@ -72,7 +73,7 @@ class ChangePasswordForm(FlaskForm):
         "Confirm new password",
         validators=[DataRequired(), EqualTo("new_password")],
     )
-    submit = SubmitField("Change password")
+    submit = SubmitField(_("Change password"))
 
 
 class SettingsForm(FlaskForm):
@@ -90,4 +91,4 @@ class SettingsForm(FlaskForm):
         choices=PROPERTY_TYPES,
         validators=[Optional()],
     )
-    submit = SubmitField("Save settings")
+    submit = SubmitField(_("Save settings"))
