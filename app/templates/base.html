@@ -119,7 +119,12 @@
   </script>
 
   {% if current_user.is_authenticated %}
-  <div id="assistant-widget" class="assistant-widget">
+  <div id="assistant-widget" class="assistant-widget"
+    data-loading-label="{{ _('Assistant is thinking') }}"
+    data-rate-limit-message="{{ _('You\'ve reached today\'s question limit.') }}"
+    data-unavailable-message="{{ _('The assistant is temporarily unavailable. Please try again later.') }}"
+    data-empty-response-message="{{ _('Received an empty response from assistant.') }}"
+    data-connection-message="{{ _('Unable to connect. Please check your connection and try again.') }}">
     <button type="button" id="assistant-toggle" class="assistant-toggle-btn" aria-label="{{ _('Open Assistant Chat') }}" aria-expanded="false" aria-controls="assistant-panel" title="{{ _('Ask Assistant') }}">
       <span class="assistant-icon-open">💬</span>
       <span class="assistant-icon-close">✕</span>

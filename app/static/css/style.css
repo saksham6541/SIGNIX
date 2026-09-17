@@ -752,6 +752,7 @@ body.ignix-body {
   display: block;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.75);
+  overflow-wrap: anywhere;
 }
 
 .assistant-close-btn {
@@ -778,6 +779,7 @@ body.ignix-body {
   padding: 8px 12px;
   text-align: center;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .assistant-messages {
@@ -825,6 +827,7 @@ body.ignix-body {
   font-size: 12px;
   text-align: center;
   width: 90%;
+  overflow-wrap: anywhere;
 }
 
 .assistant-loading {

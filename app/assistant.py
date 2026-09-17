@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from threading import Lock
 
 from flask import Blueprint, current_app, jsonify, request
+from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
 assistant_bp = Blueprint("assistant", __name__)
@@ -33,6 +34,16 @@ rooftop solar in India. Politely decline unrelated requests.
 _count_lock = Lock()
 
 
+def build_system_prompt(locale):
+    language = "Hindi" if str(locale).split("_")[0] == "hi" else "English"
+    return (
+        f"{SYSTEM_PROMPT}\n\n"
+        f"Respond in {language}. Keep technical names, official scheme names, "
+        "units, and acronyms such as PM Surya Ghar, DISCOM, MNRE, kW, and "
+        "kWh unchanged unless the user explicitly asks for an explanation."
+    )
+
+
 def _consume_daily_message(user_id):
     today = datetime.now(timezone.utc).date()
     key = (user_id, today)
@@ -61,21 +72,21 @@ def assistant():
     payload = request.get_json(silent=True) or {}
     message = payload.get("message")
     if not isinstance(message, str) or not message.strip():
-        return jsonify(error="A non-empty message is required"), 400
+        return jsonify(error=_("A non-empty message is required")), 400
 
     if not _consume_daily_message(current_user.id):
-        return jsonify(error="Daily assistant message limit reached"), 429
+        return jsonify(error=_("Daily assistant message limit reached")), 429
 
     api_key = current_app.config.get("GEMINI_API_KEY")
     if not api_key:
-        return jsonify(error="The assistant is not configured"), 503
+        return jsonify(error=_("The assistant is not configured")), 503
 
     try:
         client = _create_gemini_client(api_key)
         response = client.models.generate_content(
             model=current_app.config["GEMINI_MODEL"],
             contents=message.strip(),
-            config={"system_instruction": SYSTEM_PROMPT},
+            config={"system_instruction": build_system_prompt(get_locale())},
         )
     except Exception as error:
         current_app.logger.error(
@@ -85,6 +96,6 @@ def assistant():
             exc_info=True,
         )
         current_app.logger.exception("Gemini assistant request failed")
-        return jsonify(error="The assistant is temporarily unavailable"), 502
+        return jsonify(error=_("The assistant is temporarily unavailable")), 502
 
     return jsonify(response=response.text)

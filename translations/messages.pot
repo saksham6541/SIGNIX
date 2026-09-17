@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-17 16:40+0530\n"
+"POT-Creation-Date: 2026-09-17 17:11+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,69 +17,129 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app/forms.py:39 app/forms.py:48 app/forms.py:62
+#: app/assistant.py:75
+msgid "A non-empty message is required"
+msgstr ""
+
+#: app/assistant.py:78
+msgid "Daily assistant message limit reached"
+msgstr ""
+
+#: app/assistant.py:82
+msgid "The assistant is not configured"
+msgstr ""
+
+#: app/assistant.py:99
+msgid "The assistant is temporarily unavailable"
+msgstr ""
+
+#: app/auth.py:51 app/auth.py:113
+msgid "That email is already registered."
+msgstr ""
+
+#: app/auth.py:56
+msgid "Profile updated."
+msgstr ""
+
+#: app/auth.py:67
+msgid "Current password is incorrect."
+msgstr ""
+
+#: app/auth.py:74
+msgid "Password changed."
+msgstr ""
+
+#: app/auth.py:99
+msgid "Settings updated."
+msgstr ""
+
+#: app/auth.py:130
+msgid "You're already logged in."
+msgstr ""
+
+#: app/auth.py:138
+msgid "Invalid email or password."
+msgstr ""
+
+#: app/forms.py:20
+msgid "This field is required."
+msgstr ""
+
+#: app/forms.py:21
+msgid "Please enter a valid email address."
+msgstr ""
+
+#: app/forms.py:22
+msgid "Passwords must match."
+msgstr ""
+
+#: app/forms.py:44 app/forms.py:55 app/forms.py:76
 msgid "Email"
 msgstr ""
 
-#: app/forms.py:40 app/forms.py:49
+#: app/forms.py:46 app/forms.py:58
 msgid "Password"
 msgstr ""
 
-#: app/forms.py:41 app/templates/base.html:98 app/templates/login.html:2
+#: app/forms.py:47 app/templates/base.html:98 app/templates/login.html:2
 #: app/templates/login.html:8 app/templates/signup.html:19
 msgid "Log in"
 msgstr ""
 
-#: app/forms.py:46 app/forms.py:60
+#: app/forms.py:52 app/forms.py:73
 msgid "Display name"
 msgstr ""
 
-#: app/forms.py:51
+#: app/forms.py:61
 msgid "Confirm password"
 msgstr ""
 
-#: app/forms.py:54 app/templates/base.html:99 app/templates/signup.html:2
+#: app/forms.py:67 app/templates/base.html:99 app/templates/signup.html:2
 #: app/templates/signup.html:8
 msgid "Create account"
 msgstr ""
 
-#: app/forms.py:63
+#: app/forms.py:78
 msgid "Save changes"
 msgstr ""
 
-#: app/forms.py:68
+#: app/forms.py:84
 msgid "Current password"
 msgstr ""
 
-#: app/forms.py:70
+#: app/forms.py:87
 msgid "New password"
 msgstr ""
 
-#: app/forms.py:73
+#: app/forms.py:90
 msgid "Confirm new password"
 msgstr ""
 
-#: app/forms.py:76
+#: app/forms.py:96
 msgid "Change password"
 msgstr ""
 
-#: app/forms.py:81
+#: app/forms.py:101 app/templates/index.html:112
 msgid "Tariff per kWh (₹)"
 msgstr ""
 
-#: app/forms.py:85
+#: app/forms.py:104
+msgid "Number must be zero or greater."
+msgstr ""
+
+#: app/forms.py:108 app/templates/index.html:119
 msgid "State"
 msgstr ""
 
-#: app/forms.py:86
+#: app/forms.py:109
 msgid "Select a state"
 msgstr ""
 
-#: app/forms.py:91
+#: app/forms.py:114 app/templates/index.html:130
 msgid "Property type"
 msgstr ""
 
-#: app/forms.py:95
+#: app/forms.py:118
 msgid "Save settings"
 msgstr ""
 
@@ -156,41 +216,61 @@ msgid ""
 msgstr ""
 
 #: app/templates/base.html:123
+msgid "Assistant is thinking"
+msgstr ""
+
+#: app/templates/base.html:124
+msgid "You've reached today's question limit."
+msgstr ""
+
+#: app/templates/base.html:125
+msgid "The assistant is temporarily unavailable. Please try again later."
+msgstr ""
+
+#: app/templates/base.html:126
+msgid "Received an empty response from assistant."
+msgstr ""
+
+#: app/templates/base.html:127
+msgid "Unable to connect. Please check your connection and try again."
+msgstr ""
+
+#: app/templates/base.html:128
 msgid "Open Assistant Chat"
 msgstr ""
 
-#: app/templates/base.html:123
+#: app/templates/base.html:128
 msgid "Ask Assistant"
 msgstr ""
 
-#: app/templates/base.html:127 app/templates/base.html:132
+#: app/templates/base.html:132 app/templates/base.html:137
 msgid "SIGNIX Assistant"
 msgstr ""
 
-#: app/templates/base.html:133
+#: app/templates/base.html:138
 msgid "Online · FAQ & Solar Info"
 msgstr ""
 
-#: app/templates/base.html:136
+#: app/templates/base.html:141
 msgid "Close Chat"
 msgstr ""
 
-#: app/templates/base.html:139
+#: app/templates/base.html:144
 msgid ""
 "This assistant can make mistakes — verify important details with your "
 "DISCOM."
 msgstr ""
 
-#: app/templates/base.html:143
+#: app/templates/base.html:148
 #, python-format
 msgid "Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?"
 msgstr ""
 
-#: app/templates/base.html:148
+#: app/templates/base.html:153
 msgid "Ask a question..."
 msgstr ""
 
-#: app/templates/base.html:149
+#: app/templates/base.html:154
 msgid "Send message"
 msgstr ""
 
@@ -445,6 +525,10 @@ msgstr ""
 
 #: app/templates/index.html:108
 msgid "Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW."
+msgstr ""
+
+#: app/templates/index.html:113
+msgid "e.g. 10"
 msgstr ""
 
 #: app/templates/index.html:115

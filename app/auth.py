@@ -1,4 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -47,12 +48,12 @@ def profile():
             User.id != current_user.id,
         ).first()
         if other_user is not None:
-            profile_form.email.errors.append("That email is already registered.")
+            profile_form.email.errors.append(_("That email is already registered."))
         else:
             current_user.display_name = profile_form.display_name.data.strip()
             current_user.email = email
             db.session.commit()
-            flash("Profile updated.", "success")
+            flash(_("Profile updated."), "success")
             return redirect(url_for("auth.profile"))
 
     if (
@@ -63,14 +64,14 @@ def profile():
             current_user.password_hash, password_form.current_password.data
         ):
             password_form.current_password.errors.append(
-                "Current password is incorrect."
+                _("Current password is incorrect.")
             )
         else:
             current_user.password_hash = generate_password_hash(
                 password_form.new_password.data
             )
             db.session.commit()
-            flash("Password changed.", "success")
+            flash(_("Password changed."), "success")
             return redirect(url_for("auth.profile"))
 
     location_count = UserLocation.query.filter_by(user_id=current_user.id).count()
@@ -95,7 +96,7 @@ def settings():
         current_user.default_state = form.default_state.data or None
         current_user.default_property_type = form.default_property_type.data or None
         db.session.commit()
-        flash("Settings updated.", "success")
+        flash(_("Settings updated."), "success")
         return redirect(url_for("auth.settings"))
 
     return render_template("settings.html", form=form)
@@ -109,7 +110,7 @@ def signup():
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
         if User.query.filter_by(email=email).first() is not None:
-            form.email.errors.append("That email is already registered.")
+            form.email.errors.append(_("That email is already registered."))
         else:
             user = User(
                 email=email,
@@ -126,7 +127,7 @@ def signup():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        flash("You're already logged in.", "info")
+        flash(_("You're already logged in."), "info")
         return redirect(url_for("pages.dashboard"))
     form = LoginForm()
     if form.validate_on_submit():
@@ -134,7 +135,7 @@ def login():
         if user is None or not check_password_hash(
             user.password_hash, form.password.data
         ):
-            flash("Invalid email or password.", "error")
+            flash(_("Invalid email or password."), "error")
         else:
             login_user(user)
             return redirect(url_for("pages.dashboard"))

@@ -10,6 +10,13 @@
   const input = document.getElementById('assistant-input');
   const sendBtn = document.getElementById('assistant-send-btn');
   const csrfInput = document.getElementById('assistant-csrf');
+  const strings = {
+    loading: widget.dataset.loadingLabel,
+    rateLimit: widget.dataset.rateLimitMessage,
+    unavailable: widget.dataset.unavailableMessage,
+    emptyResponse: widget.dataset.emptyResponseMessage,
+    connection: widget.dataset.connectionMessage,
+  };
 
   function togglePanel() {
     const isHidden = panel.classList.contains('hidden');
@@ -56,7 +63,7 @@
     loadingDiv.className = 'chat-bubble assistant-bubble assistant-loading';
     loadingDiv.id = 'assistant-loading-indicator';
     loadingDiv.setAttribute('role', 'status');
-    loadingDiv.setAttribute('aria-label', 'Assistant is thinking');
+    loadingDiv.setAttribute('aria-label', strings.loading);
     loadingDiv.innerHTML = '<span></span><span></span><span></span>';
     messagesContainer.appendChild(loadingDiv);
     scrollToBottom();
@@ -98,9 +105,9 @@
       removeLoadingIndicator();
 
       if (response.status === 429) {
-        appendError("You've reached today's question limit.");
+        appendError(strings.rateLimit);
       } else if (!response.ok) {
-        let errMessage = "The assistant is temporarily unavailable. Please try again later.";
+        let errMessage = strings.unavailable;
         try {
           const errData = await response.json();
           if (errData && errData.error) {
@@ -113,12 +120,12 @@
         if (data.response) {
           appendMessage(data.response, false);
         } else {
-          appendError("Received an empty response from assistant.");
+          appendError(strings.emptyResponse);
         }
       }
     } catch (err) {
       removeLoadingIndicator();
-      appendError("Unable to connect. Please check your connection and try again.");
+      appendError(strings.connection);
     } finally {
       input.disabled = false;
       sendBtn.disabled = false;
