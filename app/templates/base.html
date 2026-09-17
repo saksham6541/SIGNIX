@@ -124,7 +124,10 @@
     data-rate-limit-message="{{ _('You\'ve reached today\'s question limit.') }}"
     data-unavailable-message="{{ _('The assistant is temporarily unavailable. Please try again later.') }}"
     data-empty-response-message="{{ _('Received an empty response from assistant.') }}"
-    data-connection-message="{{ _('Unable to connect. Please check your connection and try again.') }}">
+    data-connection-message="{{ _('Unable to connect. Please check your connection and try again.') }}"
+    data-voice-label="{{ _('Use voice input') }}"
+    data-voice-listening-label="{{ _('Listening...') }}"
+    data-voice-unsupported-label="{{ _('Voice input is not supported in this browser') }}">
     <button type="button" id="assistant-toggle" class="assistant-toggle-btn" aria-label="{{ _('Open Assistant Chat') }}" aria-expanded="false" aria-controls="assistant-panel" title="{{ _('Ask Assistant') }}">
       <span class="assistant-icon-open">💬</span>
       <span class="assistant-icon-close">✕</span>
@@ -151,6 +154,12 @@
       <form id="assistant-form" class="assistant-input-area">
         <input type="hidden" name="csrf_token" id="assistant-csrf" value="{{ csrf_token() }}">
         <input type="text" id="assistant-input" class="assistant-input" placeholder="{{ _('Ask a question...') }}" autocomplete="off" required />
+        <button type="button" id="assistant-voice-btn" class="assistant-voice-btn" aria-label="{{ _('Use voice input') }}" title="{{ _('Use voice input') }}">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+            <path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"></path>
+          </svg>
+        </button>
         <button type="submit" id="assistant-send-btn" class="assistant-send-btn" aria-label="{{ _('Send message') }}">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"></line>

@@ -1,4 +1,4 @@
-  document.addEventListener('DOMContentLoaded', () => {
+  if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
   const widget = document.getElementById('assistant-widget');
   if (!widget) return;
 
@@ -9,6 +9,7 @@
   const form = document.getElementById('assistant-form');
   const input = document.getElementById('assistant-input');
   const sendBtn = document.getElementById('assistant-send-btn');
+  const voiceBtn = document.getElementById('assistant-voice-btn');
   const csrfInput = document.getElementById('assistant-csrf');
   const strings = {
     loading: widget.dataset.loadingLabel,
@@ -17,6 +18,18 @@
     emptyResponse: widget.dataset.emptyResponseMessage,
     connection: widget.dataset.connectionMessage,
   };
+
+  setupVoiceInput({
+    button: voiceBtn,
+    input,
+    recognitionConstructor: window.SpeechRecognition || window.webkitSpeechRecognition,
+    locale: document.documentElement.lang,
+    strings: {
+      label: widget.dataset.voiceLabel,
+      listening: widget.dataset.voiceListeningLabel,
+      unsupported: widget.dataset.voiceUnsupportedLabel,
+    },
+  });
 
   function togglePanel() {
     const isHidden = panel.classList.contains('hidden');
@@ -133,3 +146,45 @@
     }
   });
 });
+
+function setupVoiceInput({ button, input, recognitionConstructor, locale, strings }) {
+  if (!button) return { supported: false };
+
+  if (!recognitionConstructor) {
+    button.hidden = true;
+    button.disabled = true;
+    button.title = strings.unsupported;
+    return { supported: false };
+  }
+
+  const recognition = new recognitionConstructor();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = String(locale).toLowerCase().startsWith('hi') ? 'hi-IN' : 'en-IN';
+
+  const stopListening = () => {
+    button.classList.remove('listening');
+    button.setAttribute('aria-label', strings.label);
+    button.title = strings.label;
+  };
+
+  button.addEventListener('click', () => {
+    button.classList.add('listening');
+    button.setAttribute('aria-label', strings.listening);
+    button.title = strings.listening;
+    recognition.start();
+  });
+
+  recognition.addEventListener('result', (event) => {
+    const transcript = event.results?.[0]?.[0]?.transcript;
+    if (transcript) input.value = transcript;
+  });
+  recognition.addEventListener('end', stopListening);
+  recognition.addEventListener('error', stopListening);
+
+  return { supported: true, recognition };
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { setupVoiceInput };
+}
