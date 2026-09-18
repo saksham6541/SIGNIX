@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-17 20:39+0530\n"
+"POT-Creation-Date: 2026-09-18 14:27+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -235,7 +235,7 @@ msgstr ""
 msgid "Unable to connect. Please check your connection and try again."
 msgstr ""
 
-#: app/templates/base.html:128 app/templates/base.html:157
+#: app/templates/base.html:128 app/templates/base.html:159
 msgid "Use voice input"
 msgstr ""
 
@@ -248,41 +248,49 @@ msgid "Voice input is not supported in this browser"
 msgstr ""
 
 #: app/templates/base.html:131
+msgid "Read response aloud"
+msgstr ""
+
+#: app/templates/base.html:132
+msgid "Voice output is not available for this language"
+msgstr ""
+
+#: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr ""
 
-#: app/templates/base.html:131
+#: app/templates/base.html:133
 msgid "Ask Assistant"
 msgstr ""
 
-#: app/templates/base.html:135 app/templates/base.html:140
+#: app/templates/base.html:137 app/templates/base.html:142
 msgid "SIGNIX Assistant"
 msgstr ""
 
-#: app/templates/base.html:141
+#: app/templates/base.html:143
 msgid "Online · FAQ & Solar Info"
 msgstr ""
 
-#: app/templates/base.html:144
+#: app/templates/base.html:146
 msgid "Close Chat"
 msgstr ""
 
-#: app/templates/base.html:147
+#: app/templates/base.html:149
 msgid ""
 "This assistant can make mistakes — verify important details with your "
 "DISCOM."
 msgstr ""
 
-#: app/templates/base.html:151
+#: app/templates/base.html:153
 #, python-format
 msgid "Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?"
 msgstr ""
 
-#: app/templates/base.html:156
+#: app/templates/base.html:158
 msgid "Ask a question..."
 msgstr ""
 
-#: app/templates/base.html:163
+#: app/templates/base.html:165
 msgid "Send message"
 msgstr ""
 

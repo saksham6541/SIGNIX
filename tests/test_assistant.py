@@ -71,9 +71,10 @@ def test_assistant_blocks_21st_message_for_same_user(client, app):
 
     with patch("app.assistant._create_gemini_client", return_value=gemini_client):
         app.config["GEMINI_API_KEY"] = "test-key"
+        messages = ["Voice transcript: How does solar work?"] + ["Question"] * 20
         responses = [
-            client.post("/api/assistant", json={"message": "Question"})
-            for _ in range(21)
+            client.post("/api/assistant", json={"message": message})
+            for message in messages
         ]
 
     assert [response.status_code for response in responses[:20]] == [200] * 20

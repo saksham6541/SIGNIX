@@ -18,6 +18,11 @@
     emptyResponse: widget.dataset.emptyResponseMessage,
     connection: widget.dataset.connectionMessage,
   };
+  const speechOutput = setupSpeechOutput({
+    synthesis: window.speechSynthesis,
+    utteranceConstructor: window.SpeechSynthesisUtterance,
+    locale: document.documentElement.lang,
+  });
 
   setupVoiceInput({
     button: voiceBtn,
@@ -40,6 +45,7 @@
       panel.setAttribute('aria-hidden', 'false');
       input.focus();
     } else {
+      speechOutput.cancel();
       panel.classList.add('hidden');
       widget.classList.remove('active');
       toggleBtn.setAttribute('aria-expanded', 'false');
@@ -57,7 +63,20 @@
   function appendMessage(text, isUser = false) {
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${isUser ? 'user-bubble' : 'assistant-bubble'}`;
-    bubble.textContent = text;
+    const messageText = document.createElement('span');
+    messageText.className = 'chat-message-text';
+    messageText.textContent = text;
+    bubble.appendChild(messageText);
+    if (!isUser && speechOutput.supported) {
+      const speakButton = document.createElement('button');
+      speakButton.type = 'button';
+      speakButton.className = 'assistant-speak-btn';
+      speakButton.title = widget.dataset.speakLabel;
+      speakButton.setAttribute('aria-label', widget.dataset.speakLabel);
+      speakButton.textContent = '🔊';
+      speakButton.addEventListener('click', () => speechOutput.speak(text));
+      bubble.appendChild(speakButton);
+    }
     messagesContainer.appendChild(bubble);
     scrollToBottom();
     return bubble;
@@ -95,6 +114,7 @@
     const message = input.value.trim();
     if (!message) return;
 
+    speechOutput.cancel();
     appendMessage(message, true);
     input.value = '';
     input.disabled = true;
@@ -185,6 +205,39 @@ function setupVoiceInput({ button, input, recognitionConstructor, locale, string
   return { supported: true, recognition };
 }
 
+function setupSpeechOutput({ synthesis, utteranceConstructor, locale }) {
+  const language = String(locale).toLowerCase().startsWith('hi') ? 'hi-IN' : 'en-IN';
+  if (!synthesis || !utteranceConstructor) {
+    return { supported: false, speak: () => {}, cancel: () => {} };
+  }
+
+  function cancel() {
+    try {
+      synthesis.cancel();
+    } catch (_) {
+      // Speech output is optional; cancellation must not disrupt chat.
+    }
+  }
+
+  function speak(text) {
+    try {
+      const voices = synthesis.getVoices ? synthesis.getVoices() : [];
+      const voice = voices.find((candidate) => candidate.lang?.toLowerCase() === language.toLowerCase())
+        || voices.find((candidate) => candidate.lang?.toLowerCase().startsWith(language.slice(0, 2).toLowerCase()));
+      if (!voice) return;
+      const utterance = new utteranceConstructor(text);
+      utterance.lang = language;
+      utterance.voice = voice;
+      cancel();
+      synthesis.speak(utterance);
+    } catch (_) {
+      // Speech output is optional; an unavailable voice must not disrupt chat.
+    }
+  }
+
+  return { supported: true, speak, cancel, language };
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { setupVoiceInput };
+  module.exports = { setupSpeechOutput, setupVoiceInput };
 }

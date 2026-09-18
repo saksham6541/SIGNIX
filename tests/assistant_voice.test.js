@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { setupVoiceInput } = require('../app/static/js/assistant.js');
+const { setupSpeechOutput, setupVoiceInput } = require('../app/static/js/assistant.js');
 
 class FakeElement {
   constructor() {
@@ -91,3 +91,64 @@ class FakeRecognition {
 }
 
 console.log('assistant voice tests passed');
+
+class FakeUtterance {
+  constructor(text) {
+    this.text = text;
+  }
+}
+
+{
+  const spoken = [];
+  let cancellations = 0;
+  const synthesis = {
+    getVoices: () => [{ lang: 'hi-IN' }, { lang: 'en-IN' }],
+    speak: (utterance) => spoken.push(utterance),
+    cancel: () => { cancellations += 1; },
+  };
+  const output = setupSpeechOutput({
+    synthesis,
+    utteranceConstructor: FakeUtterance,
+    locale: 'hi',
+  });
+
+  output.speak('नमस्ते');
+
+  assert.equal(output.language, 'hi-IN');
+  assert.equal(spoken.length, 1);
+  assert.equal(spoken[0].lang, 'hi-IN');
+  assert.equal(spoken[0].voice.lang, 'hi-IN');
+  assert.equal(cancellations, 1);
+  output.cancel();
+  assert.equal(cancellations, 2);
+}
+
+{
+  const spoken = [];
+  const synthesis = {
+    getVoices: () => [{ lang: 'en-IN' }],
+    speak: (utterance) => spoken.push(utterance),
+  };
+  const output = setupSpeechOutput({
+    synthesis,
+    utteranceConstructor: FakeUtterance,
+    locale: 'en',
+  });
+
+  output.speak('How does solar work?');
+
+  assert.equal(output.language, 'en-IN');
+  assert.equal(spoken[0].lang, 'en-IN');
+  assert.equal(spoken[0].voice.lang, 'en-IN');
+}
+
+{
+  const synthesis = { getVoices: () => [], speak: () => { throw new Error('must not speak'); }, cancel: () => {} };
+  const output = setupSpeechOutput({
+    synthesis,
+    utteranceConstructor: FakeUtterance,
+    locale: 'hi',
+  });
+
+  assert.doesNotThrow(() => output.speak('नमस्ते'));
+}

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-17 20:39+0530\n"
+"POT-Creation-Date: 2026-09-18 14:27+0530\n"
 "PO-Revision-Date: 2026-09-17 11:22+0530\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: hi\n"
@@ -238,39 +238,47 @@ msgstr "सहायक से खाली उत्तर प्राप्�
 msgid "Unable to connect. Please check your connection and try again."
 msgstr "कनेक्ट नहीं हो सका। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।"
 
-#: app/templates/base.html:128 app/templates/base.html:157
+#: app/templates/base.html:128 app/templates/base.html:159
 msgid "Use voice input"
-msgstr ""
+msgstr "आवाज़ से इनपुट लें"
 
 #: app/templates/base.html:129
 msgid "Listening..."
-msgstr ""
+msgstr "सुन रहा है..."
 
 #: app/templates/base.html:130
 msgid "Voice input is not supported in this browser"
-msgstr ""
+msgstr "इस ब्राउज़र में आवाज़ से इनपुट समर्थित नहीं है"
 
 #: app/templates/base.html:131
+msgid "Read response aloud"
+msgstr "उत्तर ज़ोर से पढ़ें"
+
+#: app/templates/base.html:132
+msgid "Voice output is not available for this language"
+msgstr "इस भाषा के लिए आवाज़ में उत्तर उपलब्ध नहीं है"
+
+#: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr "सहायक चैट खोलें"
 
-#: app/templates/base.html:131
+#: app/templates/base.html:133
 msgid "Ask Assistant"
 msgstr "सहायक से पूछें"
 
-#: app/templates/base.html:135 app/templates/base.html:140
+#: app/templates/base.html:137 app/templates/base.html:142
 msgid "SIGNIX Assistant"
 msgstr "SIGNIX सहायक"
 
-#: app/templates/base.html:141
+#: app/templates/base.html:143
 msgid "Online · FAQ & Solar Info"
 msgstr "ऑनलाइन · सामान्य प्रश्न और सोलर जानकारी"
 
-#: app/templates/base.html:144
+#: app/templates/base.html:146
 msgid "Close Chat"
 msgstr "चैट बंद करें"
 
-#: app/templates/base.html:147
+#: app/templates/base.html:149
 msgid ""
 "This assistant can make mistakes — verify important details with your "
 "DISCOM."
@@ -278,18 +286,18 @@ msgstr ""
 "यह सहायक गलतियां कर सकता है — महत्वपूर्ण जानकारी की पुष्टि अपने DISCOM से"
 " करें।"
 
-#: app/templates/base.html:151
+#: app/templates/base.html:153
 #, python-format
 msgid "Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?"
 msgstr ""
 "नमस्ते, %(name)s! 👋 आज मैं रूफटॉप सोलर या SIGNIX में आपकी कैसे मदद कर "
 "सकता हूँ?"
 
-#: app/templates/base.html:156
+#: app/templates/base.html:158
 msgid "Ask a question..."
 msgstr "एक सवाल पूछें..."
 
-#: app/templates/base.html:163
+#: app/templates/base.html:165
 msgid "Send message"
 msgstr "संदेश भेजें"
 
