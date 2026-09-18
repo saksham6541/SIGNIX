@@ -14,6 +14,8 @@
   const voiceStatus = document.getElementById('assistant-voice-status');
   const voiceModeIcon = voiceModeBtn?.querySelector('.assistant-voice-mode-icon');
   const csrfInput = document.getElementById('assistant-csrf');
+  let assistantSendCallCount = 0;
+  let formSendInFlight = false;
   const strings = {
     loading: widget.dataset.loadingLabel,
     rateLimit: widget.dataset.rateLimitMessage,
@@ -52,10 +54,10 @@
     onError: error => {
       removeLoadingIndicator();
       const rateLimited = error?.status === 429;
-      appendError(rateLimited ? strings.rateLimit : strings.unavailable);
-      if (rateLimited) {
-        voiceMode.stop();
-        speechOutput.speak(strings.rateLimit);
+      const errorMessage = rateLimited ? strings.rateLimit : strings.unavailable;
+      appendError(errorMessage);
+      if (error?.voiceModeSendFailure) {
+        speechOutput.speak(errorMessage);
       }
     },
   });
@@ -196,6 +198,8 @@
   }
 
   async function sendAssistantMessage(message) {
+    assistantSendCallCount += 1;
+    console.log('[assistant-send]', assistantSendCallCount, 'path=voice-or-shared', 'state=', voiceMode.state, 'transcript=', JSON.stringify(message));
     const response = await fetch('/api/assistant', {
       method: 'POST',
       headers: {
@@ -218,7 +222,11 @@
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = input.value.trim();
-    if (!message) return;
+    if (!message || formSendInFlight) return;
+    formSendInFlight = true;
+
+    assistantSendCallCount += 1;
+    console.log('[assistant-send]', assistantSendCallCount, 'path=form-submit', 'state=', voiceMode.state, 'transcript=', JSON.stringify(message));
 
     speechOutput.cancel();
     appendMessage(message, true);
@@ -264,6 +272,7 @@
       removeLoadingIndicator();
       appendError(strings.connection);
     } finally {
+      formSendInFlight = false;
       input.disabled = false;
       sendBtn.disabled = false;
       input.focus();

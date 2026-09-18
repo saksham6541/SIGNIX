@@ -206,5 +206,42 @@ for (const target of [
   assert.equal(errors[0].message, 'speech failed');
 }
 
+{
+  const failures = [];
+  let sendCount = 0;
+  const harness = createHarness({
+    send: () => {
+      sendCount += 1;
+      return Promise.reject(Object.assign(new Error('backend failed'), { status: 502 }));
+    },
+    onError: error => failures.push(error),
+  });
+
+  const sendMessage = () => {
+    harness.recognition.emit('result', {
+      results: [{ 0: { transcript: 'same request' }, isFinal: true, length: 1 }],
+    });
+    harness.timers.runAll();
+  };
+
+  harness.machine.toggle();
+  sendMessage();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.IDLE);
+
+  harness.machine.toggle();
+  sendMessage();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.IDLE);
+  assert.equal(sendCount, 2);
+  assert.equal(failures.length, 2);
+  assert.equal(failures[0].voiceModeSendFailure, true);
+
+  harness.machine.toggle();
+  harness.timers.runAll();
+  assert.equal(sendCount, 2);
+  harness.machine.stop();
+}
+
 console.log('voice mode tests passed');
 })();

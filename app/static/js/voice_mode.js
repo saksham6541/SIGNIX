@@ -38,6 +38,8 @@ function createVoiceMode({
   let silenceTimer = null;
   let transcript = '';
   let enabled = false;
+  let consecutiveErrors = 0;
+  let lastErrorKey = null;
   const language = localeToSpeechLanguage(locale);
   const supported = Boolean(recognition && synthesis && utteranceConstructor);
 
@@ -70,6 +72,24 @@ function createVoiceMode({
     try {
       synthesis?.cancel();
     } catch (_) {}
+  };
+
+  const errorKey = error => `${error?.status || 'unknown'}:${error?.message || 'unknown'}`;
+
+  const stopAfterError = error => {
+    const key = errorKey(error);
+    consecutiveErrors = key === lastErrorKey ? consecutiveErrors + 1 : 1;
+    lastErrorKey = key;
+    const sendError = error instanceof Error ? error : new Error(String(error));
+    if (error?.status) sendError.status = error.status;
+    sendError.voiceModeSendFailure = true;
+    enabled = false;
+    clearSilenceTimer();
+    stopRecognition();
+    cancelSpeech();
+    transcript = '';
+    setState(VOICE_MODE_STATES.IDLE);
+    onError(sendError);
   };
 
   const speakResponse = responseText => {
@@ -118,6 +138,8 @@ function createVoiceMode({
     silenceTimer = null;
     const message = transcript.trim();
     transcript = '';
+    sendTranscript.callCount = (sendTranscript.callCount || 0) + 1;
+    console.log('[voice-sendTranscript]', sendTranscript.callCount, 'state=', state, 'transcript=', JSON.stringify(message));
     if (!message || !enabled) {
       if (enabled) setState(VOICE_MODE_STATES.LISTENING);
       return;
@@ -129,14 +151,12 @@ function createVoiceMode({
     try {
       const response = await send(message);
       if (!enabled) return;
+      consecutiveErrors = 0;
+      lastErrorKey = null;
       onResponse(response);
       speakResponse(response);
     } catch (error) {
-      onError(error);
-      if (enabled) {
-        setState(VOICE_MODE_STATES.LISTENING);
-        startRecognition();
-      }
+      stopAfterError(error);
     }
   };
 
@@ -197,6 +217,8 @@ function createVoiceMode({
         stopRecognition();
         cancelSpeech();
         transcript = '';
+        consecutiveErrors = 0;
+        lastErrorKey = null;
         setState(VOICE_MODE_STATES.IDLE);
         return;
       }
@@ -211,6 +233,8 @@ function createVoiceMode({
       stopRecognition();
       cancelSpeech();
       transcript = '';
+      consecutiveErrors = 0;
+      lastErrorKey = null;
       setState(VOICE_MODE_STATES.IDLE);
     },
   };
