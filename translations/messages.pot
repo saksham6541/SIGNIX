@@ -279,6 +279,10 @@ msgstr ""
 msgid "Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device."
 msgstr ""
 
+#: app/templates/base.html
+msgid "Exit voice mode"
+msgstr ""
+
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr ""

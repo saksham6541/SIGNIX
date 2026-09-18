@@ -282,6 +282,10 @@ msgstr "वॉइस मोड बोल रहा है..."
 msgid "Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device."
 msgstr "वॉइस मोड आवाज़ पहचानने के लिए ऑडियो आपके ब्राउज़र प्रदाता को भेजता है; इसे डिवाइस पर संसाधित नहीं किया जाता।"
 
+#: app/templates/base.html
+msgid "Exit voice mode"
+msgstr "वॉइस मोड से बाहर निकलें"
+
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr "सहायक चैट खोलें"

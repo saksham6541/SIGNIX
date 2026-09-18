@@ -161,11 +161,22 @@
       <div class="assistant-disclaimer">
         {{ _('This assistant can make mistakes — verify important details with your DISCOM.') }}
       </div>
+      <div class="assistant-voice-orb-stage" aria-hidden="true">
+        <div class="assistant-voice-orb">
+          <svg viewBox="0 0 160 160" role="presentation">
+            <circle class="assistant-voice-orb-halo" cx="80" cy="80" r="58"></circle>
+            <circle class="assistant-voice-orb-core" cx="80" cy="80" r="34"></circle>
+          </svg>
+        </div>
+      </div>
       <div id="assistant-messages" class="assistant-messages" role="log" aria-live="polite" aria-relevant="additions">
         <div class="chat-bubble assistant-bubble">
           {{ _('Hello, %(name)s! 👋 How can I help you with rooftop solar or SIGNIX today?', name=current_user.display_name) }}
         </div>
       </div>
+      <button type="button" id="assistant-voice-mode-exit" class="assistant-voice-mode-exit">
+        {{ _('Exit voice mode') }}
+      </button>
       <form id="assistant-form" class="assistant-input-area">
         <input type="hidden" name="csrf_token" id="assistant-csrf" value="{{ csrf_token() }}">
         <input type="text" id="assistant-input" class="assistant-input" placeholder="{{ _('Ask a question...') }}" autocomplete="off" required />

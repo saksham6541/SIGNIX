@@ -11,6 +11,7 @@
   const sendBtn = document.getElementById('assistant-send-btn');
   const voiceBtn = document.getElementById('assistant-voice-btn');
   const voiceModeBtn = document.getElementById('assistant-voice-mode-btn');
+  const voiceModeExitBtn = document.getElementById('assistant-voice-mode-exit');
   const voiceStatus = document.getElementById('assistant-voice-status');
   const voiceModeIcon = voiceModeBtn?.querySelector('.assistant-voice-mode-icon');
   const csrfInput = document.getElementById('assistant-csrf');
@@ -68,6 +69,7 @@
   }
 
   voiceModeBtn?.addEventListener('click', () => voiceMode.toggle());
+  voiceModeExitBtn?.addEventListener('click', () => voiceMode.toggle());
 
   const stopVoiceSession = () => {
     voiceMode.stop();
