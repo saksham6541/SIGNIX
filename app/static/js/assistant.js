@@ -10,6 +10,9 @@
   const input = document.getElementById('assistant-input');
   const sendBtn = document.getElementById('assistant-send-btn');
   const voiceBtn = document.getElementById('assistant-voice-btn');
+  const voiceModeBtn = document.getElementById('assistant-voice-mode-btn');
+  const voiceStatus = document.getElementById('assistant-voice-status');
+  const voiceModeIcon = voiceModeBtn?.querySelector('.assistant-voice-mode-icon');
   const csrfInput = document.getElementById('assistant-csrf');
   const strings = {
     loading: widget.dataset.loadingLabel,
@@ -22,6 +25,59 @@
     synthesis: window.speechSynthesis,
     utteranceConstructor: window.SpeechSynthesisUtterance,
     locale: document.documentElement.lang,
+  });
+  const csrfToken = csrfInput ? csrfInput.value : '';
+  const recognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const iosSafari = window.isIOSSafari?.(window.navigator) === true;
+
+  const voiceMode = window.createVoiceMode({
+    recognition: iosSafari ? null : createRecognition(recognitionConstructor),
+    synthesis: window.speechSynthesis,
+    utteranceConstructor: window.SpeechSynthesisUtterance,
+    locale: document.documentElement.lang,
+    send: sendAssistantMessage,
+    onStateChange: updateVoiceModeState,
+    onInterimTranscript: transcript => {
+      input.value = transcript;
+    },
+    onTranscript: message => {
+      appendMessage(message, true);
+      input.value = '';
+      createLoadingIndicator();
+    },
+    onResponse: response => {
+      removeLoadingIndicator();
+      appendMessage(response, false);
+    },
+    onError: error => {
+      removeLoadingIndicator();
+      const rateLimited = error?.status === 429;
+      appendError(rateLimited ? strings.rateLimit : strings.unavailable);
+      if (rateLimited) {
+        voiceMode.stop();
+        speechOutput.speak(strings.rateLimit);
+      }
+    },
+  });
+
+  if (!voiceMode.supported && voiceModeBtn) {
+    voiceModeBtn.hidden = true;
+    voiceModeBtn.disabled = true;
+  }
+
+  voiceModeBtn?.addEventListener('click', () => voiceMode.toggle());
+
+  const stopVoiceSession = () => {
+    voiceMode.stop();
+    speechOutput.cancel();
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopVoiceSession();
+  });
+  window.addEventListener('beforeunload', stopVoiceSession);
+  document.querySelectorAll('.language-switcher a').forEach(link => {
+    link.addEventListener('click', stopVoiceSession);
   });
 
   setupVoiceInput({
@@ -45,7 +101,7 @@
       panel.setAttribute('aria-hidden', 'false');
       input.focus();
     } else {
-      speechOutput.cancel();
+      stopVoiceSession();
       panel.classList.add('hidden');
       widget.classList.remove('active');
       toggleBtn.setAttribute('aria-expanded', 'false');
@@ -109,6 +165,56 @@
     }
   }
 
+  function createRecognition(RecognitionConstructor) {
+    return RecognitionConstructor ? new RecognitionConstructor() : null;
+  }
+
+  function updateVoiceModeState(state) {
+    if (!voiceModeBtn) return;
+    const labels = {
+      IDLE: widget.dataset.voiceModeLabel,
+      LISTENING: widget.dataset.voiceModeListeningLabel,
+      THINKING: widget.dataset.voiceModeThinkingLabel,
+      SPEAKING: widget.dataset.voiceModeSpeakingLabel,
+    };
+    const active = state !== 'IDLE';
+    voiceModeBtn.classList.toggle('active', active);
+    voiceModeBtn.classList.toggle('listening', state === 'LISTENING');
+    voiceModeBtn.classList.toggle('thinking', state === 'THINKING');
+    voiceModeBtn.classList.toggle('speaking', state === 'SPEAKING');
+    voiceModeBtn.setAttribute('aria-label', active ? widget.dataset.voiceModeActiveLabel : labels.IDLE);
+    voiceModeBtn.title = active ? widget.dataset.voiceModeActiveLabel : labels.IDLE;
+    voiceModeBtn.setAttribute('aria-pressed', String(active));
+    if (voiceStatus) {
+      voiceStatus.hidden = !active;
+      voiceStatus.textContent = labels[state];
+      voiceStatus.classList.toggle('thinking', state === 'THINKING');
+    }
+    if (voiceModeIcon) {
+      voiceModeIcon.textContent = state === 'SPEAKING' ? '🔊' : state === 'THINKING' ? '…' : state === 'LISTENING' ? '🎙' : '◉';
+    }
+  }
+
+  async function sendAssistantMessage(message) {
+    const response = await fetch('/api/assistant', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({ message }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data.error || strings.unavailable);
+      error.status = response.status;
+      throw error;
+    }
+    if (!data.response) throw new Error(strings.emptyResponse);
+    return data.response;
+  }
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = input.value.trim();
@@ -121,8 +227,6 @@
     sendBtn.disabled = true;
 
     createLoadingIndicator();
-
-    const csrfToken = csrfInput ? csrfInput.value : '';
 
     try {
       const response = await fetch('/api/assistant', {

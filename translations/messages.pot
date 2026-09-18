@@ -255,6 +255,30 @@ msgstr ""
 msgid "Voice output is not available for this language"
 msgstr ""
 
+#: app/templates/base.html
+msgid "Start voice mode"
+msgstr ""
+
+#: app/templates/base.html
+msgid "Stop voice mode"
+msgstr ""
+
+#: app/templates/base.html
+msgid "Voice mode listening"
+msgstr ""
+
+#: app/templates/base.html
+msgid "Voice mode thinking"
+msgstr ""
+
+#: app/templates/base.html
+msgid "Voice mode speaking"
+msgstr ""
+
+#: app/templates/base.html
+msgid "Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device."
+msgstr ""
+
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr ""

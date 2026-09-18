@@ -129,7 +129,13 @@
     data-voice-listening-label="{{ _('Listening...') }}"
     data-voice-unsupported-label="{{ _('Voice input is not supported in this browser') }}"
     data-speak-label="{{ _('Read response aloud') }}"
-    data-speech-unsupported-label="{{ _('Voice output is not available for this language') }}">
+    data-speech-unsupported-label="{{ _('Voice output is not available for this language') }}"
+    data-voice-mode-label="{{ _('Start voice mode') }}"
+    data-voice-mode-active-label="{{ _('Stop voice mode') }}"
+    data-voice-mode-listening-label="{{ _('Voice mode listening') }}"
+    data-voice-mode-thinking-label="{{ _('Voice mode thinking') }}"
+    data-voice-mode-speaking-label="{{ _('Voice mode speaking') }}"
+    data-voice-mode-privacy="{{ _('Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device.') }}">
     <button type="button" id="assistant-toggle" class="assistant-toggle-btn" aria-label="{{ _('Open Assistant Chat') }}" aria-expanded="false" aria-controls="assistant-panel" title="{{ _('Ask Assistant') }}">
       <span class="assistant-icon-open">💬</span>
       <span class="assistant-icon-close">✕</span>
@@ -141,10 +147,17 @@
           <div>
             <h3>{{ _('SIGNIX Assistant') }}</h3>
             <span class="assistant-status">{{ _('Online · FAQ & Solar Info') }}</span>
+            <span id="assistant-voice-status" class="assistant-voice-status" role="status" hidden></span>
           </div>
         </div>
-        <button type="button" id="assistant-close-btn" class="assistant-close-btn" aria-label="{{ _('Close Chat') }}">✕</button>
+        <div class="assistant-header-actions">
+          <button type="button" id="assistant-voice-mode-btn" class="assistant-voice-mode-btn" aria-label="{{ _('Start voice mode') }}" aria-pressed="false" title="{{ _('Start voice mode') }}">
+            <span class="assistant-voice-mode-icon" aria-hidden="true">◉</span>
+          </button>
+          <button type="button" id="assistant-close-btn" class="assistant-close-btn" aria-label="{{ _('Close Chat') }}">✕</button>
+        </div>
       </div>
+      <p class="assistant-privacy">{{ _('Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device.') }}</p>
       <div class="assistant-disclaimer">
         {{ _('This assistant can make mistakes — verify important details with your DISCOM.') }}
       </div>
@@ -171,6 +184,7 @@
       </form>
     </div>
   </div>
+  <script src="{{ url_for('static', filename='js/voice_mode.js') }}"></script>
   <script src="{{ url_for('static', filename='js/assistant.js') }}"></script>
   {% endif %}
 </body>

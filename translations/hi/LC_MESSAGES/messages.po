@@ -258,6 +258,30 @@ msgstr "उत्तर ज़ोर से पढ़ें"
 msgid "Voice output is not available for this language"
 msgstr "इस भाषा के लिए आवाज़ में उत्तर उपलब्ध नहीं है"
 
+#: app/templates/base.html
+msgid "Start voice mode"
+msgstr "वॉइस मोड शुरू करें"
+
+#: app/templates/base.html
+msgid "Stop voice mode"
+msgstr "वॉइस मोड बंद करें"
+
+#: app/templates/base.html
+msgid "Voice mode listening"
+msgstr "वॉइस मोड सुन रहा है..."
+
+#: app/templates/base.html
+msgid "Voice mode thinking"
+msgstr "वॉइस मोड सोच रहा है..."
+
+#: app/templates/base.html
+msgid "Voice mode speaking"
+msgstr "वॉइस मोड बोल रहा है..."
+
+#: app/templates/base.html
+msgid "Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device."
+msgstr "वॉइस मोड आवाज़ पहचानने के लिए ऑडियो आपके ब्राउज़र प्रदाता को भेजता है; इसे डिवाइस पर संसाधित नहीं किया जाता।"
+
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr "सहायक चैट खोलें"
