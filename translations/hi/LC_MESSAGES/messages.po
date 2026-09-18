@@ -282,9 +282,305 @@ msgstr "वॉइस मोड बोल रहा है..."
 msgid "Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device."
 msgstr "वॉइस मोड आवाज़ पहचानने के लिए ऑडियो आपके ब्राउज़र प्रदाता को भेजता है; इसे डिवाइस पर संसाधित नहीं किया जाता।"
 
+#: app/templates/pdf_report.html
+msgid "Rooftop Solar Estimation Report"
+msgstr "रूफटॉप सोलर अनुमान रिपोर्ट"
+
+#: app/templates/pdf_report.html
+msgid "Orientation"
+msgstr "दिशा"
+
+#: app/templates/pdf_report.html
+msgid "Battery"
+msgstr "बैटरी"
+
+#: app/templates/pdf_report.html
+msgid "Inverter"
+msgstr "इन्वर्टर"
+
+#: app/templates/pdf_report.html
+msgid "Data"
+msgstr "डेटा"
+
+#: app/templates/pdf_report.html
+msgid "System overview"
+msgstr "सिस्टम का अवलोकन"
+
+#: app/templates/pdf_report.html
+msgid "System size"
+msgstr "सिस्टम का आकार"
+
+#: app/templates/pdf_report.html
+msgid "Payback"
+msgstr "वापसी अवधि"
+
+#: app/templates/pdf_report.html
+msgid "yrs"
+msgstr "वर्ष"
+
+#: app/templates/pdf_report.html
+msgid "Item"
+msgstr "मद"
+
+#: app/templates/pdf_report.html
+msgid "Value"
+msgstr "मान"
+
+#: app/templates/pdf_report.html
+msgid "Total roof area"
+msgstr "कुल छत का क्षेत्रफल"
+
+#: app/templates/pdf_report.html
+msgid "Obstructed area"
+msgstr "बाधित क्षेत्रफल"
+
+#: app/templates/pdf_report.html
+msgid "Usable area"
+msgstr "उपयोगी क्षेत्रफल"
+
 #: app/templates/base.html
 msgid "Exit voice mode"
 msgstr "वॉइस मोड से बाहर निकलें"
+
+#: app/templates/pdf_report.html app/pages.py
+msgid "Solar Report"
+msgstr "सोलर रिपोर्ट"
+
+#: app/templates/pdf_report.html
+msgid "Roof capacity (from drawing)"
+msgstr "ड्रॉइंग के अनुसार छत की क्षमता"
+
+#: app/templates/pdf_report.html
+msgid "Sizing method"
+msgstr "आकार निर्धारित करने की विधि"
+
+#: app/templates/pdf_report.html
+msgid "Bill-based sizing"
+msgstr "बिल आधारित आकार निर्धारण"
+
+#: app/templates/pdf_report.html
+msgid "Monthly bill (input)"
+msgstr "मासिक बिल (इनपुट)"
+
+#: app/templates/pdf_report.html
+msgid "Tariff used"
+msgstr "प्रयुक्त टैरिफ"
+
+#: app/templates/pdf_report.html
+msgid "Estimated monthly units"
+msgstr "अनुमानित मासिक यूनिट"
+
+#: app/templates/pdf_report.html
+msgid "units"
+msgstr "यूनिट"
+
+#: app/templates/pdf_report.html
+msgid "Estimated daily units"
+msgstr "अनुमानित दैनिक यूनिट"
+
+#: app/templates/pdf_report.html
+msgid "Recommended range"
+msgstr "अनुशंसित सीमा"
+
+#: app/templates/pdf_report.html
+msgid "Design size used"
+msgstr "प्रयुक्त डिज़ाइन आकार"
+
+#: app/templates/pdf_report.html
+msgid "capped by roof if needed"
+msgstr "आवश्यकता होने पर छत के अनुसार सीमित"
+
+#: app/templates/pdf_report.html
+msgid "Suitability rating"
+msgstr "उपयुक्तता रेटिंग"
+
+#: app/templates/pdf_report.html
+msgid "Overall viability"
+msgstr "समग्र व्यवहार्यता"
+
+#: app/templates/pdf_report.html
+msgid "Estimate confidence"
+msgstr "अनुमान की विश्वसनीयता"
+
+#: app/templates/pdf_report.html
+msgid "Priority"
+msgstr "प्राथमिकता"
+
+#: app/templates/pdf_report.html
+msgid "Factor"
+msgstr "कारक"
+
+#: app/templates/pdf_report.html
+msgid "Score"
+msgstr "स्कोर"
+
+#: app/templates/pdf_report.html
+msgid "Tier / detail"
+msgstr "स्तर / विवरण"
+
+#: app/templates/pdf_report.html
+msgid "Performance indicators"
+msgstr "प्रदर्शन संकेतक"
+
+#: app/templates/pdf_report.html
+msgid "Metric"
+msgstr "मापदंड"
+
+#: app/templates/pdf_report.html
+msgid "Specific yield"
+msgstr "विशिष्ट उत्पादन"
+
+#: app/templates/pdf_report.html
+msgid "Capacity factor"
+msgstr "क्षमता कारक"
+
+#: app/templates/pdf_report.html
+msgid "Orientation factor (vs South)"
+msgstr "दिशा कारक (दक्षिण की तुलना में)"
+
+#: app/templates/pdf_report.html
+msgid "Recommended tilt"
+msgstr "अनुशंसित झुकाव"
+
+#: app/templates/pdf_report.html
+msgid "latitude"
+msgstr "अक्षांश"
+
+#: app/templates/pdf_report.html
+msgid "Performance ratio (assumed)"
+msgstr "प्रदर्शन अनुपात (मान्य)"
+
+#: app/templates/pdf_report.html
+msgid "Peak sun hours (assumed)"
+msgstr "पीक धूप घंटे (मान्य)"
+
+#: app/templates/pdf_report.html
+msgid "LCOE (25 yr)"
+msgstr "LCOE (25 वर्ष)"
+
+#: app/templates/pdf_report.html
+msgid "Lifetime energy (25 yr, 0.5%/yr degradation)"
+msgstr "जीवनकाल ऊर्जा (25 वर्ष, 0.5%/वर्ष क्षरण)"
+
+#: app/templates/pdf_report.html
+msgid "Self-consumption share"
+msgstr "स्व-खपत का हिस्सा"
+
+#: app/templates/pdf_report.html
+msgid "Monthly generation (kWh)"
+msgstr "मासिक उत्पादन (kWh)"
+
+#: app/templates/pdf_report.html
+msgid "Financial summary"
+msgstr "वित्तीय सारांश"
+
+#: app/templates/pdf_report.html
+msgid "PV system cost (mid estimate)"
+msgstr "PV सिस्टम लागत (मध्य अनुमान)"
+
+#: app/templates/pdf_report.html
+msgid "Typical cost band"
+msgstr "सामान्य लागत सीमा"
+
+#: app/templates/pdf_report.html
+msgid "Battery storage"
+msgstr "बैटरी भंडारण"
+
+#: app/templates/pdf_report.html
+msgid "Net investment"
+msgstr "शुद्ध निवेश"
+
+#: app/templates/pdf_report.html
+msgid "Estimated monthly savings"
+msgstr "अनुमानित मासिक बचत"
+
+#: app/templates/pdf_report.html
+msgid "Est. 25-year bill savings (flat tariff)"
+msgstr "अनुमानित 25-वर्षीय बिल बचत (स्थिर टैरिफ)"
+
+#: app/templates/pdf_report.html
+msgid "Indicative annual O&M reserve"
+msgstr "संकेतात्मक वार्षिक O&M प्रावधान"
+
+#: app/templates/pdf_report.html
+msgid "Recommended inverter"
+msgstr "अनुशंसित इन्वर्टर"
+
+#: app/templates/pdf_report.html
+msgid "Best for"
+msgstr "इसके लिए सर्वोत्तम"
+
+#: app/templates/pdf_report.html
+msgid "Subsidy eligibility"
+msgstr "सब्सिडी पात्रता"
+
+#: app/templates/pdf_report.html
+msgid "Typically eligible (DISCOM conditions apply)"
+msgstr "आमतौर पर पात्र (DISCOM की शर्तें लागू)"
+
+#: app/templates/pdf_report.html
+msgid "Usually not eligible"
+msgstr "आमतौर पर पात्र नहीं"
+
+#: app/templates/pdf_report.html
+msgid "Environmental impact"
+msgstr "पर्यावरणीय प्रभाव"
+
+#: app/templates/pdf_report.html
+msgid "CO₂ reduction / year"
+msgstr "CO₂ कमी / वर्ष"
+
+#: app/templates/pdf_report.html
+msgid "tons"
+msgstr "टन"
+
+#: app/templates/pdf_report.html
+msgid "Equivalent trees planted"
+msgstr "समतुल्य लगाए गए पेड़"
+
+#: app/templates/pdf_report.html
+msgid "Equivalent km not driven"
+msgstr "समतुल्य वाहन-रहित किलोमीटर"
+
+#: app/templates/pdf_report.html
+msgid "Equivalent fuel saved"
+msgstr "समतुल्य बचाया गया ईंधन"
+
+#: app/templates/pdf_report.html
+msgid "Key assumptions"
+msgstr "मुख्य मान्यताएं"
+
+#: app/templates/pdf_report.html
+msgid "Bill path ≈ ₹10/unit · ~135 units/month/kW (~4–5.5 units/day/kWp). Energy check uses PSH × PR."
+msgstr "बिल विधि ≈ ₹10/यूनिट · ~135 यूनिट/माह/kW (~4–5.5 यूनिट/दिन/kWp)। ऊर्जा जांच में PSH × PR का उपयोग होता है।"
+
+#: app/templates/pdf_report.html
+msgid "PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for 2–3 kW step · max ₹78,000."
+msgstr "PM Surya Ghar: पहले 2 kW के लिए ₹30,000/kW + 2–3 kW चरण के लिए ₹18,000 · अधिकतम ₹78,000।"
+
+#: app/templates/pdf_report.html
+msgid "Residential cost band ~₹55k–85k/kW; commercial often ~₹35k–50k/kW. ~10 m² usable roof per kWp."
+msgstr "घरेलू लागत सीमा ~₹55k–85k/kW; व्यावसायिक लागत अक्सर ~₹35k–50k/kW। प्रति kWp ~10 m² उपयोगी छत।"
+
+#: app/templates/pdf_report.html
+msgid "0.5%%/yr degradation in 25-yr cashflow. Tariff held constant. Not a licensed design or DISCOM quote."
+msgstr "25-वर्षीय नकदी प्रवाह में 0.5%%/वर्ष क्षरण। टैरिफ स्थिर माना गया है। यह लाइसेंस प्राप्त डिज़ाइन या DISCOM कोट नहीं है।"
+
+#: app/templates/pdf_report.html
+msgid "Important practical points"
+msgstr "महत्वपूर्ण व्यावहारिक बातें"
+
+#: app/templates/pdf_report.html
+msgid "Generated by SIGNIX. Figures are indicative planning estimates only."
+msgstr "SIGNIX द्वारा बनाया गया। आंकड़े केवल संकेतात्मक योजना अनुमान हैं।"
+
+#: app/templates/pdf_report.html
+msgid "Confirm current MNRE / National Rooftop Solar Portal / local DISCOM rules, net-metering limits and vendor quotations before procurement."
+msgstr "खरीद से पहले वर्तमान MNRE / National Rooftop Solar Portal / स्थानीय DISCOM नियमों, नेट-मीटरिंग सीमाओं और विक्रेता कोटेशन की पुष्टि करें।"
+
+#: app/templates/pdf_report.html
+msgid "A structural and electrical site survey is required for final design."
+msgstr "अंतिम डिज़ाइन के लिए संरचनात्मक और विद्युत साइट सर्वेक्षण आवश्यक है।"
 
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"

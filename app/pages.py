@@ -1,4 +1,5 @@
 from flask import Blueprint, abort, jsonify, render_template, request, send_file
+from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
 from app.report_generator import generate_pdf_report
@@ -105,7 +106,7 @@ def download_pdf(location_id):
     if location is None:
         abort(404)
     try:
-        pdf_buffer = generate_pdf_report(location)
+        pdf_buffer = generate_pdf_report(location, locale=str(get_locale()))
     except Exception as exc:
         return (
             jsonify(
@@ -124,6 +125,6 @@ def download_pdf(location_id):
         pdf_buffer,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=f"solar_report_{location_id}.pdf",
+        download_name=f"{_('Solar Report')}_{location_id}.pdf",
         max_age=0,
     )

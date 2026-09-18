@@ -279,8 +279,304 @@ msgstr ""
 msgid "Voice mode sends audio to your browser vendor for speech recognition; it is not processed on-device."
 msgstr ""
 
+#: app/templates/pdf_report.html
+msgid "Rooftop Solar Estimation Report"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Orientation"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Battery"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Inverter"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Data"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "System overview"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "System size"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Payback"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "yrs"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Item"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Value"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Total roof area"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Obstructed area"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Usable area"
+msgstr ""
+
 #: app/templates/base.html
 msgid "Exit voice mode"
+msgstr ""
+
+#: app/templates/pdf_report.html app/pages.py
+msgid "Solar Report"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Roof capacity (from drawing)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Sizing method"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Bill-based sizing"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Monthly bill (input)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Tariff used"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Estimated monthly units"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "units"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Estimated daily units"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Recommended range"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Design size used"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "capped by roof if needed"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Suitability rating"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Overall viability"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Estimate confidence"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Priority"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Factor"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Score"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Tier / detail"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Performance indicators"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Metric"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Specific yield"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Capacity factor"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Orientation factor (vs South)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Recommended tilt"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "latitude"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Performance ratio (assumed)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Peak sun hours (assumed)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "LCOE (25 yr)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Lifetime energy (25 yr, 0.5%/yr degradation)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Self-consumption share"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Monthly generation (kWh)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Financial summary"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "PV system cost (mid estimate)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Typical cost band"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Battery storage"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Net investment"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Estimated monthly savings"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Est. 25-year bill savings (flat tariff)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Indicative annual O&M reserve"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Recommended inverter"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Best for"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Subsidy eligibility"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Typically eligible (DISCOM conditions apply)"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Usually not eligible"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Environmental impact"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "CO₂ reduction / year"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "tons"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Equivalent trees planted"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Equivalent km not driven"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Equivalent fuel saved"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Key assumptions"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Bill path ≈ ₹10/unit · ~135 units/month/kW (~4–5.5 units/day/kWp). Energy check uses PSH × PR."
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for 2–3 kW step · max ₹78,000."
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Residential cost band ~₹55k–85k/kW; commercial often ~₹35k–50k/kW. ~10 m² usable roof per kWp."
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "0.5%%/yr degradation in 25-yr cashflow. Tariff held constant. Not a licensed design or DISCOM quote."
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Important practical points"
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Generated by SIGNIX. Figures are indicative planning estimates only."
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "Confirm current MNRE / National Rooftop Solar Portal / local DISCOM rules, net-metering limits and vendor quotations before procurement."
+msgstr ""
+
+#: app/templates/pdf_report.html
+msgid "A structural and electrical site survey is required for final design."
 msgstr ""
 
 #: app/templates/base.html:133

@@ -1,6 +1,10 @@
 from app.models import UserLocation
-from app.report_generator import _generate_pdf_reportlab, _enrich_location_data, generate_pdf_report
-from flask import render_template
+from app.report_generator import (
+    _generate_pdf_reportlab,
+    _enrich_location_data,
+    generate_pdf_report,
+)
+from flask import render_template, session
 
 
 def make_location(rating=None):
@@ -57,11 +61,34 @@ def test_rating_visuals_render_for_html_and_reportlab_and_legacy_html_omits_rati
     }
 
     with app.app_context():
-        rated_html = render_template("pdf_report.html", loc=_enrich_location_data(make_location(rating)))
-        legacy_html = render_template("pdf_report.html", loc=_enrich_location_data(make_location()))
-        fallback_pdf = _generate_pdf_reportlab(_enrich_location_data(make_location(rating)))
+        rated_html = render_template(
+            "pdf_report.html", loc=_enrich_location_data(make_location(rating))
+        )
+        legacy_html = render_template(
+            "pdf_report.html", loc=_enrich_location_data(make_location())
+        )
+        fallback_pdf = _generate_pdf_reportlab(
+            _enrich_location_data(make_location(rating))
+        )
 
     assert 'class="rating-score rating-excellent"' in rated_html
     assert 'class="rating-bar-fill rating-excellent"' in rated_html
     assert "Suitability rating" not in legacy_html
     assert fallback_pdf.read(4) == b"%PDF"
+
+
+def test_hindi_weasyprint_pdf_contains_devanagari_text(app):
+    with app.test_request_context("/report/1/pdf"):
+        session["language"] = "hi"
+        pdf = generate_pdf_report(make_location())
+
+    from pypdf import PdfReader
+
+    text = "\n".join(page.extract_text() or "" for page in PdfReader(pdf).pages)
+    assert "रूफटॉप सोलर अनुमान रिपोर्ट" in text
+    assert any("\u0900" <= character <= "\u097f" for character in text)
+    assert "�" not in text
+    assert "₹" in text
+    assert "kWh" in text
+    assert "kW" in text
+    assert "4,000" in text or "4000" in text

@@ -29,9 +29,16 @@ def create_app():
     def select_locale():
         from flask_login import current_user
 
-        if current_user.is_authenticated:
+        try:
+            authenticated = current_user.is_authenticated
+        except (AttributeError, RuntimeError):
+            authenticated = False
+        if authenticated:
             return current_user.language_preference or DEFAULT_LOCALE
-        return session.get("language", DEFAULT_LOCALE)
+        try:
+            return session.get("language", DEFAULT_LOCALE)
+        except RuntimeError:
+            return DEFAULT_LOCALE
 
     app.config.setdefault("BABEL_DEFAULT_LOCALE", DEFAULT_LOCALE)
     app.config.setdefault(

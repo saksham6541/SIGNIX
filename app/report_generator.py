@@ -8,7 +8,9 @@ Both paths receive the same enriched location dict as the HTML report page.
 
 import io
 import time
+from pathlib import Path
 from flask import render_template
+from flask_babel import get_locale, gettext as _
 
 
 def _enrich_location_data(location):
@@ -60,24 +62,34 @@ def _enrich_location_data(location):
     return data
 
 
-def generate_pdf_report(location):
+def generate_pdf_report(location, locale=None):
     """
     location: UserLocation model instance (or dict).
     Returns: BytesIO containing the rendered PDF.
     """
     pdf_start = time.perf_counter()
     data = _enrich_location_data(location)
+    try:
+        active_locale = str(locale or get_locale())
+    except Exception:
+        active_locale = str(locale or "en")
 
     # --- Try WeasyPrint first ---
     try:
         from weasyprint import HTML
 
-        html_string = render_template("pdf_report.html", loc=data)
+        from flask import request
+
+        html_string = render_template(
+            "pdf_report.html",
+            loc=data,
+            pdf_locale=active_locale,
+        )
         print(
             f"[TIMING] PDF render template elapsed: {(time.perf_counter() - pdf_start) * 1000:.2f} ms"
         )
 
-        pdf_bytes = HTML(string=html_string).write_pdf()
+        pdf_bytes = HTML(string=html_string, base_url=request.url_root).write_pdf()
         elapsed_ms = (time.perf_counter() - pdf_start) * 1000
         print(f"[TIMING] PDF generation total elapsed: {elapsed_ms:.2f} ms")
 
@@ -95,7 +107,7 @@ def generate_pdf_report(location):
     # --- ReportLab fallback (no system cairo/pango needed) ---
     try:
         reportlab_start = time.perf_counter()
-        buffer = _generate_pdf_reportlab(data)
+        buffer = _generate_pdf_reportlab(data, locale=active_locale)
         elapsed_ms = (time.perf_counter() - reportlab_start) * 1000
         print(
             f"[TIMING] PDF generation fallback (ReportLab) elapsed: {elapsed_ms:.2f} ms"
@@ -114,8 +126,10 @@ def _inr(n):
         return "₹0"
 
 
-def _generate_pdf_reportlab(loc):
+def _generate_pdf_reportlab(loc, locale=None):
     from reportlab.lib.pagesizes import A4
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.lib.colors import HexColor, black, white
@@ -130,6 +144,21 @@ def _generate_pdf_reportlab(loc):
         ListItem,
     )
     from reportlab.graphics.shapes import Drawing, Rect
+
+    active_locale = str(locale or get_locale())
+    font_name = "Helvetica"
+    if active_locale.startswith("hi"):
+        from app.config import BASE_DIR
+
+        font_path = (
+            Path(BASE_DIR)
+            / "app"
+            / "static"
+            / "fonts"
+            / "NotoSansDevanagari-Regular.ttf"
+        )
+        pdfmetrics.registerFont(TTFont("NotoSansDevanagari", str(font_path)))
+        font_name = "NotoSansDevanagari"
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -147,6 +176,7 @@ def _generate_pdf_reportlab(loc):
             name="TitleOrange",
             parent=styles["Heading1"],
             textColor=HexColor("#c47a0b"),
+            fontName=font_name,
             fontSize=16,
             spaceAfter=4,
         )
@@ -156,6 +186,7 @@ def _generate_pdf_reportlab(loc):
             name="H2Purple",
             parent=styles["Heading2"],
             textColor=HexColor("#3d2570"),
+            fontName=font_name,
             fontSize=12,
             spaceBefore=12,
             spaceAfter=6,
@@ -165,6 +196,7 @@ def _generate_pdf_reportlab(loc):
         ParagraphStyle(
             name="BodySmall",
             parent=styles["Normal"],
+            fontName=font_name,
             fontSize=9,
             leading=12,
         )
@@ -173,6 +205,7 @@ def _generate_pdf_reportlab(loc):
         ParagraphStyle(
             name="Muted",
             parent=styles["Normal"],
+            fontName=font_name,
             fontSize=8,
             textColor=HexColor("#666666"),
             leading=11,
@@ -182,6 +215,7 @@ def _generate_pdf_reportlab(loc):
         ParagraphStyle(
             name="Footer",
             parent=styles["Normal"],
+            fontName=font_name,
             fontSize=7.5,
             textColor=HexColor("#888888"),
             leading=10,
@@ -193,7 +227,7 @@ def _generate_pdf_reportlab(loc):
     orange = HexColor("#c47a0b")
     light = HexColor("#f7f4fc")
 
-    story.append(Paragraph("Rooftop Solar Estimation Report", styles["TitleOrange"]))
+    story.append(Paragraph(_("Rooftop Solar Estimation Report"), styles["TitleOrange"]))
     story.append(
         Paragraph(str(loc.get("address") or "Selected location"), styles["Muted"])
     )
@@ -213,7 +247,18 @@ def _generate_pdf_reportlab(loc):
         story.append(Paragraph(title, styles["H2Purple"]))
 
     def kv_table(rows):
-        data = [["Item", "Value"]] + [[str(a), str(b)] for a, b in rows]
+        data = [
+            [
+                Paragraph(_("Item"), styles["BodySmall"]),
+                Paragraph(_("Value"), styles["BodySmall"]),
+            ]
+        ] + [
+            [
+                Paragraph(str(a), styles["BodySmall"]),
+                Paragraph(str(b), styles["BodySmall"]),
+            ]
+            for a, b in rows
+        ]
         t = Table(data, colWidths=[95 * mm, 75 * mm])
         t.setStyle(
             TableStyle(
@@ -242,8 +287,26 @@ def _generate_pdf_reportlab(loc):
             "poor": HexColor("#b84d55"),
         }
         drawing = Drawing(88 * mm, 5 * mm)
-        drawing.add(Rect(0, 1.5 * mm, 88 * mm, 2 * mm, fillColor=HexColor("#eee8f7"), strokeColor=None))
-        drawing.add(Rect(0, 1.5 * mm, 88 * mm * score / 100, 2 * mm, fillColor=colors.get(tier, colors["fair"]), strokeColor=None))
+        drawing.add(
+            Rect(
+                0,
+                1.5 * mm,
+                88 * mm,
+                2 * mm,
+                fillColor=HexColor("#eee8f7"),
+                strokeColor=None,
+            )
+        )
+        drawing.add(
+            Rect(
+                0,
+                1.5 * mm,
+                88 * mm * score / 100,
+                2 * mm,
+                fillColor=colors.get(tier, colors["fair"]),
+                strokeColor=None,
+            )
+        )
         return drawing
 
     # Overview cards
@@ -330,23 +393,35 @@ def _generate_pdf_reportlab(loc):
         viability = rating.get("overall_viability") or {}
         confidence = rating.get("data_confidence") or {}
         rating_summary = [
-            ["Overall viability", f"{str(viability.get('tier') or 'Unknown').title()} — {viability.get('score', 0)}/100"],
-            ["Estimate confidence", f"{str(confidence.get('tier') or 'Unknown').title()} ({confidence.get('score', 0)}/100)"],
+            [
+                "Overall viability",
+                f"{str(viability.get('tier') or 'Unknown').title()} — {viability.get('score', 0)}/100",
+            ],
+            [
+                "Estimate confidence",
+                f"{str(confidence.get('tier') or 'Unknown').title()} ({confidence.get('score', 0)}/100)",
+            ],
         ]
         if rating.get("user_priority"):
-            rating_summary.append(["Priority", str(rating["user_priority"]).replace("_", " ").title()])
+            rating_summary.append(
+                ["Priority", str(rating["user_priority"]).replace("_", " ").title()]
+            )
         summary_table = Table(rating_summary, colWidths=[48 * mm, 122 * mm])
-        summary_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), HexColor("#faf8ff")),
-            ("BOX", (0, 0), (-1, -1), 0.5, HexColor("#e0d6f0")),
-            ("TEXTCOLOR", (0, 0), (0, -1), purple),
-            ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ]))
+        summary_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), HexColor("#faf8ff")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, HexColor("#e0d6f0")),
+                    ("TEXTCOLOR", (0, 0), (0, -1), purple),
+                    ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
         story.append(summary_table)
         factor_labels = {
             "payback": "Payback",
@@ -372,21 +447,34 @@ def _generate_pdf_reportlab(loc):
             else:
                 detail = str(factor.get("tier") or "Unavailable").title()
             tier = str(factor.get("tier") or "fair").lower()
-            factor_rows.append([label, [rating_bar(factor.get("score", 0), tier), Paragraph(f"{factor.get('score', 0)}/100", styles["Muted"])], f"{str(factor.get('tier') or 'Unavailable').title()} — {detail}"])
+            factor_rows.append(
+                [
+                    label,
+                    [
+                        rating_bar(factor.get("score", 0), tier),
+                        Paragraph(f"{factor.get('score', 0)}/100", styles["Muted"]),
+                    ],
+                    f"{str(factor.get('tier') or 'Unavailable').title()} — {detail}",
+                ]
+            )
         if len(factor_rows) > 1:
             factor_table = Table(factor_rows, colWidths=[35 * mm, 55 * mm, 80 * mm])
-            factor_table.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), light),
-                ("TEXTCOLOR", (0, 0), (-1, 0), purple),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 8),
-                ("GRID", (0, 0), (-1, -1), 0.3, HexColor("#eeeeee")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]))
+            factor_table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), light),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), purple),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 8),
+                        ("GRID", (0, 0), (-1, -1), 0.3, HexColor("#eeeeee")),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ]
+                )
+            )
             story.append(factor_table)
 
     section("2. Performance indicators")
