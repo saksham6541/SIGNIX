@@ -119,7 +119,8 @@
   </script>
 
   {% if current_user.is_authenticated %}
-  <div id="assistant-widget" class="assistant-widget" data-rating-explanations="true"
+  <div id="assistant-widget" class="assistant-widget"
+    data-rating-explanations="true"
     data-loading-label="{{ _('Assistant is thinking') }}"
     data-rate-limit-message="{{ _('You\'ve reached today\'s question limit.') }}"
     data-unavailable-message="{{ _('The assistant is temporarily unavailable. Please try again later.') }}"

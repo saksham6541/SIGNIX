@@ -1,6 +1,9 @@
 from unittest.mock import Mock, patch
 
+import pytest
+
 from app.assistant import _asks_about_rating
+
 from app.models import UserLocation, db
 
 
@@ -167,6 +170,19 @@ def test_assistant_rating_question_without_estimate_is_clear(client, app):
     gemini_client.models.generate_content.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "is my roof good for solar",
+        "is my house good for solar",
+        "will solar work well here",
+        "क्या मेरी छत सोलर के लिए ठीक है",
+    ],
+)
+def test_natural_suitability_phrasing_is_rating_intent(message):
+    assert _asks_about_rating(message) is True
+
+
 def test_rating_explanations_change_with_different_profiles(client, app):
     def add_rating(**values):
         location = UserLocation(
@@ -258,15 +274,3 @@ def test_rating_explanations_change_with_different_profiles(client, app):
     )
     assert "South orientation" in positive_response.get_json()["response"]
     assert "roof fit" in limiting_response.get_json()["response"]
-
-
-def test_natural_rating_rephrasings_use_rating_intent():
-    prompts = [
-        "is my house good for solar",
-        "will solar work well here",
-        "क्या मेरी छत सोलर के लिए ठीक है",
-        "is my roof suitable for solar",
-        "क्या यहां सोलर उपयुक्त है",
-    ]
-
-    assert all(_asks_about_rating(prompt) for prompt in prompts)

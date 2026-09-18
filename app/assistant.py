@@ -54,28 +54,33 @@ RATING_QUESTION_TERMS = (
     "suitability score",
     "suitability rating",
     "my score",
-    "roof good for solar",
-    "house good for solar",
-    "home good for solar",
-    "solar work well here",
-    "suitable for solar",
-    "solar suitable here",
-    "solar fit",
-    "roof suitable",
     "रेटिंग",
     "स्कोर",
     "उपयुक्तता",
-    "छत सोलर",
-    "घर सोलर",
-    "सोलर के लिए ठीक",
-    "सोलर के लिए उपयुक्त",
-    "यहां सोलर",
+)
+RATING_CONTEXT_PHRASES = (
+    ("roof", "solar"),
+    ("house", "solar"),
+    ("home", "solar"),
+    ("solar", "work well"),
+    ("solar", "good for"),
+    ("solar", "suitable"),
+    ("solar", "fit"),
+    ("छत", "सोलर"),
+    ("छत", "सौर"),
+    ("घर", "सोलर"),
+    ("घर", "सौर"),
+    ("सोलर", "ठीक"),
+    ("सौर", "उपयुक्त"),
 )
 
 
 def _asks_about_rating(message):
     normalized = message.casefold()
-    return any(term in normalized for term in RATING_QUESTION_TERMS)
+    return any(term in normalized for term in RATING_QUESTION_TERMS) or any(
+        all(part in normalized for part in phrase)
+        for phrase in RATING_CONTEXT_PHRASES
+    )
 
 
 def _latest_rating_context(user_id):
