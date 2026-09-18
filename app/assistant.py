@@ -5,6 +5,8 @@ from flask import Blueprint, current_app, jsonify, request
 from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
+from app.services.location_service import list_recent_locations
+
 assistant_bp = Blueprint("assistant", __name__)
 
 SYSTEM_PROMPT = """
@@ -12,8 +14,9 @@ You are the SIGNIX general FAQ assistant. SIGNIX helps people in India explore
 rooftop solar options by estimating usable roof area, system size, generation,
 savings, payback, environmental impact, and applicable subsidy. Do not access,
 infer, or discuss any user's saved locations, profile, bills, or other personal
-data; answer only general questions about how SIGNIX works and rooftop solar
-in India.
+data except the explicit RATING_CONTEXT supplied for that authenticated user;
+use that context only to explain their own suitability rating. Otherwise answer
+general questions about how SIGNIX works and rooftop solar in India.
 
 SIGNIX estimates use real solar irradiance data from NASA POWER or PVGIS when
 available. If both services are unavailable, SIGNIX uses a location-sensitive
@@ -33,15 +36,117 @@ rooftop solar in India. Politely decline unrelated requests.
 
 _count_lock = Lock()
 
+RATING_EXPLANATION_PROMPT = """
+When RATING_CONTEXT is present, explain the user's specific suitability rating,
+not how ratings work in general. Start with the strongest positive factor and
+the strongest limiting factor, then give only the supporting detail needed to
+make those points clear; do not recite every input as a data dump. Mention an
+actionable improvement only when the supplied factor and input data support it
+(for example, a weak orientation factor or a low backup score with no battery
+may support a targeted suggestion). Do not infer shading, obstruction effects,
+or improvement from data that is not present. Preserve technical terms such as
+kWh, kW, DISCOM, PM Surya Ghar, and tariff exactly in English in both English
+and Hindi responses.
+""".strip()
 
-def build_system_prompt(locale):
-    language = "Hindi" if str(locale).split("_")[0] == "hi" else "English"
+RATING_QUESTION_TERMS = (
+    "my rating",
+    "suitability score",
+    "suitability rating",
+    "my score",
+    "roof good for solar",
+    "house good for solar",
+    "home good for solar",
+    "solar work well here",
+    "suitable for solar",
+    "solar suitable here",
+    "solar fit",
+    "roof suitable",
+    "रेटिंग",
+    "स्कोर",
+    "उपयुक्तता",
+    "छत सोलर",
+    "घर सोलर",
+    "सोलर के लिए ठीक",
+    "सोलर के लिए उपयुक्त",
+    "यहां सोलर",
+)
+
+
+def _asks_about_rating(message):
+    normalized = message.casefold()
+    return any(term in normalized for term in RATING_QUESTION_TERMS)
+
+
+def _latest_rating_context(user_id):
+    location = next(
+        (
+            candidate
+            for candidate in list_recent_locations(user_id, limit=100)
+            if candidate.suitability_rating
+        ),
+        None,
+    )
+    if location is None:
+        return None
+
+    rating = location.suitability_rating
+    extras = location.extras or {}
+    bill_sizing = extras.get("bill_sizing") or {}
+    return {
+        "address": location.address,
+        "overall": rating.get("overall_viability"),
+        "confidence": rating.get("data_confidence"),
+        "priority": rating.get("user_priority"),
+        "weights": rating.get("weights"),
+        "factors": rating.get("factors"),
+        "inputs": {
+            "orientation": location.orientation_label,
+            "orientation_factor": location.orientation_factor,
+            "roof_area_sqm": location.roof_area_sqm,
+            "usable_area_sqm": location.usable_area_sqm,
+            "obstructed_area_sqm": location.obstructed_area_sqm,
+            "system_size_kw": location.system_size,
+            "monthly_bill": bill_sizing.get("monthly_bill"),
+            "tariff_per_kwh": bill_sizing.get("tariff_per_kwh"),
+            "property_type": extras.get("property_type"),
+            "battery_kwh": location.battery_kwh,
+            "inverter_type": extras.get("inverter_type"),
+            "irradiance_source": location.irradiance_source,
+        },
+    }
+
+
+def _rating_prompt_context(message, user_id):
+    if not _asks_about_rating(message):
+        return ""
+    import json
+
+    rating_context = _latest_rating_context(user_id)
+    if rating_context is None:
+        return (
+            "RATING_STATUS: The user has no saved estimate with a suitability "
+            "rating yet. Tell them clearly that no rating is available yet and "
+            "do not invent or provide a generic score."
+        )
     return (
+        "RATING_CONTEXT: This is the authenticated user's latest saved estimate. "
+        "Explain only this rating and its actual factors; do not expose unrelated "
+        "saved data.\n" + json.dumps(rating_context, ensure_ascii=False, sort_keys=True)
+    )
+
+
+def build_system_prompt(locale, rating_explanation=False):
+    language = "Hindi" if str(locale).split("_")[0] == "hi" else "English"
+    prompt = (
         f"{SYSTEM_PROMPT}\n\n"
         f"Respond in {language}. Keep technical names, official scheme names, "
         "units, and acronyms such as PM Surya Ghar, DISCOM, MNRE, kW, and "
         "kWh unchanged unless the user explicitly asks for an explanation."
     )
+    if rating_explanation:
+        prompt = f"{prompt}\n\n{RATING_EXPLANATION_PROMPT}"
+    return prompt
 
 
 def _consume_daily_message(user_id):
@@ -88,6 +193,14 @@ def assistant():
         )
         return jsonify(error=_("Daily assistant message limit reached")), 429
 
+    rating_context = _rating_prompt_context(message, current_user.id)
+    if rating_context.startswith("RATING_STATUS:"):
+        return jsonify(
+            response=_(
+                "You do not have a saved suitability rating yet. Create an estimate first, and I can explain its score."
+            )
+        )
+
     api_key = current_app.config.get("GEMINI_API_KEY")
     if not api_key:
         current_app.logger.error(
@@ -98,10 +211,17 @@ def assistant():
 
     try:
         client = _create_gemini_client(api_key)
+        prompt_contents = message.strip()
+        if rating_context:
+            prompt_contents = f"{prompt_contents}\n\n{rating_context}"
         response = client.models.generate_content(
             model=current_app.config["GEMINI_MODEL"],
-            contents=message.strip(),
-            config={"system_instruction": build_system_prompt(get_locale())},
+            contents=prompt_contents,
+            config={
+                "system_instruction": build_system_prompt(
+                    get_locale(), rating_explanation=bool(rating_context)
+                )
+            },
         )
     except Exception as error:
         current_app.logger.error(

@@ -579,6 +579,10 @@ msgstr ""
 msgid "A structural and electrical site survey is required for final design."
 msgstr ""
 
+#: app/assistant.py
+msgid "You do not have a saved suitability rating yet. Create an estimate first, and I can explain its score."
+msgstr ""
+
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr ""

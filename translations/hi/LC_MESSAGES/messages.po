@@ -582,6 +582,10 @@ msgstr "खरीद से पहले वर्तमान MNRE / National R
 msgid "A structural and electrical site survey is required for final design."
 msgstr "अंतिम डिज़ाइन के लिए संरचनात्मक और विद्युत साइट सर्वेक्षण आवश्यक है।"
 
+#: app/assistant.py
+msgid "You do not have a saved suitability rating yet. Create an estimate first, and I can explain its score."
+msgstr "आपकी कोई saved suitability rating अभी नहीं है। पहले एक अनुमान बनाएं, फिर मैं उसका स्कोर समझा सकता हूँ।"
+
 #: app/templates/base.html:133
 msgid "Open Assistant Chat"
 msgstr "सहायक चैट खोलें"
