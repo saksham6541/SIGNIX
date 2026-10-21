@@ -18,6 +18,12 @@ assert.deepEqual(JSON.parse(JSON.stringify(geometry.contractLocalRing(contractRi
 const projectedFallback = geometry.contractLocalRing(null, { coordinates: [[[77, 28], [77.0001, 28], [77, 28.0001]]] }, { lng: 77, lat: 28 });
 assert.ok(projectedFallback[1][0] > projectedFallback[0][0]);
 assert.ok(projectedFallback[2][1] < projectedFallback[0][1]);
+const projectionOrigin = { lng: 77.0005, lat: 28.0005 };
+const westAdvisory = geometry.normalizedImagePolygonToLocal([[100,400],[200,400],[200,500],[100,500]], [77,28,77.001,28.001], projectionOrigin);
+const eastAdvisory = geometry.normalizedImagePolygonToLocal([[800,400],[900,400],[900,500],[800,500]], [77,28,77.001,28.001], projectionOrigin);
+assert.ok(westAdvisory.every((point) => point[0] < 0), 'western image polygon should stay west of the shared roof origin');
+assert.ok(eastAdvisory.every((point) => point[0] > 0), 'eastern image polygon should stay east of the shared roof origin');
+assert.equal(geometry.normalizedImagePolygonToLocal([[0,0],[1,0],[0,1]], [77,28,77,28.001], projectionOrigin), null);
 
 function planeHeightOffset(point, surface) {
   const pitch = Number(surface.pitch) * Math.PI / 180;
@@ -115,6 +121,55 @@ const previewMetrics = geometry.panelLayoutMetrics([{ shadeVerified: false }, { 
 const conservativeMetrics = geometry.panelLayoutMetrics([], 545);
 assert.deepEqual(JSON.parse(JSON.stringify(previewMetrics)), { total: 2, preview: 2, confirmed: 0, totalKw: 1.09, previewKw: 1.09, confirmedKw: 0 });
 assert.deepEqual(JSON.parse(JSON.stringify(conservativeMetrics)), { total: 0, preview: 0, confirmed: 0, totalKw: 0, previewKw: 0, confirmedKw: 0 });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'accepted', panel_count: 6, dc_capacity_kw: 3.27 }))), { status: 'accepted', count: 6, capacityKw: 3.27 });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'stale', panel_count: 6, dc_capacity_kw: 3.27 }))), { status: 'stale', count: null, capacityKw: null });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'accepted', panel_count: 6 }))), { status: 'invalid', count: null, capacityKw: null });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'accepted', panel_count: null, dc_capacity_kw: 3.27 }))), { status: 'invalid', count: null, capacityKw: null });
+assert.equal(geometry.placementShortfallText(6, 11), '5 estimate modules could not be placed after boundary, setback, obstruction, surface, and classification checks.');
+assert.equal(geometry.placementShortfallText(11, 11), '');
 assert.deepEqual(savedFinancial, { systemSize: 8, annualGeneration: 12000 });
+
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.viewerCapability(false, true))), { ok: false, code: 'three_unavailable' });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.viewerCapability(true, false))), { ok: false, code: 'webgl_unavailable' });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.viewerCapability(true, true))), { ok: true, code: 'ready' });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState(null))), { ok: false, code: 'unavailable' });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState({ available: true, surfaces: [] }))), { ok: false, code: 'malformed' });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState({ available: true, surfaces: [], authoritative_boundary_local_xz_meters: [[0,0],[1,0],[0,1]] }))), { ok: true, code: 'ready' });
+
+function fakeElement() {
+  const classes = new Set(['hidden']);
+  return {
+    textContent: '', innerHTML: '', disabled: false, className: '', style: {},
+    classList: { add: (...names) => names.forEach((name) => classes.add(name)), remove: (...names) => names.forEach((name) => classes.delete(name)), contains: (name) => classes.has(name) }
+  };
+}
+const viewerElements = Object.fromEntries([
+  'roof-3d-fallback', 'roof3d-surface-list', 'roof3d-structure-list',
+  'roof3d-satellite-badge', 'roof3d-shade-badge', 'roof-3d-panel-status',
+  'roof3d-provider-status', 'roof3d-layout-accept', 'roof3d-layout-acceptance-status',
+  'roof-ai-status'
+].map((id) => [id, fakeElement()]));
+context.document = { getElementById: (id) => viewerElements[id] || null };
+geometry.resolveViewerUnavailable('renderer_initialization_failed', 'context creation failed');
+assert.match(viewerElements['roof-3d-fallback'].textContent, /could not initialize/);
+assert.equal(viewerElements['roof-3d-fallback'].classList.contains('hidden'), false);
+assert.match(viewerElements['roof3d-surface-list'].textContent, /unavailable/);
+assert.match(viewerElements['roof3d-shade-badge'].textContent, /unavailable/);
+assert.match(viewerElements['roof-3d-panel-status'].textContent, /unavailable/);
+assert.equal(viewerElements['roof3d-layout-accept'].disabled, true);
+assert.match(viewerElements['roof3d-layout-acceptance-status'].textContent, /cannot be accepted/);
+
+viewerElements['roof3d-layout-accept'].disabled = false;
+geometry.resolveReconstructionFailure('request failed');
+assert.match(viewerElements['roof3d-surface-list'].textContent, /user-drawn boundary/);
+assert.match(viewerElements['roof3d-shade-badge'].textContent, /unavailable/);
+assert.match(viewerElements['roof-ai-status'].textContent, /request failed/);
+assert.equal(viewerElements['roof3d-layout-accept'].disabled, true);
+
+const applyStateButton = { disabled: true };
+assert.equal(geometry.syncOrientationApplyButton(applyStateButton, true), true);
+assert.equal(applyStateButton.disabled, false);
+assert.equal(geometry.syncOrientationApplyButton(applyStateButton, false), false);
+assert.equal(applyStateButton.disabled, true);
 
 console.log('roof3d geometry tests passed');

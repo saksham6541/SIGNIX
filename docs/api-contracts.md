@@ -113,7 +113,7 @@ Success is `201`, or `200` for an idempotent retry under the same current calcul
 |---|---|---|
 | POST | `/api/roof-ai/imagery` | Satellite crop for a valid GeoJSON-order polygon. |
 | POST | `/api/roof-ai/analyze` | Advisory Gemini analysis for a valid polygon; unavailable configuration is explicit. |
-| POST | `/api/assistant` | Authenticated non-empty `{ "message": "..." }`; in-process daily user limit, with `429`, `503`, and `502` error states. |
+| POST | `/api/assistant` | Authenticated non-empty `{ "message": "..." }` up to 2,000 characters; database-backed daily user limit. Returns stable error codes for missing/invalid provider configuration, provider quota, timeout, connection, malformed response, and empty response failures. |
 
 Do not present AI output as measured roof evidence or silently copy it into authoritative financial/solar inputs.
 

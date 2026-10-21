@@ -169,6 +169,7 @@
           <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="panels" checked> Panels</label>
           <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="structures" checked> Structures</label>
           <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="boundary" checked> Boundary</label>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="context" checked> Ground context</label>
           <div class="roof3d-shade-legend" aria-label="Roof classification legend">
             <span><i class="usable"></i>Usable</span><span><i class="shaded"></i>Shaded</span>
             <span><i class="setback"></i>Setback</span><span><i class="obstruction"></i>Obstruction</span>
@@ -218,6 +219,8 @@
       <span>Preview DC <strong id="roof3d-preview-capacity">0.00 kWp</strong></span>
       <span>Confirmed panels <strong id="roof3d-confirmed-module-count">0</strong></span>
       <span>Confirmed DC <strong id="roof3d-confirmed-capacity">0.00 kWp</strong></span>
+      <span>Accepted panels <strong id="roof3d-accepted-module-count">—</strong></span>
+      <span>Accepted DC <strong id="roof3d-accepted-capacity">—</strong></span>
     </div>
     <p id="roof3d-shade-note" class="roof3d-shade-note">Shade classification is loading.</p>
 
@@ -905,7 +908,7 @@
 </section>
 
 <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{{ url_for('static', filename='js/vendor/three.r128.min.js') }}"></script>
 <script>
   let REPORT_CHART_DATA = {{ loc.chart_data | tojson }};
   const MONTHLY_DATA = {{ loc.monthly_data | tojson }};

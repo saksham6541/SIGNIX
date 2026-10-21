@@ -15,7 +15,6 @@
   const voiceStatus = document.getElementById('assistant-voice-status');
   const voiceModeIcon = voiceModeBtn?.querySelector('.assistant-voice-mode-icon');
   const csrfInput = document.getElementById('assistant-csrf');
-  let assistantSendCallCount = 0;
   let formSendInFlight = false;
   const strings = {
     loading: widget.dataset.loadingLabel,
@@ -23,15 +22,27 @@
     unavailable: widget.dataset.unavailableMessage,
     emptyResponse: widget.dataset.emptyResponseMessage,
     connection: widget.dataset.connectionMessage,
+    timeout: widget.dataset.timeoutMessage,
+    permissionDenied: widget.dataset.voicePermissionDeniedMessage,
+    noSpeech: widget.dataset.voiceNoSpeechMessage,
+    voiceNetwork: widget.dataset.voiceNetworkMessage,
+    audioUnavailable: widget.dataset.voiceAudioUnavailableMessage,
+    speechUnavailable: widget.dataset.speechUnsupportedLabel,
   };
   const speechOutput = setupSpeechOutput({
     synthesis: window.speechSynthesis,
     utteranceConstructor: window.SpeechSynthesisUtterance,
     locale: document.documentElement.lang,
+    onError: () => appendError(strings.speechUnavailable),
   });
   const csrfToken = csrfInput ? csrfInput.value : '';
   const recognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
   const iosSafari = window.isIOSSafari?.(window.navigator) === true;
+  const assistantClient = createAssistantClient({
+    fetchImpl: window.fetch.bind(window),
+    csrfToken,
+    AbortControllerConstructor: window.AbortController,
+  });
 
   const voiceMode = window.createVoiceMode({
     recognition: iosSafari ? null : createRecognition(recognitionConstructor),
@@ -54,12 +65,7 @@
     },
     onError: error => {
       removeLoadingIndicator();
-      const rateLimited = error?.status === 429;
-      const errorMessage = rateLimited ? strings.rateLimit : strings.unavailable;
-      appendError(errorMessage);
-      if (error?.voiceModeSendFailure) {
-        speechOutput.speak(errorMessage);
-      }
+      appendError(voiceErrorMessage(error));
     },
   });
 
@@ -94,7 +100,26 @@
       listening: widget.dataset.voiceListeningLabel,
       unsupported: widget.dataset.voiceUnsupportedLabel,
     },
+    onError: error => appendError(voiceErrorMessage(error)),
   });
+
+  function voiceErrorMessage(error) {
+    if (error?.status === 429) return strings.rateLimit;
+    if (error?.code === 'not-allowed' || error?.code === 'service-not-allowed') return strings.permissionDenied;
+    if (error?.code === 'no-speech') return strings.noSpeech;
+    if (error?.code === 'network') return strings.voiceNetwork;
+    if (error?.code === 'audio-capture') return strings.audioUnavailable;
+    if (error?.code === 'speech-unavailable' || error?.code === 'speech-playback-failed') return strings.speechUnavailable;
+    return friendlyError(error);
+  }
+
+  function friendlyError(error) {
+    if (error?.status === 429) return strings.rateLimit;
+    if (error?.code === 'request_timeout') return strings.timeout;
+    if (error?.code === 'connection_error') return strings.connection;
+    if (error?.code === 'empty_response' || error?.code === 'malformed_response') return strings.emptyResponse;
+    return error?.message || strings.unavailable;
+  }
 
   function togglePanel() {
     const isHidden = panel.classList.contains('hidden');
@@ -200,35 +225,14 @@
   }
 
   async function sendAssistantMessage(message) {
-    assistantSendCallCount += 1;
-    console.log('[assistant-send]', assistantSendCallCount, 'path=voice-or-shared', 'state=', voiceMode.state, 'transcript=', JSON.stringify(message));
-    const response = await fetch('/api/assistant', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRFToken': csrfToken,
-      },
-      body: JSON.stringify({ message }),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const error = new Error(data.error || strings.unavailable);
-      error.status = response.status;
-      throw error;
-    }
-    if (!data.response) throw new Error(strings.emptyResponse);
-    return data.response;
+    return assistantClient.send(message);
   }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = input.value.trim();
-    if (!message || formSendInFlight) return;
+    if (!message || formSendInFlight || assistantClient.inFlight) return;
     formSendInFlight = true;
-
-    assistantSendCallCount += 1;
-    console.log('[assistant-send]', assistantSendCallCount, 'path=form-submit', 'state=', voiceMode.state, 'transcript=', JSON.stringify(message));
 
     speechOutput.cancel();
     appendMessage(message, true);
@@ -239,41 +243,11 @@
     createLoadingIndicator();
 
     try {
-      const response = await fetch('/api/assistant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({ message }),
-      });
-
-      removeLoadingIndicator();
-
-      if (response.status === 429) {
-        appendError(strings.rateLimit);
-      } else if (!response.ok) {
-        let errMessage = strings.unavailable;
-        try {
-          const errData = await response.json();
-          if (errData && errData.error) {
-            errMessage = errData.error;
-          }
-        } catch (_) {}
-        appendError(errMessage);
-      } else {
-        const data = await response.json();
-        if (data.response) {
-          appendMessage(data.response, false);
-        } else {
-          appendError(strings.emptyResponse);
-        }
-      }
+      appendMessage(await sendAssistantMessage(message), false);
     } catch (err) {
-      removeLoadingIndicator();
-      appendError(strings.connection);
+      appendError(friendlyError(err));
     } finally {
+      removeLoadingIndicator();
       formSendInFlight = false;
       input.disabled = false;
       sendBtn.disabled = false;
@@ -282,7 +256,69 @@
   });
 });
 
-function setupVoiceInput({ button, input, recognitionConstructor, locale, strings }) {
+function createAssistantClient({
+  fetchImpl,
+  csrfToken,
+  timeoutMs = 15000,
+  AbortControllerConstructor = typeof AbortController === 'undefined' ? null : AbortController,
+}) {
+  let inFlight = false;
+
+  async function send(message) {
+    if (inFlight) {
+      const duplicateError = new Error('A message is already being sent.');
+      duplicateError.code = 'request_in_progress';
+      throw duplicateError;
+    }
+    inFlight = true;
+    const controller = AbortControllerConstructor ? new AbortControllerConstructor() : null;
+    let timedOut = false;
+    const timeout = controller ? setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs) : null;
+    try {
+      const response = await fetchImpl('/api/assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ message }),
+        signal: controller?.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(data.error || 'The assistant is temporarily unavailable.');
+        error.status = response.status;
+        error.code = data.code;
+        throw error;
+      }
+      if (!data || typeof data.response !== 'string' || !data.response.trim()) {
+        const error = new Error('The assistant returned an empty response.');
+        error.code = 'empty_response';
+        throw error;
+      }
+      return data.response.trim();
+    } catch (error) {
+      if (timedOut) {
+        const timeoutError = new Error('The assistant request timed out.');
+        timeoutError.code = 'request_timeout';
+        throw timeoutError;
+      }
+      if (error instanceof TypeError) error.code = error.code || 'connection_error';
+      throw error;
+    } finally {
+      if (timeout !== null) clearTimeout(timeout);
+      inFlight = false;
+    }
+  }
+
+  return { send, get inFlight() { return inFlight; } };
+}
+
+function setupVoiceInput({ button, input, recognitionConstructor, locale, strings, onError = () => {} }) {
   if (!button) return { supported: false };
 
   if (!recognitionConstructor) {
@@ -303,27 +339,45 @@ function setupVoiceInput({ button, input, recognitionConstructor, locale, string
     button.title = strings.label;
   };
 
+  let listening = false;
   button.addEventListener('click', () => {
+    if (listening) return;
+    listening = true;
     button.classList.add('listening');
     button.setAttribute('aria-label', strings.listening);
     button.title = strings.listening;
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      listening = false;
+      stopListening();
+      onError(error);
+    }
   });
 
   recognition.addEventListener('result', (event) => {
     const transcript = event.results?.[0]?.[0]?.transcript;
     if (transcript) input.value = transcript;
   });
-  recognition.addEventListener('end', stopListening);
-  recognition.addEventListener('error', stopListening);
+  recognition.addEventListener('end', () => {
+    listening = false;
+    stopListening();
+  });
+  recognition.addEventListener('error', (event) => {
+    listening = false;
+    stopListening();
+    const error = new Error('Voice recognition failed.');
+    error.code = event?.error || 'recognition-error';
+    onError(error);
+  });
 
   return { supported: true, recognition };
 }
 
-function setupSpeechOutput({ synthesis, utteranceConstructor, locale }) {
+function setupSpeechOutput({ synthesis, utteranceConstructor, locale, onError = () => {} }) {
   const language = String(locale).toLowerCase().startsWith('hi') ? 'hi-IN' : 'en-IN';
   if (!synthesis || !utteranceConstructor) {
-    return { supported: false, speak: () => {}, cancel: () => {} };
+    return { supported: false, speak: () => false, cancel: () => {} };
   }
 
   function cancel() {
@@ -339,14 +393,27 @@ function setupSpeechOutput({ synthesis, utteranceConstructor, locale }) {
       const voices = synthesis.getVoices ? synthesis.getVoices() : [];
       const voice = voices.find((candidate) => candidate.lang?.toLowerCase() === language.toLowerCase())
         || voices.find((candidate) => candidate.lang?.toLowerCase().startsWith(language.slice(0, 2).toLowerCase()));
-      if (!voice) return;
+      if (!voice) {
+        const error = new Error('Speech output is unavailable for this language.');
+        error.code = 'speech-unavailable';
+        onError(error);
+        return false;
+      }
       const utterance = new utteranceConstructor(text);
       utterance.lang = language;
       utterance.voice = voice;
+      utterance.onerror = () => {
+        const error = new Error('Speech playback failed.');
+        error.code = 'speech-playback-failed';
+        onError(error);
+      };
       cancel();
       synthesis.speak(utterance);
-    } catch (_) {
-      // Speech output is optional; an unavailable voice must not disrupt chat.
+      return true;
+    } catch (error) {
+      error.code = error.code || 'speech-playback-failed';
+      onError(error);
+      return false;
     }
   }
 
@@ -354,5 +421,5 @@ function setupSpeechOutput({ synthesis, utteranceConstructor, locale }) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { setupSpeechOutput, setupVoiceInput };
+  module.exports = { createAssistantClient, setupSpeechOutput, setupVoiceInput };
 }

@@ -120,9 +120,14 @@
     data-unavailable-message="{{ _('The assistant is temporarily unavailable. Please try again later.') }}"
     data-empty-response-message="{{ _('Received an empty response from assistant.') }}"
     data-connection-message="{{ _('Unable to connect. Please check your connection and try again.') }}"
+    data-timeout-message="{{ _('The assistant took too long to respond. Please try again.') }}"
     data-voice-label="{{ _('Use voice input') }}"
     data-voice-listening-label="{{ _('Listening...') }}"
     data-voice-unsupported-label="{{ _('Voice input is not supported in this browser') }}"
+    data-voice-permission-denied-message="{{ _('Microphone access was denied. Allow microphone access in your browser, or type your question.') }}"
+    data-voice-no-speech-message="{{ _('No speech was detected. Try again, or type your question.') }}"
+    data-voice-network-message="{{ _('Voice recognition could not connect. Check your connection, or type your question.') }}"
+    data-voice-audio-unavailable-message="{{ _('No microphone is available. Connect a microphone, or type your question.') }}"
     data-speak-label="{{ _('Read response aloud') }}"
     data-speech-unsupported-label="{{ _('Voice output is not available for this language') }}"
     data-voice-mode-label="{{ _('Start voice mode') }}"
@@ -141,7 +146,7 @@
           <span class="assistant-avatar">✨</span>
           <div>
             <h3>{{ _('SIGNIX Assistant') }}</h3>
-            <span class="assistant-status">{{ _('Online · FAQ & Solar Info') }}</span>
+            <span class="assistant-status">{{ _('FAQ & Solar Info') }}</span>
             <span id="assistant-voice-status" class="assistant-voice-status" role="status" hidden></span>
           </div>
         </div>
@@ -174,7 +179,7 @@
       </button>
       <form id="assistant-form" class="assistant-input-area">
         <input type="hidden" name="csrf_token" id="assistant-csrf" value="{{ csrf_token() }}">
-        <input type="text" id="assistant-input" class="assistant-input" placeholder="{{ _('Ask a question...') }}" autocomplete="off" required />
+        <input type="text" id="assistant-input" class="assistant-input" placeholder="{{ _('Ask a question...') }}" autocomplete="off" maxlength="2000" required />
         <button type="button" id="assistant-voice-btn" class="assistant-voice-btn" aria-label="{{ _('Use voice input') }}" title="{{ _('Use voice input') }}">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="9" y="2" width="6" height="12" rx="3"></rect>

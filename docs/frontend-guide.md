@@ -22,7 +22,7 @@ Backend-owned response construction and calculations should not be duplicated in
 
 Flask discovers `app/templates/` and `app/static/` through `Flask(__name__)`. Templates load local assets with `url_for('static', filename='...')`. `base.html` owns common navigation, CSS, CSRF metadata, assistant controls, and shared scripts.
 
-Leaflet and Leaflet Draw are loaded from unpkg on the map page. Three.js is loaded from cdnjs on the report page. Chart.js is vendored locally. A deployed browser therefore needs network access for the Leaflet/Three.js CDNs even when backend providers are disabled.
+Leaflet and Leaflet Draw are loaded from unpkg on the map page. Three.js r128 and Chart.js are vendored locally for the report workspace, so the 3D viewer does not depend on a public CDN after the report HTML loads. The map page still needs network access for its Leaflet assets even when backend providers are disabled.
 
 ## API calls
 

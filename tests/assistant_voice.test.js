@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { setupSpeechOutput, setupVoiceInput } = require('../app/static/js/assistant.js');
+const { createAssistantClient, setupSpeechOutput, setupVoiceInput } = require('../app/static/js/assistant.js');
 
 class FakeElement {
   constructor() {
@@ -52,6 +52,14 @@ class FakeRecognition {
   }
 }
 
+function jsonResponse(status, payload) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => payload,
+  };
+}
+
 {
   const button = new FakeElement();
   const input = new FakeElement();
@@ -72,6 +80,23 @@ class FakeRecognition {
   assert.equal(FakeRecognition.instance.lang, 'hi-IN');
   assert.equal(FakeRecognition.instance.started, true);
   assert.equal(input.value, 'सौर ऊर्जा कैसे काम करती है');
+}
+
+{
+  const button = new FakeElement();
+  const errors = [];
+  setupVoiceInput({
+    button,
+    input: new FakeElement(),
+    recognitionConstructor: FakeRecognition,
+    locale: 'en',
+    strings: { label: 'Use voice input', listening: 'Listening...', unsupported: 'Unsupported' },
+    onError: error => errors.push(error),
+  });
+  button.click();
+  FakeRecognition.instance.emit('error', { error: 'not-allowed' });
+  assert.equal(errors[0].code, 'not-allowed');
+  assert.equal(button.classList.contains('listening'), false);
 }
 
 {
@@ -144,11 +169,51 @@ class FakeUtterance {
 
 {
   const synthesis = { getVoices: () => [], speak: () => { throw new Error('must not speak'); }, cancel: () => {} };
+  const errors = [];
   const output = setupSpeechOutput({
     synthesis,
     utteranceConstructor: FakeUtterance,
     locale: 'hi',
+    onError: error => errors.push(error),
   });
 
-  assert.doesNotThrow(() => output.speak('नमस्ते'));
+  assert.equal(output.speak('नमस्ते'), false);
+  assert.equal(errors[0].code, 'speech-unavailable');
 }
+
+(async () => {
+  let resolveFetch;
+  let fetchCalls = 0;
+  const client = createAssistantClient({
+    csrfToken: 'csrf',
+    fetchImpl: () => {
+      fetchCalls += 1;
+      return new Promise(resolve => { resolveFetch = resolve; });
+    },
+  });
+  const first = client.send('first');
+  await assert.rejects(client.send('duplicate'), error => error.code === 'request_in_progress');
+  resolveFetch(jsonResponse(200, { response: '<strong>safe text</strong>' }));
+  assert.equal(await first, '<strong>safe text</strong>');
+  assert.equal(fetchCalls, 1);
+
+  const malformedClient = createAssistantClient({
+    csrfToken: 'csrf',
+    fetchImpl: async () => jsonResponse(200, {}),
+  });
+  await assert.rejects(malformedClient.send('question'), error => error.code === 'empty_response');
+
+  const timeoutClient = createAssistantClient({
+    csrfToken: 'csrf',
+    timeoutMs: 1,
+    fetchImpl: (_url, options) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(new Error('aborted')));
+    }),
+  });
+  await assert.rejects(timeoutClient.send('slow'), error => error.code === 'request_timeout');
+
+  console.log('assistant request reliability tests passed');
+})().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

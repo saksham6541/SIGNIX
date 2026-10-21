@@ -140,9 +140,10 @@ function createHarness(overrides = {}) {
   harness.timers.runAll();
   harness.resolveSend('उत्तर');
   await new Promise(resolve => setImmediate(resolve));
-  assert.equal(harness.machine.state, VOICE_MODE_STATES.SPEAKING);
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.THINKING);
   const utterance = harness.utterances[0];
   utterance.onstart();
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.SPEAKING);
   assert.equal(harness.recognition.stopCalls > 0, true);
   utterance.onend();
   assert.equal(harness.machine.state, VOICE_MODE_STATES.LISTENING);
@@ -201,9 +202,50 @@ for (const target of [
   harness.resolveSend('answer');
   await new Promise(resolve => setImmediate(resolve));
   harness.utterances[0].onerror(new Error('speech failed'));
-  assert.equal(harness.machine.state, VOICE_MODE_STATES.LISTENING);
-  assert.equal(harness.recognition.startCalls > 1, true);
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.IDLE);
   assert.equal(errors[0].message, 'speech failed');
+  assert.equal(errors[0].code, 'speech-playback-failed');
+}
+
+{
+  const errors = [];
+  const harness = createHarness({ onError: error => errors.push(error) });
+  harness.machine.toggle();
+  harness.recognition.emit('error', { error: 'not-allowed' });
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.IDLE);
+  assert.equal(errors[0].code, 'not-allowed');
+  const starts = harness.recognition.startCalls;
+  harness.recognition.emit('end');
+  assert.equal(harness.recognition.startCalls, starts);
+}
+
+{
+  const errors = [];
+  const harness = createHarness({ onError: error => errors.push(error) });
+  harness.machine.toggle();
+  harness.recognition.emit('error', { error: 'no-speech' });
+  assert.equal(harness.machine.state, VOICE_MODE_STATES.LISTENING);
+  assert.equal(errors[0].code, 'no-speech');
+}
+
+{
+  let sendCount = 0;
+  const sentMessages = [];
+  const harness = createHarness({
+    send: async message => {
+      sendCount += 1;
+      sentMessages.push(message);
+      return 'answer';
+    },
+  });
+  harness.machine.toggle();
+  const finalResult = { results: [{ 0: { transcript: 'one question' }, isFinal: true, length: 1 }] };
+  harness.recognition.emit('result', finalResult);
+  harness.recognition.emit('result', finalResult);
+  harness.timers.runAll();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(sendCount, 1);
+  assert.deepEqual(sentMessages, ['one question']);
 }
 
 {

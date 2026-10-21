@@ -1,10 +1,16 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 
 from app.assistant import _asks_about_rating
 
 from app.models import UserLocation, db
+
+
+class ProviderFailure(Exception):
+    def __init__(self, code):
+        super().__init__("provider detail that must not reach the client")
+        self.code = code
 
 
 def _system_instruction(gemini_client):
@@ -48,6 +54,77 @@ def test_assistant_returns_gemini_response(client, app):
     assert "PM Surya Ghar, DISCOM, MNRE, kW, and kWh unchanged" in _system_instruction(
         gemini_client
     )
+
+
+def test_assistant_missing_credentials_is_explicit(client, app):
+    app.config["GEMINI_API_KEY"] = None
+
+    response = client.post("/api/assistant", json={"message": "How does solar work?"})
+
+    assert response.status_code == 503
+    assert response.get_json() == {
+        "code": "missing_configuration",
+        "error": "The assistant is not configured",
+    }
+
+
+@pytest.mark.parametrize(
+    ("failure", "status", "code"),
+    [
+        (ProviderFailure(401), 503, "provider_auth"),
+        (ProviderFailure(429), 503, "provider_rate_limited"),
+        (TimeoutError("late"), 504, "provider_timeout"),
+        (ProviderFailure(503), 502, "provider_unavailable"),
+    ],
+)
+def test_assistant_maps_provider_failures_without_leaking_details(
+    client, app, failure, status, code
+):
+    gemini_client = Mock()
+    gemini_client.models.generate_content.side_effect = failure
+    with patch("app.assistant._create_gemini_client", return_value=gemini_client):
+        app.config["GEMINI_API_KEY"] = "test-key"
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == status
+    assert response.get_json()["code"] == code
+    assert "provider detail" not in response.get_json()["error"]
+
+
+@pytest.mark.parametrize("provider_text", [None, "", "   "])
+def test_assistant_rejects_empty_provider_output(client, app, provider_text):
+    gemini_client = Mock()
+    gemini_client.models.generate_content.return_value = Mock(text=provider_text)
+    with patch("app.assistant._create_gemini_client", return_value=gemini_client):
+        app.config["GEMINI_API_KEY"] = "test-key"
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 502
+    assert response.get_json()["code"] == "empty_response"
+
+
+def test_assistant_rejects_malformed_provider_output(client, app):
+    provider_response = Mock()
+    type(provider_response).text = PropertyMock(side_effect=ValueError("bad response"))
+    gemini_client = Mock()
+    gemini_client.models.generate_content.return_value = provider_response
+    with patch("app.assistant._create_gemini_client", return_value=gemini_client):
+        app.config["GEMINI_API_KEY"] = "test-key"
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 502
+    assert response.get_json()["code"] == "malformed_response"
+
+
+def test_assistant_rejects_oversized_message_without_provider_call(client, app):
+    gemini_client = Mock()
+    with patch("app.assistant._create_gemini_client", return_value=gemini_client):
+        app.config["GEMINI_API_KEY"] = "test-key"
+        response = client.post("/api/assistant", json={"message": "x" * 2001})
+
+    assert response.status_code == 400
+    assert "2,000" in response.get_json()["error"]
+    gemini_client.models.generate_content.assert_not_called()
 
 
 def test_assistant_uses_hindi_for_hindi_locale(client, app):

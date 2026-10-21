@@ -504,6 +504,7 @@ def test_renderer_contract_keeps_geometry_and_generation_concerns_separate():
     root = Path(__file__).resolve().parents[1]
     source = (root / "app/static/js/roof3d.js").read_text(encoding="utf-8")
     template = (root / "app/templates/report.html").read_text(encoding="utf-8")
+    packaged_three = root / "app/static/js/vendor/three.r128.min.js"
 
     assert "new THREE.OrthographicCamera" in source
     assert "requestAnimationFrame(animate);renderer.render(scene,camera)" in source
@@ -531,11 +532,35 @@ def test_renderer_contract_keeps_geometry_and_generation_concerns_separate():
     assert "Planning preview — shade unverified" in template
     assert "Preview panels" in template
     assert "Confirmed panels" in template
+    assert "Accepted panels" in template
+    assert "Accepted DC" in template
+    assert 'data-roof3d-layer="context"' in template
     assert "setPanelLayoutMode:setPanelLayoutMode" in source
     mode_switch = source[source.index("function setPanelLayoutMode"):source.index("function bindPlannerControls")]
     assert "savedAnnualGeneration=" not in mode_switch
     assert "localRing=" not in mode_switch
     assert "fetch(" not in mode_switch
+    reconstructed_builder = source[source.index("function buildReconstructedModel"):source.index("function siteHeightAt")]
+    assert "addWalls(" not in reconstructed_builder
+    assert "mesh.castShadow=heightKnown" in source
+    assert "flat display marker only" in source
+    assert "height:1.0" not in source
+    assert "localRing=[[-6,-4],[6,-4],[6,4],[-6,4]]" not in source
+    assert "normalizedImagePolygonToLocal(poly,bbox,projectionOrigin)" in source
+    assert "mounting tilt not modelled" in source
+    assert "js/vendor/three.r128.min.js" in template
+    assert "cdnjs.cloudflare.com/ajax/libs/three.js" not in template
+    assert packaged_three.is_file()
+    assert packaged_three.stat().st_size > 500_000
+    assert "@license" in packaged_three.read_text(encoding="utf-8")[:200]
     assert "Prototype geometry is explicitly identified above." in template
     assert "/orientation-preview" in source
     assert "/orientation'" in source
+
+
+def test_three_renderer_asset_is_served_locally(client):
+    response = client.get("/static/js/vendor/three.r128.min.js")
+
+    assert response.status_code == 200
+    assert len(response.data) > 500_000
+    assert b"@license" in response.data[:200]

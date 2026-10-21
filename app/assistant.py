@@ -212,10 +212,34 @@ def _consume_daily_message(user_id):
 
 
 
-def _create_gemini_client(api_key):
+def _create_gemini_client(api_key, timeout_seconds):
     from google import genai
+    from google.genai import types
 
-    return genai.Client(api_key=api_key)
+    return genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(timeout=max(1, timeout_seconds) * 1000),
+    )
+
+
+def _provider_error_response(error):
+    """Map provider failures to stable, non-sensitive assistant API errors."""
+    code = getattr(error, "code", None)
+    error_name = type(error).__name__.lower()
+
+    if code in {401, 403}:
+        return _("The assistant provider is not configured correctly."), 503, "provider_auth"
+    if code == 429:
+        return _("The assistant provider is busy. Please try again later."), 503, "provider_rate_limited"
+    if code in {408, 504} or "timeout" in error_name:
+        return _("The assistant request timed out. Please try again."), 504, "provider_timeout"
+    if code is not None and 400 <= code < 500:
+        return _("The assistant configuration is invalid."), 503, "provider_configuration"
+    if code is not None and code >= 500:
+        return _("The assistant provider is temporarily unavailable."), 502, "provider_unavailable"
+    if any(term in error_name for term in ("connection", "network", "transport")):
+        return _("Unable to reach the assistant provider."), 502, "provider_connection"
+    return _("The assistant is temporarily unavailable."), 502, "provider_unavailable"
 
 
 @assistant_bp.post("/api/assistant")
@@ -223,20 +247,18 @@ def _create_gemini_client(api_key):
 def assistant():
     payload = request.get_json(silent=True) or {}
     message = payload.get("message")
-    current_app.logger.info(
-        "Assistant request user_id=%s transcript=%r",
-        current_user.id,
-        message,
-    )
+    current_app.logger.info("Assistant request user_id=%s", current_user.id)
     if not isinstance(message, str) or not message.strip():
         current_app.logger.warning("Assistant request rejected: empty transcript")
         return jsonify(error=_("A non-empty message is required")), 400
+    if len(message.strip()) > 2000:
+        current_app.logger.warning("Assistant request rejected: message too long")
+        return jsonify(error=_("Message must be 2,000 characters or fewer")), 400
 
     if not _consume_daily_message(current_user.id):
         current_app.logger.warning(
-            "Assistant request rate-limited user_id=%s transcript=%r",
+            "Assistant request rate-limited user_id=%s",
             current_user.id,
-            message,
         )
         return jsonify(error=_("Daily assistant message limit reached")), 429
 
@@ -251,13 +273,16 @@ def assistant():
     api_key = current_app.config.get("GEMINI_API_KEY")
     if not api_key:
         current_app.logger.error(
-            "Assistant request unavailable: missing API key transcript=%r",
-            message,
+            "Assistant request unavailable: missing API key",
         )
-        return jsonify(error=_("The assistant is not configured")), 503
+        return jsonify(
+            error=_("The assistant is not configured"), code="missing_configuration"
+        ), 503
 
     try:
-        client = _create_gemini_client(api_key)
+        client = _create_gemini_client(
+            api_key, current_app.config.get("REQUEST_TIMEOUT", 6)
+        )
         prompt_contents = message.strip()
         if rating_context:
             prompt_contents = f"{prompt_contents}\n\n{rating_context}"
@@ -271,19 +296,28 @@ def assistant():
             },
         )
     except Exception as error:
+        message_text, status, code = _provider_error_response(error)
         current_app.logger.error(
-            "Gemini assistant exception transcript=%r error=%s: %s",
-            message,
+            "Gemini assistant request failed error=%s status=%s",
             type(error).__name__,
-            str(error),
-            exc_info=True,
+            status,
         )
-        current_app.logger.exception("Gemini assistant request failed")
-        return jsonify(error=_("The assistant is temporarily unavailable")), 502
+        return jsonify(error=message_text, code=code), status
 
-    current_app.logger.info(
-        "Assistant response succeeded user_id=%s transcript=%r",
-        current_user.id,
-        message,
-    )
-    return jsonify(response=response.text)
+    try:
+        response_text = response.text
+    except Exception:
+        current_app.logger.warning("Gemini assistant response could not be decoded")
+        return jsonify(
+            error=_("The assistant returned an invalid response"),
+            code="malformed_response",
+        ), 502
+    if not isinstance(response_text, str) or not response_text.strip():
+        current_app.logger.warning("Gemini assistant returned an empty response")
+        return jsonify(
+            error=_("The assistant returned an empty response"),
+            code="empty_response",
+        ), 502
+
+    current_app.logger.info("Assistant response succeeded user_id=%s", current_user.id)
+    return jsonify(response=response_text.strip())
