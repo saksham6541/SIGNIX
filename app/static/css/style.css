@@ -3732,7 +3732,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 
 .landing-body .top-bar,
-.login-body .top-bar {
+.login-body .top-bar,
+.consultation-body .top-bar {
   position: relative;
   z-index: 30;
   display: flex;
@@ -3755,6 +3756,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   min-width: 0;
   align-items: center;
   justify-content: space-between;
+  gap: clamp(16px, 2vw, 28px);
   margin-inline: auto;
   padding-inline: clamp(18px, 2vw, 28px);
 }
@@ -3803,12 +3805,17 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 
 .public-nav-content {
-  display: contents;
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 28px);
 }
 
 .public-nav-links {
   flex: 0 1 auto;
-  gap: clamp(24px, 2.5vw, 38px);
+  gap: clamp(14px, 1.8vw, 26px);
 }
 
 .public-nav-solutions {
@@ -3829,7 +3836,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.25;
   text-align: center;
@@ -3858,6 +3865,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 .public-nav-solutions-trigger:focus-visible,
 .public-nav-link:focus-visible,
+.public-nav-consultation:focus-visible,
 .public-nav-language a:focus-visible,
 .public-nav-login:focus-visible,
 .public-nav-get-started:focus-visible,
@@ -3944,21 +3952,27 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 .public-nav-consultation {
   flex: 0 0 auto;
-  flex-direction: column;
-  gap: 2px;
-  color: var(--gray);
-  font-size: 12px;
-  cursor: not-allowed;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent-amber);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-amber) 10%, var(--card));
+  color: var(--indigo);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
 }
 
-.public-nav-consultation small {
-  font-size: 9px;
-  font-weight: 500;
+.public-nav-consultation:hover {
+  border-color: var(--accent-amber);
+  background: color-mix(in srgb, var(--accent-amber) 18%, var(--card));
+  color: var(--indigo);
 }
 
 .public-nav-actions {
   flex: 0 0 auto;
-  gap: clamp(10px, 1.1vw, 16px);
+  gap: clamp(12px, 1.35vw, 20px);
 }
 
 .public-nav-language {
@@ -4066,9 +4080,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   display: none;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1120px) {
   .landing-body .top-bar,
-  .login-body .top-bar {
+  .login-body .top-bar,
+  .consultation-body .top-bar {
     padding-inline: 0;
   }
 
@@ -4152,11 +4167,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     box-shadow: none;
   }
 
-  .public-nav-consultation {
-    align-items: flex-start;
-    text-align: left;
-  }
-
   .public-nav-actions {
     width: 100%;
     flex-wrap: wrap;
@@ -4164,6 +4174,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     gap: 8px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
+  }
+
+  .public-nav-consultation {
+    flex: 1 0 100%;
+    justify-content: flex-start;
   }
 
   .public-nav-login,
