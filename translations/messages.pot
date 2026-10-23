@@ -3488,3 +3488,615 @@ msgstr ""
 #: app/templates/base.html
 msgid "Compare Scenarios"
 msgstr ""
+#: app/application_checklist.py:36
+msgid "Register on the official portal"
+msgstr ""
+
+#: app/application_checklist.py:37
+msgid "Create an account using your residential electricity connection."
+msgstr ""
+
+#: app/application_checklist.py:40
+msgid "Submit the rooftop application"
+msgstr ""
+
+#: app/application_checklist.py:41
+msgid "Select your DISCOM and wait for feasibility approval before installation."
+msgstr ""
+
+#: app/application_checklist.py:44
+msgid "Choose a DISCOM-registered vendor"
+msgstr ""
+
+#: app/application_checklist.py:45
+msgid "Agree the price directly with the vendor and complete installation."
+msgstr ""
+
+#: app/application_checklist.py:48
+msgid "Complete inspection and claim"
+msgstr ""
+
+#: app/application_checklist.py:49
+msgid "Follow the portal and DISCOM process for net metering, inspection, and any eligible assistance."
+msgstr ""
+
+#: app/application_checklist.py:53
+msgid "Consumer number"
+msgstr ""
+
+#: app/application_checklist.py:54
+msgid "Registered mobile"
+msgstr ""
+
+#: app/application_checklist.py:55
+msgid "Latest electricity bill"
+msgstr ""
+
+#: app/application_checklist.py:56
+msgid "Sanctioned load"
+msgstr ""
+
+#: app/application_checklist.py:57
+msgid "Roof ownership proof"
+msgstr ""
+
+#: app/pages.py:350
+msgid "Choose a valid application status."
+msgstr ""
+
+#: app/pages.py:353
+msgid "The application reference must be 128 characters or fewer."
+msgstr ""
+
+#: app/pages.py:356
+msgid "The note must be 1,000 characters or fewer."
+msgstr ""
+
+#: app/pages.py:361
+msgid "Enter a valid status-change date."
+msgstr ""
+
+#: app/pages.py:374
+msgid "Your tracker reminder was updated."
+msgstr ""
+
+#: app/templates/index.html:18
+#: app/templates/index.html:773
+msgid "Residential sizing is active. PM Surya Ghar guidance is indicative and requires official verification."
+msgstr ""
+
+#: app/templates/index.html:18
+#: app/templates/index.html:775
+msgid "Residential planning assumptions are active."
+msgstr ""
+
+#: app/templates/index.html:18
+#: app/templates/index.html:776
+msgid "Commercial cost and load assumptions are active for this estimate."
+msgstr ""
+
+#: app/templates/index.html:71
+msgid "Residential subsidy matrix"
+msgstr ""
+
+#: app/templates/index.html:71
+msgid "Commercial cost baseline"
+msgstr ""
+
+#: app/templates/index.html:80
+msgid "Results depend on the roof boundary you draw and the location, roof, and irradiance data available. Verify final structural capacity and DISCOM approvals before procurement."
+msgstr ""
+
+#: app/templates/index.html:308
+msgid "Solar for Business — Commercial / Office / Shop"
+msgstr ""
+
+#: app/templates/index.html:312
+#: app/templates/index.html:314
+msgid "Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems."
+msgstr ""
+
+#: app/templates/index.html:313
+#: app/templates/index.html:314
+msgid "Remote and commercial planning use their respective load and cost assumptions."
+msgstr ""
+
+#: app/templates/index.html:372
+#: app/templates/index.html:374
+msgid "On-grid and hybrid systems may qualify; verify current eligibility on the official portal."
+msgstr ""
+
+#: app/templates/index.html:373
+#: app/templates/index.html:374
+msgid "Choose an inverter that fits the property’s grid connection and backup needs."
+msgstr ""
+
+#: app/templates/index.html:437
+#: app/templates/report.html:899
+msgid "PM Surya Ghar guide"
+msgstr ""
+
+#: app/templates/index.html:439
+msgid "PM Surya Ghar is a central assistance scheme for eligible residential rooftop solar systems."
+msgstr ""
+
+#: app/templates/index.html:440
+msgid "Eligibility is limited to residential, grid-connected connections with no earlier central subsidy; confirm current rules on the official portal."
+msgstr ""
+
+#: app/templates/index.html:442
+msgid "Indicative subsidy rule"
+msgstr ""
+
+#: app/templates/index.html:443
+msgid "₹%(first)s per kW for the first 2 kW, then ₹%(extra)s per kW for capacity from 2–3 kW, capped at ₹%(cap)s."
+msgstr ""
+
+#: app/templates/index.html:444
+#: app/templates/report.html:906
+msgid "Indicative. Verify on the official portal."
+msgstr ""
+
+#: app/templates/index.html:446
+#: app/templates/report.html:907
+msgid "Application steps"
+msgstr ""
+
+#: app/templates/index.html:452
+#: app/templates/report.html:909
+msgid "Keep ready"
+msgstr ""
+
+#: app/templates/index.html:456
+#: app/templates/report.html:904
+msgid "Matched DISCOM"
+msgstr ""
+
+#: app/templates/index.html:456
+msgid "No DISCOM selected yet"
+msgstr ""
+
+#: app/templates/index.html:458
+#: app/templates/landing.html:103
+#: app/templates/report.html:912
+msgid "SIGNIX is not affiliated with the government or this portal. You apply directly on the official portal."
+msgstr ""
+
+#: app/templates/index.html:557
+#: app/templates/report.html:480
+msgid "PM Surya Ghar subsidy estimate"
+msgstr ""
+
+#: app/templates/index.html:721
+msgid "SIGNIX rooftop survey workspace · Indicative estimates only · Verify structural, DISCOM, and scheme requirements"
+msgstr ""
+
+#: app/templates/index.html:721
+msgid "SIGNIX rooftop survey workspace · Indicative estimates only · Verify structural and DISCOM requirements"
+msgstr ""
+
+#: app/templates/landing.html:91
+msgid "How to apply for PM Surya Ghar"
+msgstr ""
+
+#: app/templates/landing.html:92
+msgid "The scheme is for eligible grid-connected residential rooftop systems. Check the current rules and process on the official portal; SIGNIX does not determine approval."
+msgstr ""
+
+#: app/templates/landing.html:100
+msgid "Before you apply"
+msgstr ""
+
+#: app/templates/landing.html:101
+msgid "You apply directly through the official portal and coordinate with your DISCOM and chosen vendor."
+msgstr ""
+
+#: app/templates/login.html:13
+msgid "Your Roof."
+msgstr ""
+
+#: app/templates/login.html:13
+msgid "Your Solar Potential."
+msgstr ""
+
+#: app/templates/login.html:14
+msgid "Plan your rooftop solar system, visualize your roof in 3D, get indicative estimates, and explore your savings."
+msgstr ""
+
+#: app/templates/login.html:24
+msgid "3D Roof Modeling"
+msgstr ""
+
+#: app/templates/login.html:24
+msgid "Explore roof geometry where imagery is available."
+msgstr ""
+
+#: app/templates/login.html:32
+msgid "Savings Estimates"
+msgstr ""
+
+#: app/templates/login.html:32
+msgid "Review indicative generation and savings."
+msgstr ""
+
+#: app/templates/login.html:40
+msgid "AI Assistant"
+msgstr ""
+
+#: app/templates/login.html:40
+msgid "Ask the solar assistant about your plan."
+msgstr ""
+
+#: app/templates/login.html:48
+msgid "Detailed Reports"
+msgstr ""
+
+#: app/templates/login.html:48
+msgid "Revisit estimates and export reports."
+msgstr ""
+
+#: app/templates/login.html:58
+msgid "Clean energy for a brighter tomorrow"
+msgstr ""
+
+#: app/templates/login.html:58
+msgid "Rooftop solar planning for a sustainable India"
+msgstr ""
+
+#: app/templates/login.html:67
+msgid "WELCOME BACK"
+msgstr ""
+
+#: app/templates/login.html:68
+msgid "Sign in to SIGNIX"
+msgstr ""
+
+#: app/templates/login.html:69
+msgid "Continue your rooftop solar journey."
+msgstr ""
+
+#: app/templates/login.html:127
+msgid "New to SIGNIX?"
+msgstr ""
+
+#: app/templates/pdf_report.html:196
+#: app/templates/report.html:325
+msgid "Typical scheme eligibility"
+msgstr ""
+
+#: app/templates/pdf_report.html:196
+#: app/templates/report.html:325
+msgid "Eligible, subject to official verification"
+msgstr ""
+
+#: app/templates/pdf_report.html:196
+#: app/templates/report.html:325
+msgid "Not confirmed"
+msgstr ""
+
+#: app/templates/properties.html:31
+msgid "Application tracker status"
+msgstr ""
+
+#: app/templates/properties.html:32
+#: app/templates/report.html:919
+#: app/templates/report.html:924
+msgid "Not started"
+msgstr ""
+
+#: app/templates/report.html:14
+msgid "Mock data"
+msgstr ""
+
+#: app/templates/report.html:15
+msgid "Data source: %(source)s"
+msgstr ""
+
+#: app/templates/report.html:17
+msgid "Orientation: %(orientation)s"
+msgstr ""
+
+#: app/templates/report.html:18
+msgid "Inverter: %(inverter)s"
+msgstr ""
+
+#: app/templates/report.html:28
+msgid "Estimate summary"
+msgstr ""
+
+#: app/templates/report.html:36
+msgid "Indicative only — verify with your DISCOM and a qualified vendor."
+msgstr ""
+
+#: app/templates/report.html:40
+msgid "Suitability score"
+msgstr ""
+
+#: app/templates/report.html:45
+msgid "Rooftop designer"
+msgstr ""
+
+#: app/templates/report.html:53
+msgid "ROOFTOP DESIGNER"
+msgstr ""
+
+#: app/templates/report.html:54
+msgid "Explore the saved rooftop for solar planning"
+msgstr ""
+
+#: app/templates/report.html:55
+msgid "This interactive view is a planning aid, not a site survey or installation design."
+msgstr ""
+
+#: app/templates/report.html:138
+msgid "Rooftop classification areas"
+msgstr ""
+
+#: app/templates/report.html:139
+msgid "Usable"
+msgstr ""
+
+#: app/templates/report.html:140
+msgid "Shaded"
+msgstr ""
+
+#: app/templates/report.html:141
+msgid "Obstructions"
+msgstr ""
+
+#: app/templates/report.html:142
+msgid "Setbacks"
+msgstr ""
+
+#: app/templates/report.html:158
+msgid "The rooftop view is an illustrative planning aid. Your saved estimate changes only when you explicitly accept a layout."
+msgstr ""
+
+#: app/templates/report.html:162
+msgid "Technical details"
+msgstr ""
+
+#: app/templates/report.html:165
+msgid "Preparing rooftop model"
+msgstr ""
+
+#: app/templates/report.html:165
+msgid "Checking saved model details"
+msgstr ""
+
+#: app/templates/report.html:167
+msgid "Satellite reference is being checked."
+msgstr ""
+
+#: app/templates/report.html:168
+msgid "Building physical panel layout…"
+msgstr ""
+
+#: app/templates/report.html:169
+msgid "Loading rooftop reconstruction…"
+msgstr ""
+
+#: app/templates/report.html:170
+msgid "Reconstruction source and prototype details appear here when available."
+msgstr ""
+
+#: app/templates/report.html:171
+msgid "Panel layout details"
+msgstr ""
+
+#: app/templates/report.html:172
+msgid "Preview panels"
+msgstr ""
+
+#: app/templates/report.html:173
+msgid "Preview DC"
+msgstr ""
+
+#: app/templates/report.html:174
+msgid "Confirmed panels"
+msgstr ""
+
+#: app/templates/report.html:175
+msgid "Confirmed DC"
+msgstr ""
+
+#: app/templates/report.html:176
+msgid "Accepted panels"
+msgstr ""
+
+#: app/templates/report.html:177
+msgid "Accepted DC"
+msgstr ""
+
+#: app/templates/report.html:181
+msgid "Rating algorithm version: %(version)s"
+msgstr ""
+
+#: app/templates/report.html:183
+msgid "Technical geometry and performance values are planning data and do not replace a site survey."
+msgstr ""
+
+#: app/templates/report.html:189
+msgid "System sizing and energy"
+msgstr ""
+
+#: app/templates/report.html:320
+msgid "Inverter details"
+msgstr ""
+
+#: app/templates/report.html:322
+msgid "Recommended inverter: %(type)s"
+msgstr ""
+
+#: app/templates/report.html:379
+msgid "Energy forecast"
+msgstr ""
+
+#: app/templates/report.html:379
+msgid "Year-one monthly output and the saved 25-year generation forecast."
+msgstr ""
+
+#: app/templates/report.html:443
+msgid "Financing"
+msgstr ""
+
+#: app/templates/report.html:443
+msgid "Cashflow and savings use the saved SIGNIX financial model."
+msgstr ""
+
+#: app/templates/report.html:608
+msgid "CAPEX vs DPA comparison"
+msgstr ""
+
+#: app/templates/report.html:768
+msgid "Environmental estimate"
+msgstr ""
+
+#: app/templates/report.html:768
+msgid "Planning estimate from modeled energy, not a measured reduction."
+msgstr ""
+
+#: app/templates/report.html:800
+msgid "Assumptions"
+msgstr ""
+
+#: app/templates/report.html:808
+msgid "Tariff used: %(tariff)s per unit."
+msgstr ""
+
+#: app/templates/report.html:808
+#: app/templates/report.html:809
+#: app/templates/report.html:810
+msgid "Not available in this saved estimate"
+msgstr ""
+
+#: app/templates/report.html:809
+msgid "Energy sizing reference: %(units)s units per kW per month."
+msgstr ""
+
+#: app/templates/report.html:810
+msgid "Installed system cost used: %(cost)s per kW."
+msgstr ""
+
+#: app/templates/report.html:812
+msgid "Energy uses provider-modeled yield; the SIGNIX performance ratio was not applied again."
+msgstr ""
+
+#: app/templates/report.html:814
+msgid "Performance ratio: %(ratio)s; assumed peak sun hours: %(hours)s per day."
+msgstr ""
+
+#: app/templates/report.html:816
+msgid "System size is capped by the usable roof area when a bill-based recommendation is available."
+msgstr ""
+
+#: app/templates/report.html:818
+msgid "A roof orientation factor was applied; recommended tilt is %(tilt)s degrees."
+msgstr ""
+
+#: app/templates/report.html:820
+msgid "No separate orientation factor was applied to provider-modeled PV energy."
+msgstr ""
+
+#: app/templates/report.html:822
+msgid "The model includes annual degradation, tariff escalation, operations and maintenance, and discount-rate assumptions saved with this estimate."
+msgstr ""
+
+#: app/templates/report.html:838
+msgid "Choose what you would like to review or do with this estimate."
+msgstr ""
+
+#: app/templates/report.html:844
+msgid "Download the detailed report with technical and planning assumptions."
+msgstr ""
+
+#: app/templates/report.html:845
+msgid "Download Technical PDF"
+msgstr ""
+
+#: app/templates/report.html:852
+msgid "Download installer package"
+msgstr ""
+
+#: app/templates/report.html:900
+msgid "Residential guidance only. Verify eligibility and current requirements on the official portal."
+msgstr ""
+
+#: app/templates/report.html:902
+msgid "Estimated system size"
+msgstr ""
+
+#: app/templates/report.html:903
+msgid "Indicative subsidy estimate"
+msgstr ""
+
+#: app/templates/report.html:904
+msgid "Not available in this estimate"
+msgstr ""
+
+#: app/templates/report.html:906
+msgid "Rule: ₹%(first)s per kW for the first 2 kW, then ₹%(extra)s per kW from 2–3 kW, capped at ₹%(cap)s."
+msgstr ""
+
+#: app/templates/report.html:912
+msgid "The price is agreed directly between you and a vendor registered with your DISCOM."
+msgstr ""
+
+#: app/templates/report.html:917
+msgid "Application tracker"
+msgstr ""
+
+#: app/templates/report.html:918
+msgid "Keep a personal record of your application progress."
+msgstr ""
+
+#: app/templates/report.html:926
+msgid "Reference"
+msgstr ""
+
+#: app/templates/report.html:934
+msgid "Application status"
+msgstr ""
+
+#: app/templates/report.html:940
+msgid "Status-change date"
+msgstr ""
+
+#: app/templates/report.html:942
+msgid "Application reference number (optional)"
+msgstr ""
+
+#: app/templates/report.html:944
+msgid "Note (optional)"
+msgstr ""
+
+#: app/templates/report.html:946
+msgid "Save tracker update"
+msgstr ""
+
+#: app/templates/report.html:948
+msgid "This tracker is your own reminder. It does not connect to the government portal."
+msgstr ""
+#: app/pages.py:43
+msgid "Applied"
+msgstr ""
+
+#: app/pages.py:44
+msgid "Feasibility approved"
+msgstr ""
+
+#: app/pages.py:45
+msgid "Installed"
+msgstr ""
+
+#: app/pages.py:46
+msgid "Net meter and inspection"
+msgstr ""
+
+#: app/pages.py:47
+msgid "Subsidy received"
+msgstr ""
+
+#: app/templates/report.html:183
+msgid "Prototype geometry is explicitly identified above."
+msgstr ""

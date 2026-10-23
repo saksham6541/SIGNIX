@@ -3854,3 +3854,447 @@ msgstr "परिदृश्यों की तुलना करें"
 
 #~ msgid "Language & Legal"
 #~ msgstr "भाषा एवं कानूनी"
+
+msgid "Register on the official portal"
+msgstr "आधिकारिक पोर्टल पर पंजीकरण करें"
+
+msgid "Create an account using your residential electricity connection."
+msgstr "अपने घरेलू बिजली कनेक्शन का उपयोग करके खाता बनाएं।"
+
+msgid "Submit the rooftop application"
+msgstr "रूफटॉप आवेदन जमा करें"
+
+msgid "Select your DISCOM and wait for feasibility approval before installation."
+msgstr "अपने DISCOM का चयन करें और स्थापना से पहले व्यवहार्यता स्वीकृति की प्रतीक्षा करें।"
+
+msgid "Choose a DISCOM-registered vendor"
+msgstr "DISCOM में पंजीकृत विक्रेता चुनें"
+
+msgid "Agree the price directly with the vendor and complete installation."
+msgstr "विक्रेता के साथ सीधे कीमत तय करें और स्थापना पूरी करें।"
+
+msgid "Complete inspection and claim"
+msgstr "निरीक्षण पूरा करें और दावा करें"
+
+msgid "Follow the portal and DISCOM process for net metering, inspection, and any eligible assistance."
+msgstr "नेट मीटरिंग, निरीक्षण और पात्र सहायता के लिए पोर्टल तथा DISCOM की प्रक्रिया का पालन करें।"
+
+msgid "Consumer number"
+msgstr "उपभोक्ता संख्या"
+
+msgid "Registered mobile"
+msgstr "पंजीकृत मोबाइल नंबर"
+
+msgid "Latest electricity bill"
+msgstr "नवीनतम बिजली बिल"
+
+msgid "Sanctioned load"
+msgstr "स्वीकृत लोड"
+
+msgid "Roof ownership proof"
+msgstr "छत के स्वामित्व का प्रमाण"
+
+msgid "Choose a valid application status."
+msgstr "मान्य आवेदन स्थिति चुनें।"
+
+msgid "The application reference must be 128 characters or fewer."
+msgstr "आवेदन संदर्भ 128 वर्णों या उससे कम का होना चाहिए।"
+
+msgid "The note must be 1,000 characters or fewer."
+msgstr "नोट 1,000 वर्णों या उससे कम का होना चाहिए।"
+
+msgid "Enter a valid status-change date."
+msgstr "स्थिति बदलने की मान्य तारीख दर्ज करें।"
+
+msgid "Your tracker reminder was updated."
+msgstr "आपका ट्रैकर रिमाइंडर अपडेट किया गया।"
+
+msgid "Residential sizing is active. PM Surya Ghar guidance is indicative and requires official verification."
+msgstr "आवासीय आकार-निर्धारण सक्रिय है। पीएम सूर्य घर की जानकारी केवल सांकेतिक है और इसकी पुष्टि आधिकारिक स्रोत से करें।"
+
+msgid "Residential planning assumptions are active."
+msgstr "आवासीय योजना की मान्यताएं सक्रिय हैं।"
+
+msgid "Commercial cost and load assumptions are active for this estimate."
+msgstr "इस अनुमान के लिए वाणिज्यिक लागत और लोड की मान्यताएं सक्रिय हैं।"
+
+msgid "Residential subsidy matrix"
+msgstr "आवासीय सब्सिडी तालिका"
+
+msgid "Commercial cost baseline"
+msgstr "वाणिज्यिक लागत आधार"
+
+msgid "Results depend on the roof boundary you draw and the location, roof, and irradiance data available. Verify final structural capacity and DISCOM approvals before procurement."
+msgstr "परिणाम आपके द्वारा बनाई गई छत की सीमा तथा उपलब्ध स्थान, छत और सौर विकिरण के आंकड़ों पर निर्भर करते हैं। खरीद से पहले संरचनात्मक क्षमता और DISCOM की स्वीकृतियों की पुष्टि करें।"
+
+msgid "Solar for Business — Commercial / Office / Shop"
+msgstr "व्यवसाय के लिए सोलर — वाणिज्यिक / कार्यालय / दुकान"
+
+msgid "Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems."
+msgstr "आवासीय योजना की मान्यताएं सक्रिय हैं। योजना की जानकारी केवल पात्र ग्रिड-कनेक्टेड प्रणालियों के लिए दिखाई जाती है।"
+
+msgid "Remote and commercial planning use their respective load and cost assumptions."
+msgstr "रिमोट और वाणिज्यिक योजना में उनके संबंधित लोड और लागत की मान्यताएं लागू होती हैं।"
+
+msgid "On-grid and hybrid systems may qualify; verify current eligibility on the official portal."
+msgstr "ऑन-ग्रिड और हाइब्रिड प्रणालियां पात्र हो सकती हैं; मौजूदा पात्रता की पुष्टि आधिकारिक पोर्टल पर करें।"
+
+msgid "Choose an inverter that fits the property’s grid connection and backup needs."
+msgstr "ऐसा इन्वर्टर चुनें जो संपत्ति के ग्रिड कनेक्शन और बैकअप की जरूरतों के अनुकूल हो।"
+
+msgid "PM Surya Ghar guide"
+msgstr "पीएम सूर्य घर मार्गदर्शिका"
+
+msgid "PM Surya Ghar is a central assistance scheme for eligible residential rooftop solar systems."
+msgstr "पीएम सूर्य घर पात्र आवासीय रूफटॉप सोलर प्रणालियों के लिए केंद्र सरकार की सहायता योजना है।"
+
+msgid "Eligibility is limited to residential, grid-connected connections with no earlier central subsidy; confirm current rules on the official portal."
+msgstr "पात्रता उन आवासीय, ग्रिड-कनेक्टेड कनेक्शनों तक सीमित है जिन्हें पहले केंद्रीय सब्सिडी नहीं मिली है; मौजूदा नियम आधिकारिक पोर्टल पर जांचें।"
+
+msgid "Indicative subsidy rule"
+msgstr "अनुमानित सब्सिडी नियम"
+
+msgid "₹%(first)s per kW for the first 2 kW, then ₹%(extra)s per kW for capacity from 2–3 kW, capped at ₹%(cap)s."
+msgstr "पहले 2 kW के लिए ₹%(first)s प्रति kW, फिर 2–3 kW क्षमता के लिए ₹%(extra)s प्रति kW, अधिकतम सीमा ₹%(cap)s।"
+
+msgid "Indicative. Verify on the official portal."
+msgstr "यह केवल सांकेतिक है। आधिकारिक पोर्टल पर पुष्टि करें।"
+
+msgid "Application steps"
+msgstr "आवेदन के चरण"
+
+msgid "Keep ready"
+msgstr "तैयार रखें"
+
+msgid "Matched DISCOM"
+msgstr "संबंधित DISCOM"
+
+msgid "No DISCOM selected yet"
+msgstr "अभी कोई DISCOM नहीं चुना गया है"
+
+msgid "SIGNIX is not affiliated with the government or this portal. You apply directly on the official portal."
+msgstr "SIGNIX का सरकार या इस पोर्टल से कोई संबंध नहीं है। आवेदन सीधे आधिकारिक पोर्टल पर करें।"
+
+msgid "PM Surya Ghar subsidy estimate"
+msgstr "पीएम सूर्य घर सब्सिडी का अनुमान"
+
+msgid "SIGNIX rooftop survey workspace · Indicative estimates only · Verify structural, DISCOM, and scheme requirements"
+msgstr "SIGNIX रूफटॉप सर्वे कार्यक्षेत्र · केवल सांकेतिक अनुमान · संरचनात्मक, DISCOM और योजना संबंधी आवश्यकताओं की पुष्टि करें"
+
+msgid "SIGNIX rooftop survey workspace · Indicative estimates only · Verify structural and DISCOM requirements"
+msgstr "SIGNIX रूफटॉप सर्वे कार्यक्षेत्र · केवल सांकेतिक अनुमान · संरचनात्मक और DISCOM संबंधी आवश्यकताओं की पुष्टि करें"
+
+msgid "How to apply for PM Surya Ghar"
+msgstr "पीएम सूर्य घर के लिए आवेदन कैसे करें"
+
+msgid "The scheme is for eligible grid-connected residential rooftop systems. Check the current rules and process on the official portal; SIGNIX does not determine approval."
+msgstr "यह योजना पात्र ग्रिड-कनेक्टेड आवासीय रूफटॉप प्रणालियों के लिए है। मौजूदा नियम और प्रक्रिया आधिकारिक पोर्टल पर जांचें; SIGNIX स्वीकृति निर्धारित नहीं करता।"
+
+msgid "Before you apply"
+msgstr "आवेदन से पहले"
+
+msgid "You apply directly through the official portal and coordinate with your DISCOM and chosen vendor."
+msgstr "आवेदन सीधे आधिकारिक पोर्टल के माध्यम से करें और अपने DISCOM तथा चुने हुए विक्रेता के साथ समन्वय करें।"
+
+msgid "Your Roof."
+msgstr "आपकी छत।"
+
+msgid "Your Solar Potential."
+msgstr "आपकी सौर क्षमता।"
+
+msgid "Plan your rooftop solar system, visualize your roof in 3D, get indicative estimates, and explore your savings."
+msgstr "अपने रूफटॉप सोलर सिस्टम की योजना बनाएं, छत को 3D में देखें, सांकेतिक अनुमान प्राप्त करें और संभावित बचत जानें।"
+
+msgid "3D Roof Modeling"
+msgstr "3D छत मॉडलिंग"
+
+msgid "Explore roof geometry where imagery is available."
+msgstr "जहां इमेजरी उपलब्ध हो, वहां छत की बनावट देखें।"
+
+msgid "Savings Estimates"
+msgstr "बचत के अनुमान"
+
+msgid "Review indicative generation and savings."
+msgstr "सांकेतिक उत्पादन और बचत देखें।"
+
+msgid "AI Assistant"
+msgstr "AI सहायक"
+
+msgid "Ask the solar assistant about your plan."
+msgstr "अपनी योजना के बारे में सोलर सहायक से पूछें।"
+
+msgid "Detailed Reports"
+msgstr "विस्तृत रिपोर्ट"
+
+msgid "Revisit estimates and export reports."
+msgstr "अनुमानों को फिर से देखें और रिपोर्ट निर्यात करें।"
+
+msgid "Clean energy for a brighter tomorrow"
+msgstr "उज्ज्वल कल के लिए स्वच्छ ऊर्जा"
+
+msgid "Rooftop solar planning for a sustainable India"
+msgstr "सतत भारत के लिए रूफटॉप सोलर योजना"
+
+msgid "WELCOME BACK"
+msgstr "वापसी पर स्वागत है"
+
+msgid "Sign in to SIGNIX"
+msgstr "SIGNIX में साइन इन करें"
+
+msgid "Continue your rooftop solar journey."
+msgstr "रूफटॉप सोलर की अपनी यात्रा जारी रखें।"
+
+msgid "New to SIGNIX?"
+msgstr "SIGNIX पर नए हैं?"
+
+msgid "Typical scheme eligibility"
+msgstr "योजना की सामान्य पात्रता"
+
+msgid "Eligible, subject to official verification"
+msgstr "पात्र, आधिकारिक पुष्टि के अधीन"
+
+msgid "Not confirmed"
+msgstr "पुष्टि नहीं हुई"
+
+msgid "Application tracker status"
+msgstr "आवेदन ट्रैकर स्थिति"
+
+msgid "Not started"
+msgstr "शुरू नहीं हुआ"
+
+msgid "Mock data"
+msgstr "नमूना डेटा"
+
+msgid "Data source: %(source)s"
+msgstr "डेटा स्रोत: %(source)s"
+
+msgid "Orientation: %(orientation)s"
+msgstr "दिशा: %(orientation)s"
+
+msgid "Inverter: %(inverter)s"
+msgstr "इन्वर्टर: %(inverter)s"
+
+msgid "Estimate summary"
+msgstr "अनुमान सारांश"
+
+msgid "Indicative only — verify with your DISCOM and a qualified vendor."
+msgstr "केवल सांकेतिक — अपने DISCOM और योग्य विक्रेता से पुष्टि करें।"
+
+msgid "Suitability score"
+msgstr "उपयुक्तता स्कोर"
+
+msgid "Rooftop designer"
+msgstr "रूफटॉप डिज़ाइनर"
+
+msgid "ROOFTOP DESIGNER"
+msgstr "रूफटॉप डिज़ाइनर"
+
+msgid "Explore the saved rooftop for solar planning"
+msgstr "सोलर योजना के लिए सहेजी गई छत देखें"
+
+msgid "This interactive view is a planning aid, not a site survey or installation design."
+msgstr "यह इंटरैक्टिव दृश्य योजना बनाने में सहायक है, साइट सर्वे या स्थापना डिज़ाइन नहीं।"
+
+msgid "Rooftop classification areas"
+msgstr "रूफटॉप वर्गीकरण क्षेत्र"
+
+msgid "Usable"
+msgstr "उपयोग योग्य"
+
+msgid "Shaded"
+msgstr "छायादार"
+
+msgid "Obstructions"
+msgstr "अवरोध"
+
+msgid "Setbacks"
+msgstr "सेटबैक"
+
+msgid "The rooftop view is an illustrative planning aid. Your saved estimate changes only when you explicitly accept a layout."
+msgstr "रूफटॉप दृश्य योजना के लिए एक उदाहरणात्मक सहायता है। आपका सहेजा गया अनुमान केवल लेआउट को स्पष्ट रूप से स्वीकार करने पर बदलेगा।"
+
+msgid "Technical details"
+msgstr "तकनीकी विवरण"
+
+msgid "Preparing rooftop model"
+msgstr "रूफटॉप मॉडल तैयार हो रहा है"
+
+msgid "Checking saved model details"
+msgstr "सहेजे गए मॉडल विवरण जांचे जा रहे हैं"
+
+msgid "Satellite reference is being checked."
+msgstr "उपग्रह संदर्भ की जांच की जा रही है।"
+
+msgid "Building physical panel layout…"
+msgstr "भौतिक पैनल लेआउट बनाया जा रहा है…"
+
+msgid "Loading rooftop reconstruction…"
+msgstr "रूफटॉप पुनर्निर्माण लोड हो रहा है…"
+
+msgid "Reconstruction source and prototype details appear here when available."
+msgstr "उपलब्ध होने पर पुनर्निर्माण स्रोत और प्रोटोटाइप विवरण यहां दिखेंगे।"
+
+msgid "Panel layout details"
+msgstr "पैनल लेआउट विवरण"
+
+msgid "Preview panels"
+msgstr "पूर्वावलोकन पैनल"
+
+msgid "Preview DC"
+msgstr "पूर्वावलोकन DC"
+
+msgid "Confirmed panels"
+msgstr "पुष्टि किए गए पैनल"
+
+msgid "Confirmed DC"
+msgstr "पुष्टि किया गया DC"
+
+msgid "Accepted panels"
+msgstr "स्वीकृत पैनल"
+
+msgid "Accepted DC"
+msgstr "स्वीकृत DC"
+
+msgid "Rating algorithm version: %(version)s"
+msgstr "रेटिंग एल्गोरिदम संस्करण: %(version)s"
+
+msgid "Technical geometry and performance values are planning data and do not replace a site survey."
+msgstr "तकनीकी ज्यामिति और प्रदर्शन मान योजना संबंधी डेटा हैं और साइट सर्वे का विकल्प नहीं हैं।"
+
+msgid "Prototype geometry is explicitly identified above."
+msgstr "प्रोटोटाइप ज्यामिति को ऊपर स्पष्ट रूप से दर्शाया गया है।"
+
+msgid "System sizing and energy"
+msgstr "सिस्टम आकार और ऊर्जा"
+
+msgid "Inverter details"
+msgstr "इन्वर्टर विवरण"
+
+msgid "Recommended inverter: %(type)s"
+msgstr "अनुशंसित इन्वर्टर: %(type)s"
+
+msgid "Energy forecast"
+msgstr "ऊर्जा पूर्वानुमान"
+
+msgid "Year-one monthly output and the saved 25-year generation forecast."
+msgstr "पहले वर्ष का मासिक उत्पादन और सहेजा गया 25-वर्षीय उत्पादन पूर्वानुमान।"
+
+msgid "Financing"
+msgstr "वित्तपोषण"
+
+msgid "Cashflow and savings use the saved SIGNIX financial model."
+msgstr "नकदी प्रवाह और बचत सहेजे गए SIGNIX वित्तीय मॉडल पर आधारित हैं।"
+
+msgid "CAPEX vs DPA comparison"
+msgstr "CAPEX और DPA की तुलना"
+
+msgid "Environmental estimate"
+msgstr "पर्यावरणीय अनुमान"
+
+msgid "Planning estimate from modeled energy, not a measured reduction."
+msgstr "यह मॉडल की गई ऊर्जा पर आधारित योजना अनुमान है, मापी गई कमी नहीं।"
+
+msgid "Assumptions"
+msgstr "मान्यताएं"
+
+msgid "Tariff used: %(tariff)s per unit."
+msgstr "उपयोग किया गया टैरिफ: %(tariff)s प्रति यूनिट।"
+
+msgid "Not available in this saved estimate"
+msgstr "इस सहेजे गए अनुमान में उपलब्ध नहीं"
+
+msgid "Energy sizing reference: %(units)s units per kW per month."
+msgstr "ऊर्जा आकार संदर्भ: %(units)s यूनिट प्रति kW प्रति माह।"
+
+msgid "Installed system cost used: %(cost)s per kW."
+msgstr "उपयोग की गई स्थापित सिस्टम लागत: %(cost)s प्रति kW।"
+
+msgid "Energy uses provider-modeled yield; the SIGNIX performance ratio was not applied again."
+msgstr "ऊर्जा के लिए प्रदाता द्वारा मॉडल की गई उपज उपयोग की गई है; SIGNIX प्रदर्शन अनुपात दोबारा लागू नहीं किया गया।"
+
+msgid "Performance ratio: %(ratio)s; assumed peak sun hours: %(hours)s per day."
+msgstr "प्रदर्शन अनुपात: %(ratio)s; अनुमानित अधिकतम धूप घंटे: %(hours)s प्रतिदिन।"
+
+msgid "System size is capped by the usable roof area when a bill-based recommendation is available."
+msgstr "बिल-आधारित अनुशंसा उपलब्ध होने पर सिस्टम का आकार उपयोग योग्य छत क्षेत्र तक सीमित रहता है।"
+
+msgid "A roof orientation factor was applied; recommended tilt is %(tilt)s degrees."
+msgstr "छत की दिशा का गुणक लागू किया गया; अनुशंसित झुकाव %(tilt)s डिग्री है।"
+
+msgid "No separate orientation factor was applied to provider-modeled PV energy."
+msgstr "प्रदाता द्वारा मॉडल की गई PV ऊर्जा पर दिशा का अलग गुणक लागू नहीं किया गया।"
+
+msgid "The model includes annual degradation, tariff escalation, operations and maintenance, and discount-rate assumptions saved with this estimate."
+msgstr "मॉडल में इस अनुमान के साथ सहेजी गई वार्षिक गिरावट, टैरिफ वृद्धि, संचालन एवं रखरखाव और छूट दर की मान्यताएं शामिल हैं।"
+
+msgid "Choose what you would like to review or do with this estimate."
+msgstr "चुनें कि आप इस अनुमान को देखना या इसके साथ क्या करना चाहते हैं।"
+
+msgid "Download the detailed report with technical and planning assumptions."
+msgstr "तकनीकी और योजना संबंधी मान्यताओं वाली विस्तृत रिपोर्ट डाउनलोड करें।"
+
+msgid "Download Technical PDF"
+msgstr "तकनीकी PDF डाउनलोड करें"
+
+msgid "Download installer package"
+msgstr "इंस्टॉलर पैकेज डाउनलोड करें"
+
+msgid "Residential guidance only. Verify eligibility and current requirements on the official portal."
+msgstr "केवल आवासीय मार्गदर्शन। पात्रता और मौजूदा आवश्यकताओं की पुष्टि आधिकारिक पोर्टल पर करें।"
+
+msgid "Estimated system size"
+msgstr "अनुमानित सिस्टम आकार"
+
+msgid "Indicative subsidy estimate"
+msgstr "अनुमानित सब्सिडी"
+
+msgid "Not available in this estimate"
+msgstr "इस अनुमान में उपलब्ध नहीं"
+
+msgid "Rule: ₹%(first)s per kW for the first 2 kW, then ₹%(extra)s per kW from 2–3 kW, capped at ₹%(cap)s."
+msgstr "नियम: पहले 2 kW के लिए ₹%(first)s प्रति kW, फिर 2–3 kW के लिए ₹%(extra)s प्रति kW, अधिकतम सीमा ₹%(cap)s।"
+
+msgid "The price is agreed directly between you and a vendor registered with your DISCOM."
+msgstr "कीमत आप और आपके DISCOM में पंजीकृत विक्रेता के बीच सीधे तय होती है।"
+
+msgid "Application tracker"
+msgstr "आवेदन ट्रैकर"
+
+msgid "Keep a personal record of your application progress."
+msgstr "अपनी आवेदन प्रगति का निजी रिकॉर्ड रखें।"
+
+msgid "Reference"
+msgstr "संदर्भ"
+
+msgid "Application status"
+msgstr "आवेदन स्थिति"
+
+msgid "Applied"
+msgstr "आवेदन किया गया"
+
+msgid "Feasibility approved"
+msgstr "व्यवहार्यता स्वीकृत"
+
+msgid "Installed"
+msgstr "स्थापित"
+
+msgid "Net meter and inspection"
+msgstr "नेट मीटर और निरीक्षण"
+
+msgid "Subsidy received"
+msgstr "सब्सिडी प्राप्त"
+
+msgid "Status-change date"
+msgstr "स्थिति बदलने की तारीख"
+
+msgid "Application reference number (optional)"
+msgstr "आवेदन संदर्भ संख्या (वैकल्पिक)"
+
+msgid "Note (optional)"
+msgstr "नोट (वैकल्पिक)"
+
+msgid "Save tracker update"
+msgstr "ट्रैकर अपडेट सहेजें"
+
+msgid "This tracker is your own reminder. It does not connect to the government portal."
+msgstr "यह ट्रैकर आपका निजी रिमाइंडर है। यह सरकारी पोर्टल से कनेक्ट नहीं होता।"
