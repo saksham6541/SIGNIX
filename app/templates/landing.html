@@ -7,91 +7,328 @@
 
 {% block content %}
 <div class="landing-page public-landing">
-  <section class="landing-intro public-hero" aria-labelledby="landing-title">
-    <div class="landing-copy">
-      <p class="landing-kicker"><span aria-hidden="true"></span>{{ _('ROOF-FIRST SOLAR PLANNING') }}</p>
-      <h1 id="landing-title">{{ _('Plan solar for the roof you actually have.') }}</h1>
-      <p class="landing-lede">{{ _('Choose a residential or commercial planning path, trace the authoritative roof boundary yourself, and review an indicative system plan without confusing a preview for a site survey.') }}</p>
-      <div class="public-hero-actions">
-        <a class="btn-primary-cta" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Plan a home rooftop') }}</a>
-        <a class="btn-secondary-light" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Plan a business rooftop') }}</a>
+  <section class="landing-hero" aria-labelledby="landing-title">
+    <img
+      class="landing-hero-image"
+      src="{{ url_for('static', filename='images/login-rooftop-solar.png') }}"
+      alt=""
+      fetchpriority="high">
+    <div class="landing-hero-copy">
+      <p class="landing-hero-eyebrow">{{ _('ROOFTOP SOLAR PLANNING FOR INDIA') }}</p>
+      <h1 id="landing-title">{{ _('Your Roof.') }}<br><span>{{ _('Your Solar Potential.') }}</span></h1>
+      <p class="landing-hero-description">{{ _('Plan your rooftop solar system, explore your savings, and make a more informed move towards clean energy.') }}</p>
+      <div class="landing-hero-actions">
+        <a class="landing-hero-primary" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Solar Solutions') }}</a>
+        <a class="landing-hero-secondary" href="{{ url_for('pages.consultation') }}">{{ _('Book a Free Consultation') }}</a>
       </div>
-      <p class="public-trust-line">{{ _('No fabricated roof geometry · Separate home and business assumptions · Saved work stays in your account') }}</p>
     </div>
-    <aside class="location-console public-hero-panel" aria-label="{{ _('What SIGNIX produces') }}">
-      <p class="console-index">{{ _('THE SOLAR SURVEY SHEET') }}</p>
-      <h2>{{ _('From a traced roof to a reviewable plan') }}</h2>
-      <ol class="public-summary-list">
-        <li><span>01</span><div><strong>{{ _('Authoritative boundary') }}</strong><small>{{ _('Your traced roof remains the placement constraint.') }}</small></div></li>
-        <li><span>02</span><div><strong>{{ _('Transparent assumptions') }}</strong><small>{{ _('Tariff, orientation, storage, and sizing choices remain visible.') }}</small></div></li>
-        <li><span>03</span><div><strong>{{ _('Indicative outputs') }}</strong><small>{{ _('Capacity, generation, costs, and savings are labelled as planning estimates.') }}</small></div></li>
-      </ol>
-      <div class="truth-note public-truth-note">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
-        <p><strong>{{ _('Preliminary planning, not a site survey.') }}</strong> {{ _('Installer and structural verification are still required.') }}</p>
-      </div>
-    </aside>
+    <div class="landing-hero-bottom">
+      <p class="landing-hero-caption">{{ _('Smarter rooftop solar planning for homes and businesses.') }}</p>
+      <ul class="landing-hero-features" aria-label="{{ _('Solar planning features') }}">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/><path d="m9 14 3-2 3 2v3H9z"/>
+          </svg>
+          <span>{{ _('3D Roof Modeling') }}</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v18M17 7.5c0-1.4-1.8-2.5-4-2.5S9 6.1 9 7.5 10.8 10 13 10s4 1.1 4 2.5-1.8 2.5-4 2.5-4-1.1-4-2.5"/>
+          </svg>
+          <span>{{ _('Savings Estimates') }}</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>
+          </svg>
+          <span>{{ _('Detailed Reports') }}</span>
+        </li>
+      </ul>
+    </div>
   </section>
 
-  <section class="solutions-section" id="solutions" aria-labelledby="solutions-title">
-    <div class="section-header-block">
-      <p class="section-kicker">{{ _('TWO DISTINCT PLANNING PATHS') }}</p>
-      <h2 id="solutions-title">{{ _('Start with the rules that fit the property') }}</h2>
-      <p class="section-subtitle">{{ _('The map and rooftop geometry tools are shared. Property assumptions, subsidy treatment, and guidance remain specific to each planning track.') }}</p>
+  <section class="solutions-section landing-solutions" id="solutions" aria-labelledby="solutions-title">
+    <div class="solutions-heading">
+      <p class="section-kicker">{{ _('SOLUTIONS') }}</p>
+      <h2 id="solutions-title">{{ _('Solar planning that starts with you.') }}</h2>
+      <p class="section-subtitle">{{ _('Choose the solution that fits your property.') }}</p>
     </div>
     <div class="solutions-grid">
       <article class="solution-card solution-card-home">
-        <div class="solution-card-header"><span class="solution-badge solution-badge-subsidy">{{ _('Residential') }}</span><span class="solution-scenario-tag">{{ _('Households') }}</span></div>
-        <h3>{{ _('Solar for Home') }}</h3>
-        <p class="solution-summary">{{ _('Plan around a household bill, usable roof, optional backup needs, and caveated PM Surya Ghar guidance.') }}</p>
-        <ul class="solution-features">
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Residential sizing') }}</strong><span>{{ _('Bill-offset and roof-capacity modes supported by the existing estimator.') }}</span></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Eligibility caveats') }}</strong><span>{{ _('Subsidy guidance is not presented as an approval or entitlement.') }}</span></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Optional backup planning') }}</strong><span>{{ _('Use existing load, duration, inverter, and battery assumptions.') }}</span></div></li>
-        </ul>
-        <div class="solution-action"><a class="btn-solution-action" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore home planning') }} →</a></div>
+        <div class="solution-card-image">
+          <img src="{{ url_for('static', filename='images/residential-solar.jpg') }}" alt="{{ _('Solar panels on a residential rooftop') }}" loading="lazy">
+          <span class="solution-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9"/><path d="M9 21v-7h6v7"/>
+            </svg>
+          </span>
+        </div>
+        <div class="solution-card-content">
+          <p class="solution-card-audience">{{ _('Homeowners and residential property owners') }}</p>
+          <h3>{{ _('Residential Solar') }}</h3>
+          <p class="solution-card-description">{{ _('Explore rooftop solar options tailored to your home.') }}</p>
+          <a class="solution-card-link" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
+        </div>
       </article>
       <article class="solution-card solution-card-biz">
-        <div class="solution-card-header"><span class="solution-badge solution-badge-biz">{{ _('Commercial') }}</span><span class="solution-scenario-tag">{{ _('Shops · offices · MSMEs') }}</span></div>
-        <h3>{{ _('Solar for Business') }}</h3>
-        <p class="solution-summary">{{ _('Plan a commercial rooftop using the supported commercial property type, tariff, sizing, and daytime-load assumptions.') }}</p>
-        <ul class="solution-features">
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Commercial baseline') }}</strong><span>{{ _('Uses the estimator’s existing commercial EPC assumptions.') }}</span></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Daytime consumption context') }}</strong><span>{{ _('The existing day-heavy load profile remains available in the survey.') }}</span></div></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('No residential subsidy') }}</strong><span>{{ _('PM Surya Ghar assistance is explicitly excluded from this path.') }}</span></div></li>
-        </ul>
-        <div class="solution-action"><a class="btn-solution-action" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore business planning') }} →</a></div>
+        <div class="solution-card-image">
+          <img src="{{ url_for('static', filename='images/commercial-solar.jpg') }}" alt="{{ _('Solar panels on a commercial building rooftop') }}" loading="lazy">
+          <span class="solution-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 21V4h11v17M15 9h5v12M2 21h20"/><path d="M8 8h3M8 12h3M8 16h3M18 13h.01M18 17h.01"/>
+            </svg>
+          </span>
+        </div>
+        <div class="solution-card-content">
+          <p class="solution-card-audience">{{ _('Business owners, offices, shops, and institutions') }}</p>
+          <h3>{{ _('Commercial Solar') }}</h3>
+          <p class="solution-card-description">{{ _('Discover rooftop solar planning for commercial properties.') }}</p>
+          <a class="solution-card-link" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+      <article class="solution-card solution-card-industrial">
+        <div class="solution-card-image">
+          <img src="{{ url_for('static', filename='images/industrial-solar.jpg') }}" alt="{{ _('Solar panels on an industrial rooftop') }}" loading="lazy">
+          <span class="solution-card-coming-soon">{{ _('Coming Soon') }}</span>
+          <span class="solution-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21V9l6 4V9l6 4V5h6v16H3Z"/><path d="M7 17h.01M11 17h.01M15 17h.01M19 17h.01"/>
+            </svg>
+          </span>
+        </div>
+        <div class="solution-card-content">
+          <p class="solution-card-audience">{{ _('Industrial facilities and large-scale properties') }}</p>
+          <h3>{{ _('Industrial Solar') }}</h3>
+          <p class="solution-card-description">{{ _('Industrial solar planning is part of the platform’s future roadmap.') }}</p>
+          <p class="solution-card-unavailable">{{ _('Not available yet') }}</p>
+        </div>
       </article>
     </div>
   </section>
 
-  <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
-    <div class="section-header-block"><p class="section-kicker">{{ _('A REVIEWABLE WORKFLOW') }}</p><h2 id="workflow-title">{{ _('Four steps from location to saved report') }}</h2></div>
-    <ol class="workflow-grid-rail">
-      <li class="workflow-step-card active"><span class="step-num">01</span><div class="step-content"><h4>{{ _('Choose a planning track') }}</h4><p>{{ _('Home and business assumptions start separately.') }}</p><span class="step-meta">{{ _('Context') }}</span></div></li>
-      <li class="workflow-step-card"><span class="step-num">02</span><div class="step-content"><h4>{{ _('Locate and trace') }}</h4><p>{{ _('Search for the property, then draw the roof and obstructions.') }}</p><span class="step-meta">{{ _('Geometry') }}</span></div></li>
-      <li class="workflow-step-card"><span class="step-num">03</span><div class="step-content"><h4>{{ _('Set assumptions') }}</h4><p>{{ _('Review tariff, sizing, orientation, grid, and storage inputs.') }}</p><span class="step-meta">{{ _('Inputs') }}</span></div></li>
-      <li class="workflow-step-card"><span class="step-num">04</span><div class="step-content"><h4>{{ _('Review and save') }}</h4><p>{{ _('Inspect provenance, layout status, and indicative financial outputs.') }}</p><span class="step-meta">{{ _('Results') }}</span></div></li>
-    </ol>
-  </section>
-
-  <section class="capabilities-section" id="capabilities" aria-labelledby="capabilities-title">
-    <div class="section-header-block"><p class="section-kicker">{{ _('VERIFIED CAPABILITIES') }}</p><h2 id="capabilities-title">{{ _('Useful where the available data supports it') }}</h2><p class="section-subtitle">{{ _('Unavailable reconstruction, shade, or validation data stays unavailable; SIGNIX does not replace it with fabricated certainty.') }}</p></div>
-    <div class="capabilities-grid">
-      <article class="capability-item"><div class="cap-icon-box" aria-hidden="true">⌁</div><h4>{{ _('Boundary and obstruction drawing') }}</h4><p>{{ _('One shared Leaflet workspace records the roof boundary and excluded areas.') }}</p></article>
-      <article class="capability-item"><div class="cap-icon-box" aria-hidden="true">3D</div><h4>{{ _('Rooftop model preview') }}</h4><p>{{ _('Authoritative boundaries remain distinct from advisory reconstruction geometry.') }}</p></article>
-      <article class="capability-item"><div class="cap-icon-box" aria-hidden="true">₹</div><h4>{{ _('Saved estimate reports') }}</h4><p>{{ _('Authenticated users can revisit estimates, compare scenarios, and export supported reports.') }}</p></article>
+  <section class="workflow-section landing-how-it-works" id="workflow" aria-labelledby="workflow-title">
+    <div class="how-it-works-inner">
+      <header class="how-it-works-heading">
+        <p class="section-kicker">{{ _('HOW IT WORKS') }}</p>
+        <h2 id="workflow-title">{{ _('From your rooftop to an') }}<br>{{ _('informed decision.') }}</h2>
+        <p>{{ _('Get started in just a few simple steps and unlock your solar potential with SIGNIX.') }}</p>
+      </header>
+      <ol class="how-it-works-steps">
+        <li class="how-it-works-step">
+          <div class="how-step-visual">
+            <span class="how-step-number">01</span>
+            <span class="how-step-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m5 18 15-12 15 12"/><path d="M9 16v18h22V16"/><path d="M16 34V23h8v11"/>
+              </svg>
+            </span>
+          </div>
+          <h3>{{ _('Choose your property type') }}</h3>
+          <p>{{ _('Select Residential or Commercial based on your requirements.') }}</p>
+          <svg class="how-step-connector" viewBox="0 0 100 12" aria-hidden="true">
+            <path d="M1 6h96m-6-5 6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </li>
+        <li class="how-it-works-step">
+          <div class="how-step-visual">
+            <span class="how-step-number">02</span>
+            <span class="how-step-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 34V9h17v25M24 17h9v17M4 34h32"/><path d="M12 14h7M12 19h7M12 24h7M12 29h7M28 22h2M28 27h2"/>
+              </svg>
+            </span>
+          </div>
+          <h3>{{ _('Provide property details') }}</h3>
+          <p>{{ _('Enter your property on the map, draw your roof, and add your electricity details.') }}</p>
+          <svg class="how-step-connector" viewBox="0 0 100 12" aria-hidden="true">
+            <path d="M1 6h96m-6-5 6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </li>
+        <li class="how-it-works-step">
+          <div class="how-step-visual">
+            <span class="how-step-number">03</span>
+            <span class="how-step-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="20" cy="20" r="7"/><path d="M20 3v5M20 32v5M3 20h5M32 20h5M8 8l3.5 3.5M28.5 28.5 32 32M32 8l-3.5 3.5M11.5 28.5 8 32"/>
+              </svg>
+            </span>
+          </div>
+          <h3>{{ _('Explore your solar potential') }}</h3>
+          <p>{{ _('See a 3D rooftop view with panel layout, plus indicative generation, cost and savings estimates.') }}</p>
+          <svg class="how-step-connector" viewBox="0 0 100 12" aria-hidden="true">
+            <path d="M1 6h96m-6-5 6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </li>
+        <li class="how-it-works-step">
+          <div class="how-step-visual">
+            <span class="how-step-number">04</span>
+            <span class="how-step-icon" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 5h14l7 7v23H10z"/><path d="M23 5v8h8M15 20h11M15 25h11M15 30h7"/>
+              </svg>
+            </span>
+          </div>
+          <h3>{{ _('Review and decide') }}</h3>
+          <p>{{ _('Review your saved report, compare scenarios, and download a PDF.') }}</p>
+        </li>
+      </ol>
     </div>
   </section>
 
-  <section class="subsidy-guide-section" aria-labelledby="subsidy-title">
-    <div class="subsidy-guide-container">
-      <div class="section-header-block"><p class="section-kicker">{{ _('RESIDENTIAL GUIDANCE') }}</p><h2 id="subsidy-title">{{ _('PM Surya Ghar is guidance, not a guarantee') }}</h2><p class="section-subtitle">{{ _('The residential estimator can apply the supported central-assistance assumptions, but actual eligibility depends on the current scheme, residential connection, approved vendors, DISCOM process, and installation details.') }}</p></div>
-      <aside class="subsidy-rules-card"><h4>{{ _('Before relying on a subsidy figure') }}</h4><ul class="subsidy-checklist"><li>{{ _('Confirm the current rules on the official portal.') }}</li><li>{{ _('Verify the consumer category and DISCOM process.') }}</li><li>{{ _('Treat SIGNIX values as indicative until approved.') }}</li><li>{{ _('Do not apply this residential assistance to business estimates.') }}</li></ul><a class="subsidy-official-link" href="https://pmsuryaghar.gov.in/" target="_blank" rel="noopener noreferrer">{{ _('Open the official PM Surya Ghar portal') }} ↗</a></aside>
+  <section class="capabilities-section landing-inside-platform" id="capabilities" aria-labelledby="capabilities-title">
+    <div class="inside-platform-grid">
+      <div class="inside-platform-copy">
+        <p class="section-kicker">{{ _('INSIDE THE PLATFORM') }}</p>
+        <h2 id="capabilities-title">{{ _('Planning built around the roof you actually have.') }}</h2>
+        <p class="inside-platform-description">{{ _('You draw the usable rooftop and mark obstructions. SIGNIX keeps that boundary as the constraint and builds the estimate from it, clearly marking what is indicative.') }}</p>
+        <a class="inside-platform-cta" href="#workflow">{{ _('Explore Features') }} <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="inside-platform-visual">
+        <img
+          class="inside-platform-rooftop"
+          src="{{ url_for('static', filename='images/residential-solar.jpg') }}"
+          alt="{{ _('Rooftop solar panels on a home') }}"
+          loading="lazy">
+        <div class="system-details-panel" aria-label="{{ _('Illustrative system details') }}">
+          <div class="system-details-illustration" aria-hidden="true">
+            <img
+              src="{{ url_for('static', filename='images/Modern Solar-Powered Home Mockup-3.png') }}"
+              alt=""
+              loading="lazy">
+          </div>
+          <div class="system-details-content">
+            <div class="system-details-heading">
+              <h3>{{ _('System Details') }}</h3>
+              <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m5 12 5-5 5 5"/>
+              </svg>
+            </div>
+            <ul class="system-details-list">
+              <li>
+                <span class="system-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8M12 13v9"/></svg></span>
+                <span>{{ _('Panel Layout') }}</span>
+              </li>
+              <li>
+                <span class="system-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-3 8h6l-5 12 1-9H6l7-11Z"/></svg></span>
+                <span>{{ _('Generation Estimate') }}</span>
+              </li>
+              <li>
+                <span class="system-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                <span>{{ _('Cost Estimate') }}</span>
+              </li>
+              <li>
+                <span class="system-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h17"/><path d="M8 15v-4h3v4M14 15V8h3v7M20 15V4h2v11"/></svg></span>
+                <span>{{ _('Savings Estimate') }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <aside class="inside-platform-features" aria-labelledby="inside-platform-features-title">
+        <h3 id="inside-platform-features-title">{{ _('Key Features') }}</h3>
+        <ul class="inside-platform-feature-list">
+          <li>
+            <span class="inside-platform-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="M3 8v9l9 5 9-5V8M12 13v9"/></svg></span>
+            <div><h4>{{ _('3D roof modelling') }}</h4><p>{{ _('Visualise the roof and review a panel layout in 3D.') }}</p></div>
+          </li>
+          <li>
+            <span class="inside-platform-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h17"/><path d="M8 15v-4h3v4M14 15V8h3v7M20 15V4h2v11"/></svg></span>
+            <div><h4>{{ _('Savings and cost estimates') }}</h4><p>{{ _('Indicative generation, system cost, subsidy and payback figures.') }}</p></div>
+          </li>
+          <li>
+            <span class="inside-platform-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></span>
+            <div><h4>{{ _('Subsidy information') }}</h4><p>{{ _('Check relevant government schemes and eligibility.') }}</p></div>
+          </li>
+          <li>
+            <span class="inside-platform-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/><path d="M15 17h2"/></svg></span>
+            <div><h4>{{ _('Detailed reports') }}</h4><p>{{ _('Save and download complete reports in PDF format.') }}</p></div>
+          </li>
+        </ul>
+      </aside>
     </div>
   </section>
 
-  <section class="final-cta-section" aria-labelledby="cta-title"><div class="cta-inner-card"><p class="cta-kicker">{{ _('CHOOSE THE PROPERTY CONTEXT FIRST') }}</p><h2 id="cta-title">{{ _('Ready to assess a rooftop?') }}</h2><p class="cta-lede">{{ _('Start with a home or business planning page, then continue into the shared authenticated survey workspace.') }}</p><div class="cta-actions"><a class="btn-primary-cta" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Plan for home') }}</a><a class="btn-secondary-cta" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Plan for business') }}</a></div></div></section>
+  <section class="subsidy-guide-section landing-subsidy-guide" aria-labelledby="subsidy-title">
+    <div class="landing-subsidy-layout">
+      <div class="landing-subsidy-image">
+        <img
+          src="{{ url_for('static', filename='images/residential-solar.jpg') }}"
+          alt="{{ _('Residential rooftop solar panels with surrounding greenery') }}"
+          loading="lazy">
+      </div>
+      <div class="landing-subsidy-copy">
+        <p class="section-kicker">{{ _('SUBSIDY GUIDE') }}</p>
+        <h2 id="subsidy-title">{{ _('Check subsidy eligibility before you decide.') }}</h2>
+        <p>{{ _('Government Schemes such as PM Surya Ghar Muft Bijli Yojana may support eligible residential rooftop solar installations in India. Rules, amounts and application steps are set by the government and can change.') }}</p>
+        <a
+          class="landing-subsidy-portal"
+          href="https://pmsuryaghar.gov.in/"
+          target="_blank"
+          rel="noopener noreferrer">
+          {{ _('Visit Official Subsidy Portal') }} <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <aside class="landing-subsidy-checklist" aria-labelledby="landing-subsidy-checklist-title">
+        <h3 id="landing-subsidy-checklist-title">{{ _('Things to verify') }}</h3>
+        <ul>
+          <li>
+            <span class="landing-subsidy-check-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4 4 8-8"/></svg>
+            </span>
+            <span>{{ _('Whether your property type and connection are eligible') }}</span>
+          </li>
+          <li>
+            <span class="landing-subsidy-check-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4 4 8-8"/></svg>
+            </span>
+            <span>{{ _('Installation and vendor requirements under the current scheme') }}</span>
+          </li>
+          <li>
+            <span class="landing-subsidy-check-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4 4 8-8"/></svg>
+            </span>
+            <span>{{ _('Current subsidy amounts and application steps') }}</span>
+          </li>
+          <li>
+            <span class="landing-subsidy-check-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4 4 8-8"/></svg>
+            </span>
+            <span>{{ _('Rules set by the electricity distribution company (DISCOM)') }}</span>
+          </li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="final-cta-section landing-final-cta" aria-labelledby="cta-title">
+    <div class="landing-cta-backdrop" aria-hidden="true">
+      <img
+        src="{{ url_for('static', filename='images/login-rooftop-solar.png') }}"
+        alt=""
+        loading="lazy">
+    </div>
+    <div class="landing-cta-content">
+      {% if get_locale()|string == 'hi' %}
+      <h2 id="cta-title">{{ _('Ready to explore your solar potential?') }}</h2>
+      {% else %}
+      <h2 id="cta-title">Ready to explore your <span>solar potential?</span></h2>
+      {% endif %}
+      <p>{{ _('Start with the solution that fits your property.') }}</p>
+      <div class="landing-cta-actions">
+        <a class="landing-cta-button landing-cta-primary" href="{{ url_for('pages.plan', planning_track='home') }}">
+          {{ _('Explore Residential Solar') }} <span aria-hidden="true">→</span>
+        </a>
+        <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('pages.plan', planning_track='business') }}">
+          {{ _('Explore Commercial Solar') }} <span aria-hidden="true">→</span>
+        </a>
+        <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('pages.consultation') }}">
+          {{ _('Book a Free Consultation') }}
+        </a>
+      </div>
+    </div>
+  </section>
 </div>
 {% endblock %}
 
