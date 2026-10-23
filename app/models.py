@@ -1,5 +1,6 @@
 # filename: app/models.py
 from datetime import datetime, timezone
+from sqlalchemy import CheckConstraint
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 
@@ -114,6 +115,12 @@ class UserLocation(db.Model):
         back_populates="location",
         cascade="all, delete-orphan",
         order_by="RooftopDesign.revision_number",
+    )
+    application_tracker_events = db.relationship(
+        "ApplicationTrackerEvent",
+        back_populates="location",
+        cascade="all, delete-orphan",
+        order_by="ApplicationTrackerEvent.created_at",
     )
 
     def to_dict(self):
@@ -266,6 +273,37 @@ class UserLocation(db.Model):
             "extras": extras,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
+
+class ApplicationTrackerEvent(db.Model):
+    """A user-entered status change for a saved estimate."""
+
+    __tablename__ = "application_tracker_events"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('not_started', 'applied', 'feasibility_approved', "
+            "'installed', 'net_meter_inspection', 'subsidy_received')",
+            name="ck_application_tracker_status",
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    location_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user_locations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    location = db.relationship(
+        "UserLocation", back_populates="application_tracker_events"
+    )
+    status = db.Column(db.String(32), nullable=False)
+    application_reference = db.Column(db.String(128), nullable=True)
+    changed_on = db.Column(db.Date, nullable=False)
+    note = db.Column(db.String(1000), nullable=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
 
 
 class RooftopDesign(db.Model):
@@ -535,4 +573,3 @@ class AssistantDailyUsage(db.Model):
             "usage_date": self.usage_date.isoformat() if self.usage_date else None,
             "message_count": self.message_count,
         }
-
