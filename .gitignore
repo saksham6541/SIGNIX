@@ -53,4 +53,7 @@ node_modules/
 # Python virtual environments
 .venv/
 .venv-*/
+.venv312/
 venv/
+env/
+.venv312/
