@@ -49,3 +49,8 @@ node_modules/
 !requirements.txt
 !app/static/
 !app/templates/
+
+# Python virtual environments
+.venv/
+.venv-*/
+venv/
