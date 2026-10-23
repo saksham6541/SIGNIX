@@ -1894,7 +1894,6 @@ msgid ""
 msgstr ""
 
 #: app/templates/landing.html:41
-#, fuzzy
 msgid "Residential"
 msgstr "आवासीय घर"
 
@@ -1938,7 +1937,6 @@ msgid "Explore home planning"
 msgstr ""
 
 #: app/templates/landing.html:52
-#, fuzzy
 msgid "Commercial"
 msgstr "वाणिज्यिक / एमएसएमई"
 
@@ -3382,6 +3380,318 @@ msgstr "अनुमान सहेजें और अपनी सोलर �
 msgid "Already registered?"
 msgstr "पहले से पंजीकृत हैं?"
 
+#: app/templates/_public_nav.html:18
+msgid "Rooftop solar planning"
+msgstr "रूफटॉप सोलर योजना"
+
+#: app/templates/_public_nav.html:25
+msgid "Open navigation menu"
+msgstr "नेविगेशन मेनू खोलें"
+
+#: app/templates/_public_nav.html:29
+msgid "Solutions"
+msgstr "समाधान"
+
+#: app/templates/_public_nav.html:38
+msgid "Residential Solar"
+msgstr "आवासीय सोलर"
+
+#: app/templates/_public_nav.html:39
+msgid "Plan an indicative home rooftop system with residential assumptions."
+msgstr "आवासीय मान्यताओं के आधार पर घर की छत पर सोलर प्रणाली की सांकेतिक योजना बनाएं।"
+
+#: app/templates/_public_nav.html:41
+msgid "Explore Residential"
+msgstr "आवासीय योजना देखें"
+
+#: app/templates/_public_nav.html:44
+msgid "Commercial Solar"
+msgstr "व्यावसायिक सोलर"
+
+#: app/templates/_public_nav.html:45
+msgid "Explore business rooftop planning with separate commercial assumptions."
+msgstr "अलग व्यावसायिक मान्यताओं के साथ व्यवसाय की छत पर सोलर योजना देखें।"
+
+#: app/templates/_public_nav.html:47
+msgid "Explore Commercial"
+msgstr "व्यावसायिक योजना देखें"
+
+#: app/templates/_public_nav.html:50
+msgid "Industrial Solar"
+msgstr "औद्योगिक सोलर"
+
+#: app/templates/_public_nav.html:50
+msgid "Coming Soon"
+msgstr "जल्द आ रहा है"
+
+#: app/templates/_public_nav.html:51
+msgid "Industrial planning is not available yet."
+msgstr "औद्योगिक योजना अभी उपलब्ध नहीं है।"
+
+#: app/templates/_public_nav.html:58
+msgid "How It Works"
+msgstr "यह कैसे काम करता है"
+
+#: app/templates/_public_nav.html:59
+msgid "Subsidy Guide"
+msgstr "सब्सिडी मार्गदर्शिका"
+
+#: app/templates/_public_nav.html:63
+msgid "Book a Free Consultation"
+msgstr "मुफ़्त परामर्श बुक करें"
+
+#: app/templates/_public_nav.html:76
+msgid "Log In"
+msgstr "लॉग इन करें"
+
+#: app/templates/_public_nav.html:77
+msgid "Get Started"
+msgstr "शुरू करें"
+
+#: app/templates/_public_nav.html:112
+msgid "Close navigation menu"
+msgstr "नेविगेशन मेनू बंद करें"
+
+#: app/templates/consultation.html:3
+msgid "Book your free solar consultation"
+msgstr "अपना मुफ़्त सोलर परामर्श बुक करें"
+
+#: app/templates/consultation.html:13
+msgid "ROOFTOP SOLAR CONSULTATION"
+msgstr "रूफटॉप सोलर परामर्श"
+
+#: app/templates/consultation.html:14
+msgid "Talk through your rooftop solar needs."
+msgstr "अपनी छत पर सोलर की ज़रूरतों पर बात करें।"
+
+#: app/templates/consultation.html:16
+msgid "Share your rooftop context and electricity use."
+msgstr "अपनी छत और बिजली के उपयोग के बारे में बताएं।"
+
+#: app/templates/consultation.html:17
+msgid "This page does not generate an estimate or installer match."
+msgstr "यह पृष्ठ अनुमान या इंस्टॉलर मिलान नहीं बनाता।"
+
+#: app/templates/consultation.html:18
+msgid "Consultation requests are not live; details are not sent."
+msgstr "परामर्श अनुरोध अभी शुरू नहीं हुए हैं; विवरण नहीं भेजे जाते।"
+
+#: app/templates/consultation.html:24
+msgid "Tell us a little about your rooftop and electricity use. We will help you with the next step."
+msgstr "अपनी छत और बिजली के उपयोग के बारे में थोड़ा बताएं। हम अगले कदम में आपकी मदद करेंगे।"
+
+#: app/templates/consultation.html:27
+msgid "Please complete this field."
+msgstr "कृपया यह फ़ील्ड भरें।"
+
+#: app/templates/consultation.html:28
+msgid "Enter a valid 10-digit Indian mobile number."
+msgstr "मान्य 10 अंकों का भारतीय मोबाइल नंबर दर्ज करें।"
+
+#: app/templates/consultation.html:29
+msgid "Enter a valid 6-digit PIN code."
+msgstr "मान्य 6 अंकों का पिन कोड दर्ज करें।"
+
+#: app/templates/consultation.html:30
+msgid "Please agree before continuing."
+msgstr "आगे बढ़ने से पहले कृपया सहमति दें।"
+
+#: app/templates/consultation.html:31
+msgid "Consultation requests are not live yet. Nothing has been saved or sent."
+msgstr "परामर्श अनुरोध अभी शुरू नहीं हुए हैं। कुछ भी सहेजा या भेजा नहीं गया है।"
+
+#: app/templates/consultation.html:34
+msgid "I am enquiring for"
+msgstr "पूछताछ का प्रकार"
+
+#: app/templates/consultation.html:45
+msgid "Industrial"
+msgstr "औद्योगिक"
+
+#: app/templates/consultation.html:52
+msgid "Full name"
+msgstr "पूरा नाम"
+
+#: app/templates/consultation.html:57
+msgid "Phone number (10-digit Indian mobile)"
+msgstr "फ़ोन नंबर (10 अंकों का भारतीय मोबाइल)"
+
+#: app/templates/consultation.html:62
+msgid "PIN code"
+msgstr "पिन कोड"
+
+#: app/templates/consultation.html:67
+msgid "Average monthly electricity bill"
+msgstr "औसत मासिक बिजली बिल"
+
+#: app/templates/consultation.html:69
+msgid "Select your bill range"
+msgstr "अपने बिल की सीमा चुनें"
+
+#: app/templates/consultation.html:70
+msgid "Below Rs 2,000"
+msgstr "Rs 2,000 से कम"
+
+#: app/templates/consultation.html:71
+msgid "Rs 2,000-5,000"
+msgstr "Rs 2,000-5,000"
+
+#: app/templates/consultation.html:72
+msgid "Rs 5,000-10,000"
+msgstr "Rs 5,000-10,000"
+
+#: app/templates/consultation.html:73
+msgid "Rs 10,000-25,000"
+msgstr "Rs 10,000-25,000"
+
+#: app/templates/consultation.html:74
+msgid "Rs 25,000-1,00,000"
+msgstr "Rs 25,000-1,00,000"
+
+#: app/templates/consultation.html:75
+msgid "Above Rs 1,00,000"
+msgstr "Rs 1,00,000 से अधिक"
+
+#: app/templates/consultation.html:82
+msgid "Industrial requirements"
+msgstr "औद्योगिक आवश्यकताएं"
+
+#: app/templates/consultation.html:85
+msgid "Approximate rooftop or land area (sq ft)"
+msgstr "छत या भूमि का अनुमानित क्षेत्रफल (वर्ग फुट)"
+
+#: app/templates/consultation.html:89
+msgid "Approximate connected load or monthly units (kWh)"
+msgstr "अनुमानित कनेक्टेड लोड या मासिक यूनिट (kWh)"
+
+#: app/templates/consultation.html:93
+msgid "Type of industry"
+msgstr "उद्योग का प्रकार"
+
+#: app/templates/consultation.html:96
+msgid "Industrial estimates are coming soon. Share your requirement and we will get back to you."
+msgstr "औद्योगिक अनुमान जल्द उपलब्ध होंगे। अपनी आवश्यकता साझा करें और हम आपसे संपर्क करेंगे।"
+
+#: app/templates/consultation.html:101
+msgid "I agree to be contacted about my solar consultation. My details are shared with installers only if I choose to."
+msgstr "मैं अपने सोलर परामर्श के बारे में संपर्क किए जाने के लिए सहमत हूं। मेरी जानकारी इंस्टॉलर के साथ तभी साझा की जाएगी जब मैं चुनूंगा/चुनूंगी।"
+
+#: app/templates/consultation.html:105
+msgid "Book my free consultation"
+msgstr "मेरा मुफ़्त परामर्श बुक करें"
+
+#: app/templates/consultation.html:113
+msgid "WHAT HAPPENS NEXT"
+msgstr "आगे क्या होगा"
+
+#: app/templates/consultation.html:114
+msgid "How we connect you with installers"
+msgstr "हम आपको इंस्टॉलर से कैसे जोड़ते हैं"
+
+#: app/templates/consultation.html:119
+msgid "Share your details"
+msgstr "अपनी जानकारी साझा करें"
+
+#: app/templates/consultation.html:120
+msgid "Tell us about your property and electricity use."
+msgstr "अपनी संपत्ति और बिजली के उपयोग के बारे में बताएं।"
+
+#: app/templates/consultation.html:124
+msgid "We review your rooftop needs"
+msgstr "हम आपकी छत की ज़रूरतों की समीक्षा करते हैं"
+
+#: app/templates/consultation.html:125
+msgid "Your information helps frame the kind of solar enquiry you have."
+msgstr "आपकी जानकारी से आपकी सोलर पूछताछ का संदर्भ समझने में मदद मिलती है।"
+
+#: app/templates/consultation.html:129
+msgid "Installers get in touch only with your consent"
+msgstr "इंस्टॉलर आपकी सहमति से ही संपर्क करते हैं"
+
+#: app/templates/consultation.html:130
+msgid "Your details are shared with installers only if you choose to."
+msgstr "आपकी जानकारी इंस्टॉलर के साथ तभी साझा की जाएगी जब आप ऐसा चुनेंगे।"
+
+#: app/templates/consultation.html:134
+msgid "You compare and decide"
+msgstr "आप तुलना करके निर्णय लें"
+
+#: app/templates/consultation.html:135
+msgid "Choose what works for you; there is no obligation to proceed."
+msgstr "जो आपके लिए सही हो, उसे चुनें; आगे बढ़ने की कोई बाध्यता नहीं है।"
+
+#: app/templates/consultation.html:138
+msgid "SIGNIX may receive a fee from installers."
+msgstr "SIGNIX को इंस्टॉलर से शुल्क मिल सकता है।"
+
+#: app/templates/consultation.html:139
+msgid "Book your free consultation"
+msgstr "अपना मुफ़्त परामर्श बुक करें"
+
+#: app/templates/base.html app/templates/report.html app/templates/properties.html
+msgid "My properties"
+msgstr "मेरी संपत्तियां"
+
+#: app/templates/base.html
+msgid "All properties"
+msgstr "सभी संपत्तियां"
+
+#: app/templates/base.html app/templates/properties.html app/templates/compare.html
+msgid "Compare scenarios"
+msgstr "परिदृश्यों की तुलना करें"
+
+#: app/templates/compare.html
+msgid "Select saved properties above to compare scenarios."
+msgstr "परिदृश्यों की तुलना करने के लिए ऊपर सहेजी गई संपत्तियां चुनें।"
+
+#: app/templates/dashboard.html
+msgid "View all properties"
+msgstr "सभी संपत्तियां देखें"
+
+#: app/templates/properties.html
+msgid "Review saved properties, reopen reports, and compare your solar scenarios."
+msgstr "सहेजी गई संपत्तियां देखें, रिपोर्ट फिर से खोलें और अपने सोलर परिदृश्यों की तुलना करें।"
+
+#: app/templates/properties.html
+msgid "Create an estimate"
+msgstr "एक अनुमान बनाएं"
+
+#: app/templates/properties.html
+msgid "Saved properties"
+msgstr "सहेजी गई संपत्तियां"
+
+#: app/templates/properties.html
+msgid "PROPERTY %(number)02d"
+msgstr "संपत्ति %(number)02d"
+
+#: app/templates/properties.html
+msgid "Select for compare"
+msgstr "तुलना के लिए चुनें"
+
+#: app/templates/properties.html
+msgid "Download PDF"
+msgstr "PDF डाउनलोड करें"
+
+#: app/templates/properties.html
+msgid "Your properties will appear here"
+msgstr "आपकी संपत्तियां यहां दिखाई देंगी"
+
+#: app/templates/properties.html
+msgid "Create an estimate to save a rooftop property and revisit its report."
+msgstr "छत की संपत्ति सहेजने और उसकी रिपोर्ट फिर से देखने के लिए अनुमान बनाएं।"
+
+#: app/templates/base.html app/templates/report.html
+msgid "Saved Properties"
+msgstr "सहेजी गई संपत्तियां"
+
+#: app/templates/properties.html
+msgid "Review saved properties and reopen their solar reports."
+msgstr "सहेजी गई संपत्तियां देखें और उनकी सोलर रिपोर्ट फिर से खोलें।"
+
+#: app/templates/base.html
+msgid "Compare Scenarios"
+msgstr "परिदृश्यों की तुलना करें"
+
 #~ msgid "Save up to 90%"
 #~ msgstr ""
 
@@ -3544,4 +3854,3 @@ msgstr "पहले से पंजीकृत हैं?"
 
 #~ msgid "Language & Legal"
 #~ msgstr "भाषा एवं कानूनी"
-

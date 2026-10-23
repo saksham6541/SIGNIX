@@ -1,7 +1,7 @@
 <nav class="public-nav-menu" id="public-top-nav" aria-label="{{ _('Public navigation') }}">
   <a href="{{ url_for('pages.index') }}" class="public-nav-brand" aria-label="SIGNIX">
     <span class="public-nav-logo-mark" aria-hidden="true">
-      <svg viewBox="0 0 40 40" width="34" height="34">
+      <svg viewBox="0 0 40 40" width="44" height="44">
         <circle cx="20" cy="20" r="7" fill="currentColor"/>
         <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
           <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
@@ -60,10 +60,7 @@
     </div>
 
     <div class="public-nav-actions">
-      <span class="public-nav-consultation" aria-disabled="true">
-        {{ _('Book a Free Consultation') }}
-        <small>{{ _('Not available yet') }}</small>
-      </span>
+      <a class="public-nav-consultation" href="{{ url_for('pages.consultation') }}" {% if request.endpoint == 'pages.consultation' %}aria-current="page"{% endif %}>{{ _('Book a Free Consultation') }}</a>
       <span class="public-nav-language" aria-label="{{ _('Language') }}">
         <a href="{{ url_for('auth.set_language', language='en') }}" lang="en" {% if get_locale() == 'en' %}aria-current="true"{% endif %}>EN</a>
         <span aria-hidden="true">/</span>

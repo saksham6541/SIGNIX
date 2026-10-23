@@ -1,4 +1,13 @@
-from flask import Blueprint, abort, jsonify, render_template, request, send_file
+from flask import (
+    Blueprint,
+    abort,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
@@ -14,6 +23,11 @@ pages_bp = Blueprint("pages", __name__)
 @pages_bp.route("/")
 def index():
     return render_template("landing.html")
+
+
+@pages_bp.get("/consultation")
+def consultation():
+    return render_template("consultation.html")
 
 
 PLANNING_TRACKS = {
@@ -86,20 +100,21 @@ def dashboard():
     )
 
 
-@pages_bp.route("/reports")
+@pages_bp.get("/properties")
 @login_required
+def properties():
+    locations = location_service.list_locations(current_user.id)
+    return render_template("properties.html", locations=locations)
+
+
+@pages_bp.get("/reports")
 def reports():
-    """List every saved estimate with a direct route to its full report."""
-    locations = location_service.list_locations(current_user.id)
-    return render_template("reports.html", locations=locations)
+    return redirect(url_for("pages.properties"))
 
 
-@pages_bp.route("/saved-locations")
-@login_required
+@pages_bp.get("/saved-locations")
 def saved_locations():
-    """Show the signed-in user's saved rooftop locations."""
-    locations = location_service.list_locations(current_user.id)
-    return render_template("saved_locations.html", locations=locations)
+    return redirect(url_for("pages.properties"))
 
 
 @pages_bp.route("/compare", methods=["GET", "POST"])
@@ -133,8 +148,7 @@ def compare():
                 )
             ]
 
-    # A repeated ID is still one scenario; preserve order while preventing a
-    # self-comparison from rendering duplicate columns.
+    # Prevent repeated IDs from rendering duplicate scenario columns.
     selected_ids = list(dict.fromkeys(selected_ids))[:3]
 
     if selected_ids:
