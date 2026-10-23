@@ -51,7 +51,9 @@ def create_app():
                 error="Authentication required. Please log in and try again.",
                 login_url=url_for("auth.login", _external=False),
             ), 401
-        return redirect(url_for("auth.login", next=request.url))
+        # A local path is sufficient to resume the requested page and avoids
+        # carrying an absolute host URL through the authentication flow.
+        return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
 
 
     def select_locale():

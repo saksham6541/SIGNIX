@@ -1,25 +1,204 @@
+{% set hide_sidebar = true %}
 {% extends "base.html" %}
 {% block title %}{{ _('Log in') }} · SIGNIX{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block shell_class %}auth-shell{% endblock %}
+
 {% block content %}
-<section class="auth-page">
-  <div class="auth-card">
-    <div class="auth-heading">
-      <p class="eyebrow">{{ _('SIGNIX account') }}</p>
-      <h1>{{ _('Log in') }}</h1>
-      <p>{{ _('Continue to your rooftop solar estimates.') }}</p>
+<section class="auth-page login-page" aria-label="{{ _('Log in to SIGNIX') }}">
+  <div class="auth-split-card">
+    <!-- Brand / Technical illustration panel -->
+    <div class="auth-brand-panel">
+      <div class="brand-panel-header">
+        <a href="{{ url_for('pages.index') }}" class="brand-panel-logo" aria-label="SIGNIX">
+          <span class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="36" height="36">
+              <circle cx="20" cy="20" r="7" fill="currentColor"/>
+              <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
+                <line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/>
+                <line x1="8.5" y1="8.5" x2="11.5" y2="11.5"/><line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
+                <line x1="31.5" y1="8.5" x2="28.5" y2="11.5"/><line x1="11.5" y1="28.5" x2="8.5" y2="31.5"/>
+              </g>
+            </svg>
+          </span>
+          <span class="brand-panel-title">
+            <strong>SIGNIX</strong>
+            <small>{{ _('The Solar Survey Sheet') }}</small>
+          </span>
+        </a>
+      </div>
+
+      <div class="technical-plate" aria-hidden="true">
+        <div class="plate-label">SURVEY REF: AUTH-PORTAL · ROOF VERIFICATION</div>
+        <svg viewBox="0 0 360 220" class="blueprint-vector" role="img">
+          <!-- Grid background -->
+          <defs>
+            <pattern id="auth-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="360" height="220" fill="url(#auth-grid)" />
+
+          <!-- Roof perimeter boundary -->
+          <polygon points="40,165 140,55 320,80 250,195" fill="rgba(229,154,47,0.08)" stroke="#E59A2F" stroke-width="1.8" stroke-dasharray="4 2"/>
+
+          <!-- Vertices -->
+          <circle cx="40" cy="165" r="3.5" fill="#E59A2F"/>
+          <circle cx="140" cy="55" r="3.5" fill="#E59A2F"/>
+          <circle cx="320" cy="80" r="3.5" fill="#E59A2F"/>
+          <circle cx="250" cy="195" r="3.5" fill="#E59A2F"/>
+
+          <!-- Dimension text annotations -->
+          <text x="75" y="100" fill="#E59A2F" font-size="9" font-family="monospace">14.2 m</text>
+          <text x="230" y="62" fill="#E59A2F" font-size="9" font-family="monospace">22.8 m</text>
+          <text x="290" y="145" fill="#E59A2F" font-size="9" font-family="monospace">15.0 m</text>
+
+          <!-- PV Array modules -->
+          <g fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.4)" stroke-width="0.8">
+            <!-- Row 1 -->
+            <polygon points="120,85 145,88 140,105 115,102" />
+            <polygon points="150,89 175,92 170,109 145,106" />
+            <polygon points="180,93 205,96 200,113 175,110" />
+            <polygon points="210,97 235,100 230,117 205,114" />
+            <polygon points="240,101 265,104 260,121 235,118" />
+            <!-- Row 2 -->
+            <polygon points="105,110 130,113 125,130 100,127" />
+            <polygon points="135,114 160,117 155,134 130,131" />
+            <polygon points="165,118 190,121 185,138 160,135" />
+            <polygon points="195,122 220,125 215,142 190,139" />
+            <polygon points="225,126 250,129 245,146 220,143" />
+            <!-- Row 3 -->
+            <polygon points="90,135 115,138 110,155 85,152" />
+            <polygon points="120,139 145,142 140,159 115,156" />
+            <polygon points="150,143 175,146 170,163 145,160" />
+            <polygon points="180,147 205,150 200,167 175,164" />
+          </g>
+
+          <!-- Sun ray / Azimuth compass -->
+          <circle cx="60" cy="50" r="16" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+          <line x1="60" y1="36" x2="60" y2="44" stroke="#E59A2F" stroke-width="1.5"/>
+          <line x1="60" y1="56" x2="60" y2="64" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+          <text x="57" y="33" fill="#E59A2F" font-size="8" font-weight="bold" font-family="sans-serif">N</text>
+          <text x="57" y="73" fill="rgba(255,255,255,0.7)" font-size="8" font-family="sans-serif">S</text>
+          <text x="84" y="53" fill="rgba(255,255,255,0.7)" font-size="9" font-family="monospace">Azimuth 180° S</text>
+        </svg>
+      </div>
+
+      <div class="brand-panel-features">
+        <div class="feature-item">
+          <span class="feature-bullet" aria-hidden="true">▸</span>
+          <div>
+            <strong>{{ _('Authoritative Rooftop Geometry') }}</strong>
+            <p>{{ _('Draw the exact perimeter you control; SIGNIX locks your real boundaries.') }}</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-bullet" aria-hidden="true">▸</span>
+          <div>
+            <strong>{{ _('Dual-Source Solar Irradiance') }}</strong>
+            <p>{{ _('NASA POWER & PVGIS satellite calibration for bank-ready yield analysis.') }}</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-bullet" aria-hidden="true">▸</span>
+          <div>
+            <strong>{{ _('PM Surya Ghar & Net-Metering') }}</strong>
+            <p>{{ _('Residential central subsidy guidance and tariff offset calculations.') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-panel-footer">
+        <span>SIGNIX v2.4 · {{ _('Independent & Vendor-Neutral') }}</span>
+      </div>
     </div>
-  {% with messages = get_flashed_messages() %}
-    {% for message in messages %}
-      <p class="form-error auth-alert">{{ message }}</p>
-    {% endfor %}
-  {% endwith %}
-  <form method="post" class="auth-form">
-    {{ form.hidden_tag() }}
-    <p class="auth-field">{{ form.email.label }} {{ form.email(class_="auth-input") }} {% for error in form.email.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p class="auth-field">{{ form.password.label }} {{ form.password(class_="auth-input") }} {% for error in form.password.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-    <p class="auth-submit">{{ form.submit(class_="btn-primary-lg") }}</p>
-  </form>
-  <p class="auth-switch">{{ _('New here?') }} <a href="{{ url_for('auth.signup') }}">{{ _('Create an account') }}</a>.</p>
+
+    <!-- Form panel -->
+    <div class="auth-form-panel">
+      <div class="login-form-shell">
+      <div class="auth-heading">
+        <p class="eyebrow">{{ _('SIGNIX ACCOUNT') }}</p>
+        <h1>{{ _('Log in') }}</h1>
+        <p>{{ _('Continue to your rooftop solar estimates.') }}</p>
+      </div>
+
+      {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+          <div class="form-error auth-alert" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="post" class="auth-form" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="form-field-group">
+          <label for="email" class="form-label">{{ form.email.label.text }}</label>
+          {{ form.email(class_="auth-input", id="email", placeholder="you@domain.com", autocomplete="email", required=true) }}
+          {% for error in form.email.errors %}
+            <span class="form-error" role="alert">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-field-group">
+          <div class="field-label-row">
+            <label for="password" class="form-label">{{ form.password.label.text }}</label>
+          </div>
+          <div class="password-input-wrap">
+            {{ form.password(class_="auth-input", id="password", placeholder="••••••••", autocomplete="current-password", required=true) }}
+            <button type="button" class="pwd-toggle-btn" data-target="password" aria-label="{{ _('Show password') }}" aria-pressed="false">
+              <span class="eye-show" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </span>
+              <span class="eye-hide hidden" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+          {% for error in form.password.errors %}
+            <span class="form-error" role="alert">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="auth-submit-wrap">
+          {{ form.submit(class_="btn-primary-lg btn-auth-submit") }}
+        </div>
+      </form>
+
+      <div class="auth-footer-links">
+        <p class="auth-switch">
+          {{ _('New here?') }} <a href="{{ url_for('auth.signup', next=request.args.get('next')) if request.args.get('next') else url_for('auth.signup') }}">{{ _('Create an account') }}</a>
+        </p>
+        <p class="auth-disclaimer">
+          <a href="{{ url_for('pages.index') }}">{{ _('← Return to SIGNIX home') }}</a>
+        </p>
+      </div>
+      </div>
+    </div>
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.pwd-toggle-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var targetId = btn.getAttribute('data-target');
+      var input = document.getElementById(targetId);
+      if (!input) return;
+      var isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+      btn.setAttribute('aria-label', isPassword ? "{{ _('Hide password') }}" : "{{ _('Show password') }}");
+      var eyeShow = btn.querySelector('.eye-show');
+      var eyeHide = btn.querySelector('.eye-hide');
+      if (eyeShow) eyeShow.classList.toggle('hidden', isPassword);
+      if (eyeHide) eyeHide.classList.toggle('hidden', !isPassword);
+    });
+  });
+</script>
 {% endblock %}

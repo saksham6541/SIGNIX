@@ -7,6 +7,8 @@ states for the interactive report.
 
 from __future__ import annotations
 
+import math
+
 from app.assumptions import ANNUAL_TARIFF_ESCALATION, DEGRADATION_PCT, get_value
 from app.solar_logic import MONTH_NAMES
 
@@ -16,9 +18,10 @@ YEARS = 25
 
 def _number(value, default=None):
     try:
-        return float(value)
+        number = float(value)
     except (TypeError, ValueError):
         return default
+    return number if math.isfinite(number) else default
 
 
 def _rounded(values, digits=2):
@@ -52,13 +55,37 @@ def _monthly_generation(monthly_data):
     return values
 
 
-def _financial_series(net_investment, cashflow):
-    if not isinstance(cashflow, list) or not cashflow:
+def _lifecycle_matches_cashflow(lifecycle, cashflow, net_investment):
+    if lifecycle is None:
+        return True
+    rows = lifecycle.get("years") if isinstance(lifecycle, dict) else None
+    if not isinstance(rows, list) or len(rows) != YEARS:
+        return False
+    running = -net_investment
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            return False
+        annual_flow = _number(row.get("net_cash_flow"))
+        cumulative = _number(row.get("cumulative_cash_flow"))
+        if annual_flow is None or cumulative is None:
+            return False
+        running += annual_flow
+        if abs(running - cumulative) > 0.1 or abs(cumulative - cashflow[index]) > 0.1:
+            return False
+    return True
+
+
+def _financial_series(net_investment, cashflow, lifecycle=None):
+    if not isinstance(cashflow, list) or len(cashflow) != YEARS:
         return None
     cumulative_cashflow = [_number(value) for value in cashflow]
     if any(value is None for value in cumulative_cashflow):
         return None
-    net = _number(net_investment, 0.0)
+    net = _number(net_investment)
+    if net is None or net < 0:
+        return None
+    if not _lifecycle_matches_cashflow(lifecycle, cumulative_cashflow, net):
+        return None
     annual_savings = []
     previous = -net
     for cumulative in cumulative_cashflow:
@@ -103,6 +130,12 @@ def _financing(financing):
     capex_flows, dpa_flows = capex.get("cash_flows"), dpa.get("cash_flows")
     if not isinstance(capex_flows, list) or not isinstance(dpa_flows, list):
         return {"available": False, "reason": "Financing cash flows are unavailable"}
+    if not capex_flows or len(capex_flows) != len(dpa_flows):
+        return {"available": False, "reason": "Financing cash-flow series are inconsistent"}
+    capex_flows = [_number(value) for value in capex_flows]
+    dpa_flows = [_number(value) for value in dpa_flows]
+    if any(value is None for value in capex_flows + dpa_flows):
+        return {"available": False, "reason": "Financing cash flows are malformed"}
     return {
         "available": True,
         "years": list(range(0, min(len(capex_flows), len(dpa_flows)))),
@@ -200,7 +233,7 @@ def build_report_chart_data(data):
         }
 
     financial = _financial_series(
-        pick("net_investment"), pick("cashflow_25yr")
+        pick("net_investment"), pick("cashflow_25yr"), pick("lifecycle_projection")
     )
     if financial:
         financial["annual_om_reference"] = _number(pick("annual_om"))

@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
@@ -14,6 +16,20 @@ from app import SUPPORTED_LOCALES
 from app.models import User, UserLocation, db
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def _safe_next_url(value):
+    """Return a local post-authentication target, never an external redirect."""
+    if not value:
+        return None
+    target = urlsplit(value)
+    if target.scheme or target.netloc:
+        if target.scheme not in ("http", "https") or target.netloc != request.host:
+            return None
+    path = target.path or "/"
+    if not path.startswith("/") or path.startswith("//"):
+        return None
+    return f"{path}?{target.query}" if target.query else path
 
 
 @auth_bp.get("/language/<language>")
@@ -105,7 +121,10 @@ def settings():
 @auth_bp.route("/signup", methods=["GET", "POST"])
 def signup():
     if current_user.is_authenticated:
-        return redirect(url_for("pages.dashboard"))
+        return redirect(
+            _safe_next_url(request.args.get("next"))
+            or url_for("pages.dashboard")
+        )
     form = SignupForm()
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
@@ -120,7 +139,10 @@ def signup():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            return redirect(url_for("pages.dashboard"))
+            return redirect(
+                _safe_next_url(request.args.get("next"))
+                or url_for("pages.dashboard")
+            )
     return render_template("signup.html", form=form)
 
 
@@ -128,7 +150,10 @@ def signup():
 def login():
     if current_user.is_authenticated:
         flash(_("You're already logged in."), "info")
-        return redirect(url_for("pages.dashboard"))
+        return redirect(
+            _safe_next_url(request.args.get("next"))
+            or url_for("pages.dashboard")
+        )
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.strip().lower()).first()
@@ -138,7 +163,10 @@ def login():
             flash(_("Invalid email or password."), "error")
         else:
             login_user(user)
-            return redirect(url_for("pages.dashboard"))
+            return redirect(
+                _safe_next_url(request.args.get("next"))
+                or url_for("pages.dashboard")
+            )
     return render_template("login.html", form=form)
 
 

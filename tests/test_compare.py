@@ -163,3 +163,85 @@ def test_clone_api_reports_estimation_engine_failure(app, monkeypatch):
 
     assert response.status_code == 500
     assert response.get_json()["error"] == "Estimation engine failed: controlled QA failure"
+
+
+def test_failed_clone_does_not_partially_backfill_source_group(app, monkeypatch):
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").one()
+        source = make_location(user.id, "Atomic clone rooftop", 3.0, 4800.0)
+        source.polygon_geojson = {
+            "type": "Polygon",
+            "coordinates": [[
+                [77.20, 28.61], [77.2001, 28.61],
+                [77.2001, 28.6101], [77.20, 28.61],
+            ]],
+        }
+        source.extras = {"tariff_per_kwh": 8.0, "sizing_method": "roof_max"}
+        db.session.add(source)
+        db.session.commit()
+        source_id = source.id
+        original_count = UserLocation.query.count()
+
+    def fail_estimation(**_kwargs):
+        raise RuntimeError("controlled calculation failure")
+
+    monkeypatch.setattr(estimation_service, "run_full_estimation", fail_estimation)
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+
+    response = test_client.post(
+        f"/api/locations/{source_id}/scenarios",
+        json={"change": "sizing_mode", "value": "bill_offset_80%"},
+    )
+
+    assert response.status_code == 500
+    with app.app_context():
+        saved = db.session.get(UserLocation, source_id)
+        assert saved.roof_group_id is None
+        assert UserLocation.query.count() == original_count
+
+
+def test_failed_clone_commit_rolls_back_source_and_clone(app, monkeypatch):
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").one()
+        source = make_location(user.id, "Atomic persistence rooftop", 3.0, 4800.0)
+        source.polygon_geojson = {
+            "type": "Polygon",
+            "coordinates": [[
+                [77.20, 28.61], [77.2001, 28.61],
+                [77.2001, 28.6101], [77.20, 28.61],
+            ]],
+        }
+        source.extras = {"tariff_per_kwh": 8.0, "sizing_method": "roof_max"}
+        db.session.add(source)
+        db.session.commit()
+        source_id = source.id
+        original_count = UserLocation.query.count()
+
+    test_client = app.test_client()
+    assert login(test_client, "test@example.com", "unused").status_code == 302
+    original_commit = db.session.commit
+    commit_calls = 0
+
+    def fail_clone_commit():
+        nonlocal commit_calls
+        commit_calls += 1
+        if commit_calls == 1:
+            raise RuntimeError("controlled persistence failure")
+        return original_commit()
+
+    monkeypatch.setattr(db.session, "commit", fail_clone_commit)
+    response = test_client.post(
+        f"/api/locations/{source_id}/scenarios",
+        json={"change": "sizing_mode", "value": "bill_offset_80%"},
+    )
+
+    assert response.status_code == 500
+    assert response.get_json()["error"] == (
+        "Could not save scenario: controlled persistence failure"
+    )
+    with app.app_context():
+        db.session.expire_all()
+        saved = db.session.get(UserLocation, source_id)
+        assert saved.roof_group_id is None
+        assert UserLocation.query.count() == original_count

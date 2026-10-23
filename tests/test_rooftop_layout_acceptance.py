@@ -186,8 +186,15 @@ def test_changed_calculation_assumptions_are_not_treated_as_idempotent(
     assert second.status_code == 409
     assert second.get_json()["code"] == "stale_design_revision"
     with app.app_context():
-        saved = db.session.get(UserLocation, location_id).to_dict()
+        location = db.session.get(UserLocation, location_id)
+        saved = location.to_dict()
         assert saved["calculation_status"] == "stale_assumptions"
+        assert saved["extras"]["accepted_layout"]["status"] == "stale"
+        assert (
+            saved["extras"]["accepted_layout"]["stale_reason"]
+            == "calculation_assumptions_changed"
+        )
+        assert location.extras["accepted_layout"]["status"] == "accepted"
 
 
 def test_geometry_revision_marks_accepted_layout_stale(client, app, layout_context):

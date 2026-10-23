@@ -4,29 +4,61 @@
 <section class="profile-page">
   <div class="profile-header">
     <div>
-      <p class="eyebrow">{{ _('Estimate defaults') }}</p>
+      <p class="console-index">{{ _('ESTIMATE DEFAULTS') }}</p>
       <h1>{{ _('Settings') }}</h1>
-      <p>{{ _('Save the values you use most often for new solar estimates.') }}</p>
+      <p class="tagline">{{ _('Save the values you use most often for new solar estimates.') }}</p>
     </div>
   </div>
+
   {% with messages = get_flashed_messages() %}
     {% for message in messages %}
-      <p class="form-success profile-alert">{{ message }}</p>
+      <div class="form-success profile-alert" role="status">{{ message }}</div>
     {% endfor %}
   {% endwith %}
 
-  <section class="profile-card" style="max-width: 620px;">
-    <div class="profile-card-heading">
-      <h2>{{ _('Default Estimate Values') }}</h2>
-      <p>{{ _('These values will be pre-filled whenever you start a new estimate.') }}</p>
-    </div>
-    <form method="post" class="profile-form">
-      {{ form.hidden_tag() }}
-      <p class="profile-field">{{ form.default_tariff_per_kwh.label }} {{ form.default_tariff_per_kwh(class_="auth-input", placeholder="e.g. 10") }} {% for error in form.default_tariff_per_kwh.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-      <p class="profile-field">{{ form.default_state.label }} {{ form.default_state(class_="auth-input") }} {% for error in form.default_state.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-      <p class="profile-field">{{ form.default_property_type.label }} {{ form.default_property_type(class_="auth-input") }} {% for error in form.default_property_type.errors %}<span class="form-error">{{ error }}</span>{% endfor %}</p>
-      <p class="profile-submit">{{ form.submit(class_="btn-primary-lg") }}</p>
-    </form>
-  </section>
+  <div class="settings-container">
+    <section class="profile-card" aria-labelledby="settings-heading">
+      <div class="profile-card-heading">
+        <p class="console-index">{{ _('PARAMETERS') }}</p>
+        <h2 id="settings-heading">{{ _('Default Estimate Values') }}</h2>
+        <p class="tagline">{{ _('These values will be pre-filled whenever you start a new estimate.') }}</p>
+      </div>
+
+      <form method="post" class="profile-form" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="form-field-group">
+          <label for="default_tariff_per_kwh" class="form-label">{{ form.default_tariff_per_kwh.label.text }}</label>
+          {{ form.default_tariff_per_kwh(class_="auth-input", id="default_tariff_per_kwh", placeholder="e.g. 8.50", step="0.1") }}
+          <span class="field-hint">{{ _('DISCOM grid consumption rate in ₹ per unit (kWh).') }}</span>
+          {% for error in form.default_tariff_per_kwh.errors %}
+            <span class="form-error" role="alert">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-field-group">
+          <label for="default_state" class="form-label">{{ form.default_state.label.text }}</label>
+          {{ form.default_state(class_="auth-input auth-select", id="default_state") }}
+          <span class="field-hint">{{ _('Used to calibrate DISCOM net-metering regulations and solar policy.') }}</span>
+          {% for error in form.default_state.errors %}
+            <span class="form-error" role="alert">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-field-group">
+          <label for="default_property_type" class="form-label">{{ form.default_property_type.label.text }}</label>
+          {{ form.default_property_type(class_="auth-input auth-select", id="default_property_type") }}
+          <span class="field-hint">{{ _('Separates Residential Home from Commercial / Industrial planning assumptions.') }}</span>
+          {% for error in form.default_property_type.errors %}
+            <span class="form-error" role="alert">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="profile-submit-wrap">
+          {{ form.submit(class_="btn-primary-lg") }}
+        </div>
+      </form>
+    </section>
+  </div>
 </section>
 {% endblock %}

@@ -1,0 +1,29 @@
+<footer class="site-footer landing-site-footer">
+  <div class="footer-top-grid public-footer-grid">
+    <div>
+      <div class="footer-logo"><span class="logo-name">SIGNIX</span><span class="logo-tagline">{{ _('The Solar Survey Sheet') }}</span></div>
+      <p class="footer-desc">{{ _('Rooftop solar planning built around the boundary you draw and the assumptions you can verify.') }}</p>
+    </div>
+    <div class="footer-nav-col">
+      <h4>{{ _('Plan') }}</h4>
+      <ul>
+        <li><a href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Solar for Home') }}</a></li>
+        <li><a href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Solar for Business') }}</a></li>
+      </ul>
+    </div>
+    <div class="footer-nav-col">
+      <h4>{{ _('Account') }}</h4>
+      <ul>
+        {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('pages.dashboard') }}">{{ _('Dashboard') }}</a></li>
+        {% else %}
+        <li><a href="{{ url_for('auth.login') }}">{{ _('Log in') }}</a></li>
+        <li><a href="{{ url_for('auth.signup') }}">{{ _('Create account') }}</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom-bar">
+    <p>{{ _('Indicative estimates only. Verify structural capacity, DISCOM rules, and subsidy eligibility before procurement.') }}</p>
+  </div>
+</footer>

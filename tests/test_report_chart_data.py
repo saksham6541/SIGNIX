@@ -154,6 +154,59 @@ def test_missing_data_has_explicit_unavailable_states():
     assert chart["monthly_bill_impact"]["available"] is False
 
 
+@pytest.mark.parametrize(
+    "cashflow",
+    ([1000.0], [1000.0] * 24 + [float("nan")]),
+)
+def test_malformed_lifecycle_cashflow_fails_closed(cashflow):
+    chart = build_report_chart_data(_estimate(cashflow_25yr=cashflow))
+
+    assert chart["financial"] == {
+        "available": False,
+        "reason": "Persisted annual cashflow series unavailable",
+    }
+    json.dumps(chart, allow_nan=False)
+
+
+def test_financial_chart_rejects_missing_or_non_finite_required_investment():
+    for investment in (None, float("inf"), -1):
+        chart = build_report_chart_data(_estimate(net_investment=investment))
+        assert chart["financial"]["available"] is False
+        json.dumps(chart, allow_nan=False)
+
+
+def test_financial_chart_rejects_inconsistent_lifecycle_rows():
+    cashflow = _estimate()["cashflow_25yr"]
+    previous = -100000.0
+    rows = []
+    for index, cumulative in enumerate(cashflow, start=1):
+        rows.append({
+            "year": index,
+            "net_cash_flow": cumulative - previous,
+            "cumulative_cash_flow": cumulative,
+        })
+        previous = cumulative
+    rows[8]["cumulative_cash_flow"] += 500
+
+    chart = build_report_chart_data(
+        _estimate(lifecycle_projection={"years": rows})
+    )
+
+    assert chart["financial"]["available"] is False
+
+
+def test_inconsistent_financing_cashflows_fail_closed():
+    financing = _estimate()["financing_comparison"]
+    financing["dpa"]["cash_flows"] = financing["dpa"]["cash_flows"][:-1]
+
+    chart = build_report_chart_data(_estimate(financing_comparison=financing))
+
+    assert chart["financing"] == {
+        "available": False,
+        "reason": "Financing cash-flow series are inconsistent",
+    }
+
+
 def test_orientation_and_system_size_changes_produce_fresh_data():
     original = build_report_chart_data(_estimate())
     changed = build_report_chart_data(
@@ -256,6 +309,16 @@ def _financing_location(app):
     from app.solar_logic import build_financing_comparison, current_assumption_fingerprint
 
     comparison = build_financing_comparison(100000, 60000, 5000, 1200)
+    cumulative_cashflow = [-40000, 30000] + [100000] * 23
+    previous = -100000
+    lifecycle_years = []
+    for year, cumulative in enumerate(cumulative_cashflow, start=1):
+        lifecycle_years.append({
+            "year": year,
+            "net_cash_flow": cumulative - previous,
+            "cumulative_cash_flow": cumulative,
+        })
+        previous = cumulative
     with app.app_context():
         user = User.query.filter_by(email="test@example.com").first()
         location = UserLocation(
@@ -284,14 +347,9 @@ def _financing_location(app):
                     "monthly_units": 800,
                     "tariff_per_kwh": 10,
                 },
-                "cashflow_25yr": [-40000, 30000] + [100000] * 23,
+                "cashflow_25yr": cumulative_cashflow,
                 "financing_comparison": comparison,
-                "lifecycle_projection": {
-                    "years": [
-                        {"net_cash_flow": value}
-                        for value in comparison["capex"]["cash_flows"][1:]
-                    ]
-                },
+                "lifecycle_projection": {"years": lifecycle_years},
                 "financial_provenance": {
                     "inputs": {
                         "generation_kwh": 1200,

@@ -160,6 +160,19 @@ class UserLocation(db.Model):
             calculation_status = "current"
         extras["calculation_status"] = calculation_status
 
+        accepted_layout = extras.get("accepted_layout")
+        if (
+            isinstance(accepted_layout, dict)
+            and accepted_layout.get("status") == "accepted"
+            and accepted_layout.get("assumption_fingerprint")
+            != current_fingerprint
+        ):
+            extras["accepted_layout"] = {
+                **accepted_layout,
+                "status": "stale",
+                "stale_reason": "calculation_assumptions_changed",
+            }
+
         financial_provenance = extras.get("financial_provenance")
         if not isinstance(financial_provenance, dict):
             financial_status = "legacy_unversioned"

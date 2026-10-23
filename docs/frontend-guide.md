@@ -20,9 +20,9 @@ Backend-owned response construction and calculations should not be duplicated in
 
 ## Templates and assets
 
-Flask discovers `app/templates/` and `app/static/` through `Flask(__name__)`. Templates load local assets with `url_for('static', filename='...')`. `base.html` owns common navigation, CSS, CSRF metadata, assistant controls, and shared scripts.
+Flask discovers `app/templates/` and `app/static/` through `Flask(__name__)`. Templates load local assets with `url_for('static', filename='...')`. `base.html` owns common navigation, CSS, CSRF metadata, assistant controls, and shared scripts. `landing.html` is the public overview, `plan.html` renders the distinct home and business entry experiences, and `index.html` remains the single shared rooftop survey workspace. Public templates set `hide_sidebar`; authenticated application pages use the sidebar shell.
 
-Leaflet and Leaflet Draw are loaded from unpkg on the map page. Three.js r128 and Chart.js are vendored locally for the report workspace, so the 3D viewer does not depend on a public CDN after the report HTML loads. The map page still needs network access for its Leaflet assets even when backend providers are disabled.
+Leaflet and Leaflet Draw are loaded from unpkg only on `/survey/<planning_track>`. The public landing and planning-entry pages do not initialize a map. Three.js r128 and Chart.js are vendored locally for the report workspace, so the 3D viewer does not depend on a public CDN after the report HTML loads. The survey page still needs network access for its Leaflet assets even when backend providers are disabled.
 
 ## API calls
 

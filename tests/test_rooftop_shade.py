@@ -120,7 +120,7 @@ def test_overlapping_and_malformed_obstructions_do_not_double_count_or_crash():
         for name in ("usable", "obstruction", "setback", "shaded", "unknown")
     )
     assert analysis["areas_sqm"]["obstruction"] > 0
-    assert classified == analysis["areas_sqm"]["classified_roof"]
+    assert round(classified, 2) == analysis["areas_sqm"]["classified_roof"]
     assert classified <= analysis["areas_sqm"]["authoritative_roof"]
     assert analysis["classification_precedence"] == [
         "outside_roof", "obstruction", "setback", "shaded", "unknown", "usable"

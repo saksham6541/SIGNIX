@@ -1,0 +1,7 @@
+<nav class="top-nav-menu" id="public-top-nav" aria-label="{{ _('Public navigation') }}">
+  <a href="{{ url_for('pages.plan', planning_track='home') }}" class="top-nav-link {% if planning_track == 'home' %}active{% endif %}">{{ _('Solar for Home') }}</a>
+  <a href="{{ url_for('pages.plan', planning_track='business') }}" class="top-nav-link {% if planning_track == 'business' %}active{% endif %}">{{ _('Solar for Business') }}</a>
+  <a href="{{ url_for('pages.index') }}#workflow" class="top-nav-link">{{ _('How it works') }}</a>
+  <a href="{{ url_for('pages.index') }}#capabilities" class="top-nav-link">{{ _('Capabilities') }}</a>
+  <a href="{{ url_for('pages.plan', planning_track='home') }}" class="top-nav-cta">{{ _('Start planning') }}</a>
+</nav>

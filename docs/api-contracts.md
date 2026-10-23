@@ -119,4 +119,4 @@ Do not present AI output as measured roof evidence or silently copy it into auth
 
 ## HTML and document routes
 
-Public pages are `/`, `/login`, and `/signup`. Authenticated pages include `/dashboard`, `/reports`, `/saved-locations`, `/compare`, `/savings`, `/profile`, `/settings`, and `/report/<location_id>`. PDF and installer exports are `/report/<location_id>/pdf` and `/report/<location_id>/installer-package`.
+Public pages are `/`, `/plan/home`, `/plan/business`, `/login`, and `/signup`. The shared rooftop survey is authenticated at `/survey/home` or `/survey/business`; any other planning-track segment returns `404`. The route fixes the home-versus-business context before the existing map and estimate workflow loads. Authenticated pages also include `/dashboard`, `/reports`, `/saved-locations`, `/compare`, `/savings`, `/profile`, `/settings`, and `/report/<location_id>`. PDF and installer exports are `/report/<location_id>/pdf` and `/report/<location_id>/installer-package`.

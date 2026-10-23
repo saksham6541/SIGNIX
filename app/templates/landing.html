@@ -1,0 +1,98 @@
+{% set hide_sidebar = true %}
+{% extends "base.html" %}
+{% block title %}{{ _('SIGNIX — Rooftop solar planning with a roof-first workflow') }}{% endblock %}
+{% block body_class %}landing-body public-page-body{% endblock %}
+
+{% block top_bar_nav %}{% include "_public_nav.html" %}{% endblock %}
+
+{% block content %}
+<div class="landing-page public-landing">
+  <section class="landing-intro public-hero" aria-labelledby="landing-title">
+    <div class="landing-copy">
+      <p class="landing-kicker"><span aria-hidden="true"></span>{{ _('ROOF-FIRST SOLAR PLANNING') }}</p>
+      <h1 id="landing-title">{{ _('Plan solar for the roof you actually have.') }}</h1>
+      <p class="landing-lede">{{ _('Choose a residential or commercial planning path, trace the authoritative roof boundary yourself, and review an indicative system plan without confusing a preview for a site survey.') }}</p>
+      <div class="public-hero-actions">
+        <a class="btn-primary-cta" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Plan a home rooftop') }}</a>
+        <a class="btn-secondary-light" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Plan a business rooftop') }}</a>
+      </div>
+      <p class="public-trust-line">{{ _('No fabricated roof geometry · Separate home and business assumptions · Saved work stays in your account') }}</p>
+    </div>
+    <aside class="location-console public-hero-panel" aria-label="{{ _('What SIGNIX produces') }}">
+      <p class="console-index">{{ _('THE SOLAR SURVEY SHEET') }}</p>
+      <h2>{{ _('From a traced roof to a reviewable plan') }}</h2>
+      <ol class="public-summary-list">
+        <li><span>01</span><div><strong>{{ _('Authoritative boundary') }}</strong><small>{{ _('Your traced roof remains the placement constraint.') }}</small></div></li>
+        <li><span>02</span><div><strong>{{ _('Transparent assumptions') }}</strong><small>{{ _('Tariff, orientation, storage, and sizing choices remain visible.') }}</small></div></li>
+        <li><span>03</span><div><strong>{{ _('Indicative outputs') }}</strong><small>{{ _('Capacity, generation, costs, and savings are labelled as planning estimates.') }}</small></div></li>
+      </ol>
+      <div class="truth-note public-truth-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
+        <p><strong>{{ _('Preliminary planning, not a site survey.') }}</strong> {{ _('Installer and structural verification are still required.') }}</p>
+      </div>
+    </aside>
+  </section>
+
+  <section class="solutions-section" id="solutions" aria-labelledby="solutions-title">
+    <div class="section-header-block">
+      <p class="section-kicker">{{ _('TWO DISTINCT PLANNING PATHS') }}</p>
+      <h2 id="solutions-title">{{ _('Start with the rules that fit the property') }}</h2>
+      <p class="section-subtitle">{{ _('The map and rooftop geometry tools are shared. Property assumptions, subsidy treatment, and guidance remain specific to each planning track.') }}</p>
+    </div>
+    <div class="solutions-grid">
+      <article class="solution-card solution-card-home">
+        <div class="solution-card-header"><span class="solution-badge solution-badge-subsidy">{{ _('Residential') }}</span><span class="solution-scenario-tag">{{ _('Households') }}</span></div>
+        <h3>{{ _('Solar for Home') }}</h3>
+        <p class="solution-summary">{{ _('Plan around a household bill, usable roof, optional backup needs, and caveated PM Surya Ghar guidance.') }}</p>
+        <ul class="solution-features">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Residential sizing') }}</strong><span>{{ _('Bill-offset and roof-capacity modes supported by the existing estimator.') }}</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Eligibility caveats') }}</strong><span>{{ _('Subsidy guidance is not presented as an approval or entitlement.') }}</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Optional backup planning') }}</strong><span>{{ _('Use existing load, duration, inverter, and battery assumptions.') }}</span></div></li>
+        </ul>
+        <div class="solution-action"><a class="btn-solution-action" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore home planning') }} →</a></div>
+      </article>
+      <article class="solution-card solution-card-biz">
+        <div class="solution-card-header"><span class="solution-badge solution-badge-biz">{{ _('Commercial') }}</span><span class="solution-scenario-tag">{{ _('Shops · offices · MSMEs') }}</span></div>
+        <h3>{{ _('Solar for Business') }}</h3>
+        <p class="solution-summary">{{ _('Plan a commercial rooftop using the supported commercial property type, tariff, sizing, and daytime-load assumptions.') }}</p>
+        <ul class="solution-features">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Commercial baseline') }}</strong><span>{{ _('Uses the estimator’s existing commercial EPC assumptions.') }}</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('Daytime consumption context') }}</strong><span>{{ _('The existing day-heavy load profile remains available in the survey.') }}</span></div></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><strong>{{ _('No residential subsidy') }}</strong><span>{{ _('PM Surya Ghar assistance is explicitly excluded from this path.') }}</span></div></li>
+        </ul>
+        <div class="solution-action"><a class="btn-solution-action" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore business planning') }} →</a></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
+    <div class="section-header-block"><p class="section-kicker">{{ _('A REVIEWABLE WORKFLOW') }}</p><h2 id="workflow-title">{{ _('Four steps from location to saved report') }}</h2></div>
+    <ol class="workflow-grid-rail">
+      <li class="workflow-step-card active"><span class="step-num">01</span><div class="step-content"><h4>{{ _('Choose a planning track') }}</h4><p>{{ _('Home and business assumptions start separately.') }}</p><span class="step-meta">{{ _('Context') }}</span></div></li>
+      <li class="workflow-step-card"><span class="step-num">02</span><div class="step-content"><h4>{{ _('Locate and trace') }}</h4><p>{{ _('Search for the property, then draw the roof and obstructions.') }}</p><span class="step-meta">{{ _('Geometry') }}</span></div></li>
+      <li class="workflow-step-card"><span class="step-num">03</span><div class="step-content"><h4>{{ _('Set assumptions') }}</h4><p>{{ _('Review tariff, sizing, orientation, grid, and storage inputs.') }}</p><span class="step-meta">{{ _('Inputs') }}</span></div></li>
+      <li class="workflow-step-card"><span class="step-num">04</span><div class="step-content"><h4>{{ _('Review and save') }}</h4><p>{{ _('Inspect provenance, layout status, and indicative financial outputs.') }}</p><span class="step-meta">{{ _('Results') }}</span></div></li>
+    </ol>
+  </section>
+
+  <section class="capabilities-section" id="capabilities" aria-labelledby="capabilities-title">
+    <div class="section-header-block"><p class="section-kicker">{{ _('VERIFIED CAPABILITIES') }}</p><h2 id="capabilities-title">{{ _('Useful where the available data supports it') }}</h2><p class="section-subtitle">{{ _('Unavailable reconstruction, shade, or validation data stays unavailable; SIGNIX does not replace it with fabricated certainty.') }}</p></div>
+    <div class="capabilities-grid">
+      <article class="capability-item"><div class="cap-icon-box" aria-hidden="true">⌁</div><h4>{{ _('Boundary and obstruction drawing') }}</h4><p>{{ _('One shared Leaflet workspace records the roof boundary and excluded areas.') }}</p></article>
+      <article class="capability-item"><div class="cap-icon-box" aria-hidden="true">3D</div><h4>{{ _('Rooftop model preview') }}</h4><p>{{ _('Authoritative boundaries remain distinct from advisory reconstruction geometry.') }}</p></article>
+      <article class="capability-item"><div class="cap-icon-box" aria-hidden="true">₹</div><h4>{{ _('Saved estimate reports') }}</h4><p>{{ _('Authenticated users can revisit estimates, compare scenarios, and export supported reports.') }}</p></article>
+    </div>
+  </section>
+
+  <section class="subsidy-guide-section" aria-labelledby="subsidy-title">
+    <div class="subsidy-guide-container">
+      <div class="section-header-block"><p class="section-kicker">{{ _('RESIDENTIAL GUIDANCE') }}</p><h2 id="subsidy-title">{{ _('PM Surya Ghar is guidance, not a guarantee') }}</h2><p class="section-subtitle">{{ _('The residential estimator can apply the supported central-assistance assumptions, but actual eligibility depends on the current scheme, residential connection, approved vendors, DISCOM process, and installation details.') }}</p></div>
+      <aside class="subsidy-rules-card"><h4>{{ _('Before relying on a subsidy figure') }}</h4><ul class="subsidy-checklist"><li>{{ _('Confirm the current rules on the official portal.') }}</li><li>{{ _('Verify the consumer category and DISCOM process.') }}</li><li>{{ _('Treat SIGNIX values as indicative until approved.') }}</li><li>{{ _('Do not apply this residential assistance to business estimates.') }}</li></ul><a class="subsidy-official-link" href="https://pmsuryaghar.gov.in/" target="_blank" rel="noopener noreferrer">{{ _('Open the official PM Surya Ghar portal') }} ↗</a></aside>
+    </div>
+  </section>
+
+  <section class="final-cta-section" aria-labelledby="cta-title"><div class="cta-inner-card"><p class="cta-kicker">{{ _('CHOOSE THE PROPERTY CONTEXT FIRST') }}</p><h2 id="cta-title">{{ _('Ready to assess a rooftop?') }}</h2><p class="cta-lede">{{ _('Start with a home or business planning page, then continue into the shared authenticated survey workspace.') }}</p><div class="cta-actions"><a class="btn-primary-cta" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Plan for home') }}</a><a class="btn-secondary-cta" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Plan for business') }}</a></div></div></section>
+</div>
+{% endblock %}
+
+{% block site_footer %}{% include "_public_footer.html" %}{% endblock %}

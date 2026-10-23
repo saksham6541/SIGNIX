@@ -237,6 +237,7 @@ def create_estimate(
     roof_group_id=None,
     parent_location_id=None,
     scenario_label=None,
+    commit=True,
 ):
     polygon, obstructions = _validate_estimate_geometry(polygon, obstructions)
     total_start = time.perf_counter()
@@ -390,7 +391,10 @@ def create_estimate(
 
         db_save_start = time.perf_counter()
         db.session.add(location)
-        db.session.commit()
+        if commit:
+            db.session.commit()
+        else:
+            db.session.flush()
         db_save_elapsed = (time.perf_counter() - db_save_start) * 1000
         print(f"[TIMING] /api/estimate DB save elapsed: {db_save_elapsed:.2f} ms")
     except Exception as exc:
@@ -691,39 +695,48 @@ def clone_estimate_with_change(user_id, source_location_id, change, value, scena
         )
 
     group_id = source.roof_group_id or str(uuid.uuid4())
-    # Backfill group on source if it was a pre-scenario row
+    # Backfill the source and create the clone in one transaction. A failed
+    # recalculation must not mutate an otherwise valid saved estimate.
     if not source.roof_group_id:
         source.roof_group_id = group_id
         db.session.add(source)
-        db.session.commit()
 
     if not scenario_label:
         scenario_label = _default_scenario_label(sizing_mode, needs_backup or battery_kwh > 0)
 
-    result, location = create_estimate(
-        user_id=user_id,
-        address=source.address,
-        latitude=source.latitude,
-        longitude=source.longitude,
-        polygon=polygon,
-        obstructions=obstructions,
-        tariff_per_kwh=tariff,
-        orientation=orientation,
-        battery_kwh=battery_kwh,
-        monthly_bill=monthly_bill,
-        property_type=property_type,
-        user_priority=source.user_priority or "no_preference",
-        needs_backup=needs_backup,
-        inverter_preference=inverter_preference,
-        sizing_mode=sizing_mode,
-        budget_inr=budget_inr,
-        critical_load_kw=critical_load_kw,
-        backup_hours=backup_hours,
-        load_profile=load_profile,
-        net_metering_mode=net_metering_mode,
-        feed_in_tariff=feed_in_tariff,
-        roof_group_id=group_id,
-        parent_location_id=source.id,
-        scenario_label=scenario_label,
-    )
+    try:
+        result, location = create_estimate(
+            user_id=user_id,
+            address=source.address,
+            latitude=source.latitude,
+            longitude=source.longitude,
+            polygon=polygon,
+            obstructions=obstructions,
+            tariff_per_kwh=tariff,
+            orientation=orientation,
+            battery_kwh=battery_kwh,
+            monthly_bill=monthly_bill,
+            property_type=property_type,
+            user_priority=source.user_priority or "no_preference",
+            needs_backup=needs_backup,
+            inverter_preference=inverter_preference,
+            sizing_mode=sizing_mode,
+            budget_inr=budget_inr,
+            critical_load_kw=critical_load_kw,
+            backup_hours=backup_hours,
+            load_profile=load_profile,
+            net_metering_mode=net_metering_mode,
+            feed_in_tariff=feed_in_tariff,
+            roof_group_id=group_id,
+            parent_location_id=source.id,
+            scenario_label=scenario_label,
+            commit=False,
+        )
+        db.session.commit()
+    except (InvalidEstimateInputError, EstimationEngineError, EstimatePersistenceError):
+        db.session.rollback()
+        raise
+    except Exception as exc:
+        db.session.rollback()
+        raise EstimatePersistenceError(str(exc)) from exc
     return result, location, source

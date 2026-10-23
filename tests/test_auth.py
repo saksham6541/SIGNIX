@@ -64,6 +64,8 @@ def test_language_switch_changes_active_locale_for_anonymous_request(app):
 
     assert response.status_code == 200
     assert b'<html lang="hi">' in response.data
+    assert "घर के लिए सोलर".encode("utf-8") in response.data
+    assert "व्यवसाय के लिए सोलर".encode("utf-8") in response.data
     with test_client.session_transaction() as session:
         assert session["language"] == "hi"
 
@@ -227,13 +229,64 @@ def test_saved_settings_prefill_new_estimate_form(app):
         },
     )
 
-    estimate_page = test_client.get("/")
+    estimate_page = test_client.get("/survey/home")
 
     assert estimate_page.status_code == 200
     assert b'id="tariff-per-kwh"' in estimate_page.data
     assert b'value="7.25"' in estimate_page.data
     assert b'<option value="Delhi" selected>' in estimate_page.data
     assert b'<option value="remote" selected>' in estimate_page.data
+
+
+def test_login_returns_to_requested_local_survey(app):
+    test_client = app.test_client()
+
+    response = test_client.post(
+        "/login?next=/survey/business",
+        data={"email": "test@example.com", "password": "unused"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/survey/business")
+
+
+def test_login_rejects_external_next_target(app):
+    test_client = app.test_client()
+
+    response = test_client.post(
+        "/login?next=https://example.com/steal-session",
+        data={"email": "test@example.com", "password": "unused"},
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/dashboard")
+
+
+def test_signup_returns_to_requested_local_survey(app):
+    test_client = app.test_client()
+
+    response = test_client.post(
+        "/signup?next=/survey/home",
+        data={
+            "display_name": "Planning User",
+            "email": "planning@example.com",
+            "password": "correct horse battery staple",
+            "confirm_password": "correct horse battery staple",
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/survey/home")
+
+
+def test_auth_page_switch_links_preserve_planning_target(app):
+    test_client = app.test_client()
+
+    login_page = test_client.get("/login?next=/survey/business")
+    signup_page = test_client.get("/signup?next=/survey/home")
+
+    assert b'href="/signup?next=/survey/business"' in login_page.data
+    assert b'href="/login?next=/survey/home"' in signup_page.data
 
 
 def test_profile_display_name_and_email_update_succeeds(app):

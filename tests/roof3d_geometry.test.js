@@ -49,6 +49,16 @@ const largeView = geometry.cameraFrameForBounds(
 );
 assert.ok(smallView >= 5.5);
 assert.ok(largeView > smallView * 3);
+const framingFootprints = {
+  compact: [[-2,-1.5],[2,-1.5],[2,1.5],[-2,1.5]],
+  elongated: [[-20,-1.5],[20,-1.5],[20,1.5],[-20,1.5]],
+  concave: [[0,0],[10,0],[10,8],[6,8],[6,3],[4,3],[4,8],[0,8]],
+  irregular: [[-6,-2],[-1,-5],[5,-3],[7,2],[2,5],[-5,4]]
+};
+const framing = Object.fromEntries(Object.entries(framingFootprints).map(([name, ring]) => [name, geometry.cameraFrameForRing(ring, 16 / 9, .72, .55, 3)]));
+assert.ok(Object.values(framing).every(Number.isFinite), 'all authoritative footprint shapes should produce deterministic finite framing');
+assert.ok(framing.elongated > framing.compact * 2, 'elongated roofs must not be clipped by a compact-roof frame');
+assert.ok(geometry.cameraFrameForRing(framingFootprints.elongated, 16 / 9, 0, 1.555, 3) > framing.elongated, 'top view should account for the elongated projected axis');
 
 const roof = [[0, 0], [10, 0], [10, 8], [0, 8]];
 const surface = [[0, 0], [5, 0], [5, 8], [0, 8]];
@@ -60,6 +70,8 @@ assert.equal(geometry.polygonFits(validPanel, surface, []), true);
 assert.equal(geometry.polygonFits(validPanel, roof, []), true);
 assert.equal(geometry.polygonFits(outsideSurface, surface, []), false);
 assert.equal(geometry.polygonFits(validPanel, surface, [obstruction]), false);
+assert.equal(geometry.polygonFitReason(outsideSurface, surface, [], { surfaceCheck: true }), 'surface');
+assert.equal(geometry.polygonFitReason(validPanel, surface, [obstruction]), 'obstruction');
 const centerInsideEdgeOutside = [[8,1],[11,1],[11,3],[8,3]];
 assert.equal(geometry.pointInRing(9.5,2,roof), true);
 assert.equal(geometry.polygonFits(centerInsideEdgeOutside, roof, [], { grid: null, edgeSetback: 0, layoutMode: 'planning_preview' }), false);
@@ -125,16 +137,31 @@ assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ stat
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'stale', panel_count: 6, dc_capacity_kw: 3.27 }))), { status: 'stale', count: null, capacityKw: null });
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'accepted', panel_count: 6 }))), { status: 'invalid', count: null, capacityKw: null });
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.acceptedLayoutMetrics({ status: 'accepted', panel_count: null, dc_capacity_kw: 3.27 }))), { status: 'invalid', count: null, capacityKw: null });
-assert.equal(geometry.placementShortfallText(6, 11), '5 estimate modules could not be placed after boundary, setback, obstruction, surface, and classification checks.');
+assert.equal(geometry.placementShortfallText(6, 11, { boundary: 3, classification: 2 }), '5 estimate modules could not be placed after roof boundary, shade/classification checks.');
+assert.equal(geometry.placementShortfallText(6, 11, {}), '5 estimate modules could not be placed.');
 assert.equal(geometry.placementShortfallText(11, 11), '');
 assert.deepEqual(savedFinancial, { systemSize: 8, annualGeneration: 12000 });
+assert.equal(geometry.angularDifference(359, 0), 1);
+assert.equal(geometry.angularDifference(5, 355), 10);
 
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.viewerCapability(false, true))), { ok: false, code: 'three_unavailable' });
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.viewerCapability(true, false))), { ok: false, code: 'webgl_unavailable' });
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.viewerCapability(true, true))), { ok: true, code: 'ready' });
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState(null))), { ok: false, code: 'unavailable' });
 assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState({ available: true, surfaces: [] }))), { ok: false, code: 'malformed' });
-assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState({ available: true, surfaces: [], authoritative_boundary_local_xz_meters: [[0,0],[1,0],[0,1]] }))), { ok: true, code: 'ready' });
+const validReconstruction = {
+  available: true,
+  authoritative_boundary_local_xz_meters: [[0,0],[4,0],[4,4],[0,4]],
+  surfaces: [{ id: 'surface-1', polygon_local_xz_meters: [[0,0],[4,0],[4,4],[0,4]], is_valid: true }],
+  design_revision: { id: 12, number: 3 },
+  geometry_key: 'geometry-current'
+};
+const compatibleValidation = { geometry_key: 'geometry-current', geometry_compatible: true, status: 'insufficient_data' };
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.reconstructionPayloadState(validReconstruction))), { ok: true, code: 'ready' });
+assert.deepEqual(JSON.parse(JSON.stringify(geometry.layoutAcceptanceState(validReconstruction, [{ id: 'panel-1' }], compatibleValidation, 'planning_preview'))), { ok: true, code: 'ready' });
+assert.equal(geometry.layoutAcceptanceState(validReconstruction, [{ id: 'panel-1' }], null, 'planning_preview').code, 'validation_unavailable');
+assert.equal(geometry.layoutAcceptanceState(validReconstruction, [{ id: 'panel-1' }], compatibleValidation, 'conservative').code, 'classification_unavailable');
+assert.equal(geometry.layoutAcceptanceState(validReconstruction, [], compatibleValidation, 'planning_preview').code, 'no_panels');
 
 function fakeElement() {
   const classes = new Set(['hidden']);

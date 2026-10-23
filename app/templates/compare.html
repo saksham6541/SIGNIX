@@ -4,25 +4,27 @@
 <section class="compare-page">
   <div class="compare-header">
     <div>
-      <p class="eyebrow">{{ _('Scenarios') }}</p>
+      <p class="console-index">{{ _('SCENARIO ANALYSIS') }}</p>
       <h1>{{ _('Compare estimates') }}</h1>
-      <p>{{ _('Hold 2–3 configurations side-by-side — same roof, different sizing or battery choices.') }}</p>
+      <p class="tagline">{{ _('Hold 2–3 configurations side-by-side — same roof, different sizing or battery choices.') }}</p>
     </div>
   </div>
 
   {% if locations|length < 1 %}
-  <div class="compare-empty">
-    <h2>{{ _('No saved estimates yet') }}</h2>
+  <div class="empty-state reports-empty">
+    <span class="empty-index" aria-hidden="true">01</span>
+    <h3>{{ _('No saved estimates yet') }}</h3>
     <p>{{ _('Run an estimate, then use “Duplicate scenario” on the report to compare options.') }}</p>
-    <a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Start an estimate') }}</a>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
   </div>
   {% else %}
   <form method="post" class="compare-picker">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="compare-picker-heading">
       <div>
+        <p class="console-index">{{ _('SELECTION') }}</p>
         <h2>{{ _('Choose scenarios') }}</h2>
-        <p>{{ _('Pick 2 or 3 saved estimates (ideally from the same roof group).') }}</p>
+        <p class="tagline">{{ _('Pick 2 or 3 saved estimates (ideally from the same roof group).') }}</p>
       </div>
       <button type="submit" class="btn-primary-lg">{{ _('Compare selected') }}</button>
     </div>
@@ -40,7 +42,7 @@
             {{ location.address }} ·
             {% if location.sizing_mode %}{{ location.sizing_mode }} · {% endif %}
             {{ location.system_size|round(2) }} kW ·
-            {{ _('Saved') }} {{ location.created_at.strftime("%b %d, %Y") }}
+            {{ _('Saved') }} {{ location.created_at.strftime("%b %d, %Y") if location.created_at else _('Unknown') }}
             {% if location.roof_group_id %}<span class="group-tag">grp {{ location.roof_group_id[:8] }}</span>{% endif %}
           </small>
         </span>
@@ -53,7 +55,7 @@
   <section class="comparison-card">
     <div class="comparison-heading">
       <div>
-        <p class="eyebrow">{{ _('Side-by-side view') }}</p>
+        <p class="console-index">{{ _('SIDE-BY-SIDE VIEW') }}</p>
         <h2>{{ _('Scenario comparison') }}</h2>
       </div>
       <span class="comparison-count">{{ selected_locations|length }} {{ _('scenarios') }}</span>
@@ -104,7 +106,7 @@
             {% endfor %}
           </tr>
           <tr>
-            <th>{{ _('25-year savings') }} <span class="metric-hint">(indicative)</span></th>
+            <th>{{ _('25-year savings') }} <span class="metric-hint">({{ _('indicative') }})</span></th>
             {% for location in selected_locations %}
             {% set row = (comparison.rows|selectattr('id','equalto',location.id)|list|first) if comparison else none %}
             {% if row %}
@@ -177,7 +179,7 @@
             <th>{{ _('Actions') }}</th>
             {% for location in selected_locations %}
             <td class="compare-actions">
-              <a href="{{ url_for('pages.report', location_id=location.id) }}">{{ _('Open') }}</a>
+              <a href="{{ url_for('pages.report', location_id=location.id) }}">{{ _('Open') }} <span aria-hidden="true">→</span></a>
             </td>
             {% endfor %}
           </tr>

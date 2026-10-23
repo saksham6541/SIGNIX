@@ -509,8 +509,8 @@ def test_renderer_contract_keeps_geometry_and_generation_concerns_separate():
     assert "new THREE.OrthographicCamera" in source
     assert "requestAnimationFrame(animate);renderer.render(scene,camera)" in source
     assert "cameraAzimuth+=" not in source
-    assert "polygonFits(corners,surface.polygon,obstructions,{edgeSetback:0,obstructionSetback:0,checkGrid:false})" in source
-    assert "polygonFits(corners,localRing,obstructions)" in source
+    assert "polygonFitReason(corners,surface.polygon,obstructions,{edgeSetback:0,obstructionSetback:0,checkGrid:false,surfaceCheck:true})" in source
+    assert "polygonFitReason(corners,localRing,obstructions,{grid:shadeGrid,layoutMode:panelLayoutMode})" in source
     assert "surfaceHeight(panel.surface" in source
     assert "reconstructedSurfaces.filter(function(surface){return surface.valid!==false;}).forEach(makeSurfaceMesh)" in source
     assert "roofHeightFromSurfaces(point[0],point[1])" in source

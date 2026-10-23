@@ -13,16 +13,58 @@ pages_bp = Blueprint("pages", __name__)
 
 @pages_bp.route("/")
 def index():
-    user_settings = current_user if current_user.is_authenticated else None
+    return render_template("landing.html")
+
+
+PLANNING_TRACKS = {
+    "home": {
+        "property_type": "residential",
+        "title": "Solar for Home",
+    },
+    "business": {
+        "property_type": "commercial",
+        "title": "Solar for Business",
+    },
+}
+
+
+def _planning_track_or_404(planning_track):
+    track = PLANNING_TRACKS.get(planning_track)
+    if track is None:
+        abort(404)
+    return track
+
+
+@pages_bp.route("/plan/<planning_track>")
+def plan(planning_track):
+    track = _planning_track_or_404(planning_track)
+    return render_template(
+        "plan.html",
+        planning_track=planning_track,
+        track=track,
+    )
+
+
+@pages_bp.route("/survey/<planning_track>")
+@login_required
+def survey(planning_track):
+    track = _planning_track_or_404(planning_track)
+    default_property_type = track["property_type"]
+    if (
+        planning_track == "home"
+        and current_user.default_property_type in ("residential", "remote")
+    ):
+        default_property_type = current_user.default_property_type
     return render_template(
         "index.html",
-        default_tariff_per_kwh=(
-            user_settings.default_tariff_per_kwh if user_settings else None
-        ),
-        default_state=user_settings.default_state if user_settings else None,
-        default_property_type=(
-            user_settings.default_property_type if user_settings else None
-        ),
+        planning_track=planning_track,
+        track=track,
+        default_tariff_per_kwh=current_user.default_tariff_per_kwh,
+        default_state=current_user.default_state,
+        # A saved off-grid/remote household preference remains part of the
+        # home workflow. Cross-track preferences never switch a home survey
+        # into a commercial one (or vice versa).
+        default_property_type=default_property_type,
         state_choices=INDIAN_STATES,
     )
 

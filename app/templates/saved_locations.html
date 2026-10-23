@@ -1,22 +1,51 @@
 {% extends "base.html" %}
-{% block title %}{{ _('SIGNIX — Saved Locations') }}{% endblock %}
+{% block title %}{{ _('Saved Locations') }} · SIGNIX{% endblock %}
 {% block content %}
 <section class="dashboard-hero dashboard-hero-split">
-  <div><p class="console-index">{{ _('PROPERTY LIBRARY') }}</p><h1>{{ _('Saved locations') }}</h1><p class="tagline">{{ _('Every property shown here belongs to your account and links back to its saved estimate.') }}</p></div>
-  <a class="btn-dashboard-cta" href="{{ url_for('pages.index') }}">{{ _('Add a rooftop') }} <span aria-hidden="true">→</span></a>
+  <div>
+    <p class="console-index">{{ _('PROPERTY LIBRARY') }}</p>
+    <h1>{{ _('Saved locations') }}</h1>
+    <p class="tagline">{{ _('Every property shown here belongs to your account and links back to its saved estimate.') }}</p>
+  </div>
+  {% if locations %}
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Add a rooftop') }} <span aria-hidden="true">→</span></a>
+  {% endif %}
 </section>
+
 {% if locations %}
 <section class="location-library" aria-label="{{ _('Saved rooftop locations') }}">
   {% for loc in locations %}
   <article class="saved-location-card">
     <div class="saved-location-index">{{ '%02d'|format(loop.index) }}</div>
-    <div class="saved-location-copy"><p class="console-index">{{ loc.created_at.strftime('%d %b %Y') if loc.created_at else _('DATE UNAVAILABLE') }}</p><h2>{{ loc.address }}</h2><p>{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</p></div>
-    <dl class="saved-location-facts"><div><dt>{{ _('System') }}</dt><dd>{{ '{:,.1f}'.format(loc.system_size or 0) }} kW</dd></div><div><dt>{{ _('Usable roof') }}</dt><dd>{{ '{:,.1f}'.format(loc.usable_area_sqm or 0) }} m²</dd></div><div><dt>{{ _('Generation') }}</dt><dd>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh/yr</dd></div></dl>
+    <div class="saved-location-copy">
+      <p class="console-index">{{ loc.created_at.strftime('%d %b %Y') if loc.created_at else _('DATE UNAVAILABLE') }}</p>
+      <h2>{{ loc.address }}</h2>
+      <p class="location-coords">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</p>
+    </div>
+    <dl class="saved-location-facts">
+      <div>
+        <dt>{{ _('System') }}</dt>
+        <dd>{{ '{:,.1f}'.format(loc.system_size or 0) }} kW</dd>
+      </div>
+      <div>
+        <dt>{{ _('Usable roof') }}</dt>
+        <dd>{{ '{:,.1f}'.format(loc.usable_area_sqm or 0) }} m²</dd>
+      </div>
+      <div>
+        <dt>{{ _('Generation') }}</dt>
+        <dd>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh/yr</dd>
+      </div>
+    </dl>
     <a class="saved-location-link" href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open report') }} <span aria-hidden="true">→</span></a>
   </article>
   {% endfor %}
 </section>
 {% else %}
-<div class="empty-state reports-empty"><span class="empty-index" aria-hidden="true">00</span><h3>{{ _('No saved locations yet') }}</h3><p>{{ _('Complete an estimate to save the selected property and its authoritative roof boundary.') }}</p><a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Locate a property') }}</a></div>
+<div class="empty-state reports-empty">
+  <span class="empty-index" aria-hidden="true">00</span>
+  <h3>{{ _('No saved locations yet') }}</h3>
+  <p>{{ _('Complete an estimate to save the selected property and its authoritative roof boundary.') }}</p>
+  <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Locate a property') }}</a>
+</div>
 {% endif %}
 {% endblock %}

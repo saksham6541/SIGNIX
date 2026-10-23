@@ -1,38 +1,48 @@
 {% extends "base.html" %}
-{% block title %}{{ _('SIGNIX — Reports') }}{% endblock %}
+{% block title %}{{ _('SIGNIX — Reports') }} · SIGNIX{% endblock %}
 
 {% block content %}
-<section class="dashboard-hero reports-hero">
-  <p class="console-index">{{ _('SAVED ANALYSIS') }}</p>
-  <h1>{{ _('Reports') }}</h1>
-  <p class="tagline">{{ _('Open the complete assumptions, system, generation, and financial view for any saved estimate.') }}</p>
+<section class="dashboard-hero dashboard-hero-split">
+  <div>
+    <p class="console-index">{{ _('SAVED ANALYSIS') }}</p>
+    <h1>{{ _('Saved reports') }}</h1>
+    <p class="tagline">{{ _('Open the complete assumptions, system sizing, generation, and financial view for any saved estimate.') }}</p>
+  </div>
+  {% if locations %}
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
+  {% endif %}
 </section>
 
-<section aria-labelledby="reports-list-title">
-  <div class="reports-list-heading">
-    <h2 id="reports-list-title" class="section-title">{{ _('All saved reports') }}</h2>
-    <a class="btn-secondary" href="{{ url_for('pages.index') }}">{{ _('Start a new estimate') }}</a>
+<section aria-labelledby="reports-list-title" class="dashboard-section">
+  <div class="dashboard-section-heading">
+    <div>
+      <p class="console-index">{{ _('REPORT ARCHIVE') }}</p>
+      <h2 id="reports-list-title">{{ _('All saved reports') }}</h2>
+    </div>
   </div>
   {% if locations %}
   <div class="reports-table-wrap">
     <table class="reports-table">
       <thead>
         <tr>
-          <th>{{ _('Address') }}</th>
-          <th>{{ _('System') }}</th>
-          <th>{{ _('Annual generation') }}</th>
-          <th>{{ _('Monthly savings') }}</th>
-          <th><span class="sr-only">{{ _('Action') }}</span></th>
+          <th scope="col">{{ _('Address') }}</th>
+          <th scope="col">{{ _('System') }}</th>
+          <th scope="col">{{ _('Annual generation') }}</th>
+          <th scope="col">{{ _('Monthly savings') }}</th>
+          <th scope="col"><span class="sr-only">{{ _('Action') }}</span></th>
         </tr>
       </thead>
       <tbody>
         {% for loc in locations %}
         <tr>
-          <td>{{ loc.address[:80] }}{% if loc.address|length > 80 %}…{% endif %}</td>
-          <td>{{ loc.system_size }} kW</td>
+          <td>
+            <strong class="table-primary">{{ loc.address[:80] }}{% if loc.address|length > 80 %}…{% endif %}</strong>
+            <small class="table-secondary">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</small>
+          </td>
+          <td>{{ '{:,.1f}'.format(loc.system_size or 0) }} kW</td>
           <td>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh</td>
           <td>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</td>
-          <td><a href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open report') }} <span aria-hidden="true">→</span></a></td>
+          <td><a class="table-action-link" href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open report') }} <span aria-hidden="true">→</span></a></td>
         </tr>
         {% endfor %}
       </tbody>
@@ -40,9 +50,10 @@
   </div>
   {% else %}
   <div class="empty-state reports-empty">
+    <span class="empty-index" aria-hidden="true">01</span>
     <h3>{{ _('No saved reports yet') }}</h3>
     <p>{{ _('Locate a property and complete an estimate to create your first report.') }}</p>
-    <a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Start an estimate') }}</a>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
   </div>
   {% endif %}
 </section>

@@ -4,17 +4,21 @@
 <section class="savings-page">
   <div class="savings-page-header">
     <div>
-      <p class="eyebrow">{{ _('Your solar portfolio') }}</p>
+      <p class="console-index">{{ _('PORTFOLIO IMPACT') }}</p>
       <h1>{{ _('Savings overview') }}</h1>
-      <p>{{ _('See the combined financial and environmental value of your saved estimates.') }}</p>
+      <p class="tagline">{{ _('See the combined financial and environmental value of your saved estimates.') }}</p>
     </div>
+    {% if locations %}
+    <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
+    {% endif %}
   </div>
 
   {% if not locations %}
-  <div class="savings-empty">
-    <h2>{{ _('Your savings story starts with an estimate') }}</h2>
+  <div class="empty-state reports-empty">
+    <span class="empty-index" aria-hidden="true">01</span>
+    <h3>{{ _('Your savings story starts with an estimate') }}</h3>
     <p>{{ _('Run and save your first rooftop estimate to see your potential savings here.') }}</p>
-    <a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Start an estimate') }}</a>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
   </div>
   {% else %}
   <div class="savings-overview-grid">
@@ -31,44 +35,77 @@
 
     <div class="savings-stats-grid">
       <div class="estimate-stat-card">
-        <span class="stat-icon green-icon">♻</span>
+        <span class="stat-icon green-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+        </span>
         <span class="stat-label">{{ _('CO2 reduction') }}</span>
         <strong>{{ "%.2f"|format(co2_reduction_tons) }} tons</strong>
-        <small>{{ _('Across %(count)s saved estimate(s)', count=locations|length) }}</small>
+        <small class="stat-meta">{{ _('Across %(count)s saved estimate(s)', count=locations|length) }}</small>
       </div>
+
       <div class="estimate-stat-card">
-        <span class="stat-icon pink-icon">🌳</span>
+        <span class="stat-icon pink-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 7 8h3l-4 6h4l-3 4h12l-3-4h4l-4-6h3L12 2z"/>
+            <path d="M12 18v4"/>
+          </svg>
+        </span>
         <span class="stat-label">{{ _('Equivalent trees') }}</span>
         <strong>{{ environmental_equivalents.trees_planted|int }}</strong>
-        <small>{{ _('CO2 absorption equivalent') }}</small>
+        <small class="stat-meta">{{ _('CO2 absorption equivalent') }}</small>
       </div>
+
       <div class="estimate-stat-card">
-        <span class="stat-icon orange-icon">⌁</span>
+        <span class="stat-icon orange-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 17h14"/>
+            <path d="M18.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+            <path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+            <path d="M8 12h8l2-5H6l2 5Z"/>
+          </svg>
+        </span>
         <span class="stat-label">{{ _('Distance avoided') }}</span>
         <strong>{{ "%.0f"|format(environmental_equivalents.km_not_driven) }} km</strong>
-        <small>{{ _('Car travel equivalent') }}</small>
+        <small class="stat-meta">{{ _('Car travel equivalent') }}</small>
       </div>
+
       <div class="estimate-stat-card">
-        <span class="stat-icon indigo-icon">◉</span>
+        <span class="stat-icon indigo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 22h12M4 9h10M4 22V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v18"/>
+            <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L19 6"/>
+          </svg>
+        </span>
         <span class="stat-label">{{ _('Fuel saved') }}</span>
         <strong>{{ "%.0f"|format(environmental_equivalents.fuel_liters_saved) }} L</strong>
-        <small>{{ _('Petrol equivalent') }}</small>
+        <small class="stat-meta">{{ _('Petrol equivalent') }}</small>
       </div>
     </div>
   </div>
 
-  <section class="savings-opportunity">
-    <div>
-      <p class="eyebrow">{{ _('Best opportunity') }}</p>
-      <h2>{{ best_opportunity.address }}</h2>
-      <p>{{ _('The saved location with the highest potential monthly savings.') }}</p>
+  {% if best_opportunity %}
+  <section class="savings-opportunity" aria-labelledby="best-opp-title">
+    <div class="savings-opportunity-copy">
+      <p class="console-index">{{ _('TOP SAVER') }}</p>
+      <h2 id="best-opp-title">{{ best_opportunity.address }}</h2>
+      <p class="tagline">{{ _('The saved location with the highest potential monthly savings.') }}</p>
     </div>
     <div class="opportunity-metrics">
-      <span><small>{{ _('Monthly savings') }}</small><strong>&#8377;{{ "%.0f"|format(best_opportunity.monthly_savings or 0) }}</strong></span>
-      <span><small>{{ _('Payback period') }}</small><strong>{{ "%.1f"|format(best_opportunity.payback_years or 0) }} {{ _('years') }}</strong></span>
-      <a class="btn-report" href="{{ url_for('pages.report', location_id=best_opportunity.id) }}">{{ _('View report') }}</a>
+      <div class="opp-metric">
+        <small>{{ _('Monthly savings') }}</small>
+        <strong>&#8377;{{ "%.0f"|format(best_opportunity.monthly_savings or 0) }}</strong>
+      </div>
+      <div class="opp-metric">
+        <small>{{ _('Payback period') }}</small>
+        <strong>{{ "%.1f"|format(best_opportunity.payback_years or 0) }} {{ _('years') }}</strong>
+      </div>
+      <a class="btn-dashboard-cta" href="{{ url_for('pages.report', location_id=best_opportunity.id) }}">{{ _('View report') }} <span aria-hidden="true">→</span></a>
     </div>
   </section>
+  {% endif %}
   {% endif %}
 </section>
 {% endblock %}

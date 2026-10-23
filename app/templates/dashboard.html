@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _('SIGNIX — Dashboard') }}{% endblock %}
+{% block title %}{{ _('Dashboard') }} · SIGNIX{% endblock %}
 
 {% block content %}
 <section class="dashboard-hero dashboard-hero-split">
@@ -8,42 +8,78 @@
     <h1>{{ _('Your solar planning workspace') }}</h1>
     <p class="tagline">{{ _('Review saved estimates, reopen reports, or begin another rooftop assessment.') }}</p>
   </div>
-  <a class="btn-dashboard-cta" href="{{ url_for('pages.index') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
 </section>
 
 <section class="dashboard-metrics" aria-label="{{ _('Saved estimate summary') }}">
-  <article><span>{{ _('Saved rooftops') }}</span><strong>{{ summary.saved_locations }}</strong><small>{{ _('owned by this account') }}</small></article>
-  <article><span>{{ _('Planned capacity') }}</span><strong>{{ '{:,.1f}'.format(summary.total_capacity_kw) }} <small>kW</small></strong><small>{{ _('across saved estimates') }}</small></article>
-  <article><span>{{ _('Annual generation') }}</span><strong>{{ '{:,.0f}'.format(summary.annual_generation_kwh) }} <small>kWh</small></strong><small>{{ _('persisted estimate total') }}</small></article>
-  <article><span>{{ _('Monthly savings') }}</span><strong>₹{{ '{:,.0f}'.format(summary.monthly_savings) }}</strong><small>{{ _('persisted estimate total') }}</small></article>
+  <article>
+    <span>{{ _('Saved rooftops') }}</span>
+    <strong>{{ summary.saved_locations }}</strong>
+    <small>{{ _('owned by this account') }}</small>
+  </article>
+  <article>
+    <span>{{ _('Planned capacity') }}</span>
+    <strong>{{ '{:,.1f}'.format(summary.total_capacity_kw) }} <small>kW</small></strong>
+    <small>{{ _('across saved estimates') }}</small>
+  </article>
+  <article>
+    <span>{{ _('Annual generation') }}</span>
+    <strong>{{ '{:,.0f}'.format(summary.annual_generation_kwh) }} <small>kWh</small></strong>
+    <small>{{ _('persisted estimate total') }}</small>
+  </article>
+  <article>
+    <span>{{ _('Monthly savings') }}</span>
+    <strong>₹{{ '{:,.0f}'.format(summary.monthly_savings) }}</strong>
+    <small>{{ _('persisted estimate total') }}</small>
+  </article>
 </section>
 
 <section class="dashboard-section" aria-labelledby="recent-reports-title">
   <div class="dashboard-section-heading">
-    <div><p class="console-index">{{ _('RECENT WORK') }}</p><h2 id="recent-reports-title">{{ _('Latest saved estimates') }}</h2></div>
-    {% if locations %}<a href="{{ url_for('pages.reports') }}">{{ _('View all reports') }} <span aria-hidden="true">→</span></a>{% endif %}
+    <div>
+      <p class="console-index">{{ _('RECENT WORK') }}</p>
+      <h2 id="recent-reports-title">{{ _('Latest saved estimates') }}</h2>
+    </div>
+    {% if locations %}
+    <a class="table-action-link" href="{{ url_for('pages.reports') }}">{{ _('View all reports') }} <span aria-hidden="true">→</span></a>
+    {% endif %}
   </div>
+
   {% if locations %}
-  <div class="reports-table-wrap"><table class="reports-table">
-    <thead>
-      <tr>
-        <th>{{ _('Property') }}</th><th>{{ _('System') }}</th><th>{{ _('Annual output') }}</th><th>{{ _('Saved') }}</th><th><span class="sr-only">{{ _('Action') }}</span></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for loc in locations %}
-      <tr>
-        <td><strong class="table-primary">{{ loc.address[:60] }}{% if loc.address|length > 60 %}…{% endif %}</strong><small class="table-secondary">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</small></td>
-        <td>{{ '{:,.1f}'.format(loc.system_size or 0) }} kW</td>
-        <td>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh</td>
-        <td>{{ loc.created_at.strftime('%d %b %Y') if loc.created_at else _('Unknown') }}</td>
-        <td><a href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open') }} <span aria-hidden="true">→</span></a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
+  <div class="reports-table-wrap">
+    <table class="reports-table">
+      <thead>
+        <tr>
+          <th scope="col">{{ _('Property') }}</th>
+          <th scope="col">{{ _('System') }}</th>
+          <th scope="col">{{ _('Annual output') }}</th>
+          <th scope="col">{{ _('Saved') }}</th>
+          <th scope="col"><span class="sr-only">{{ _('Action') }}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loc in locations %}
+        <tr>
+          <td>
+            <strong class="table-primary">{{ loc.address[:60] }}{% if loc.address|length > 60 %}…{% endif %}</strong>
+            <small class="table-secondary">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</small>
+          </td>
+          <td>{{ '{:,.1f}'.format(loc.system_size or 0) }} kW</td>
+          <td>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh</td>
+          <td>{{ loc.created_at.strftime('%d %b %Y') if loc.created_at else _('Unknown') }}</td>
+          <td><a class="table-action-link" href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open') }} <span aria-hidden="true">→</span></a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-  <div class="empty-state reports-empty"><span class="empty-index" aria-hidden="true">01</span><h3>{{ _('Your first rooftop starts here') }}</h3><p>{{ _('Select a property, trace its roof, and SIGNIX will keep the resulting estimate in this workspace.') }}</p><a class="btn-grad" href="{{ url_for('pages.index') }}">{{ _('Start an estimate') }}</a></div>
+  <div class="empty-state reports-empty">
+    <span class="empty-index" aria-hidden="true">01</span>
+    <h3>{{ _('Your first rooftop starts here') }}</h3>
+    <p>{{ _('Select a property, trace its roof, and SIGNIX will keep the resulting estimate in this workspace.') }}</p>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
+  </div>
   {% endif %}
 </section>
 {% endblock %}
