@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 from threading import Lock
 
@@ -222,10 +223,81 @@ def _create_gemini_client(api_key, timeout_seconds):
     )
 
 
+def _provider_error_diagnostics(error):
+    """Return only structured, non-sensitive identifiers from a provider error."""
+    details = getattr(error, "details", None)
+    if isinstance(details, dict) and isinstance(details.get("error"), dict):
+        details = details["error"]
+    if not isinstance(details, dict):
+        details = {}
+
+    provider_status = getattr(error, "status", None) or details.get("status")
+    provider_reason = details.get("reason")
+    safe_identifier = re.compile(r"[A-Za-z0-9_.-]{1,80}")
+    if not isinstance(provider_status, str) or not safe_identifier.fullmatch(
+        provider_status
+    ):
+        provider_status = None
+    if not isinstance(provider_reason, str) or not safe_identifier.fullmatch(
+        provider_reason
+    ):
+        provider_reason = None
+    provider_error_code = None
+
+    rejected_fields = set()
+    for detail in details.get("details", []):
+        if not isinstance(detail, dict):
+            continue
+        if provider_error_code is None:
+            candidate_code = detail.get("code")
+            if isinstance(candidate_code, str) and safe_identifier.fullmatch(
+                candidate_code
+            ):
+                provider_error_code = candidate_code
+        if provider_reason is None:
+            candidate_reason = detail.get("reason")
+            if isinstance(candidate_reason, str) and safe_identifier.fullmatch(
+                candidate_reason
+            ):
+                provider_reason = candidate_reason
+        violations = detail.get("fieldViolations", detail.get("field_violations", []))
+        if not isinstance(violations, list):
+            continue
+        for violation in violations:
+            if not isinstance(violation, dict):
+                continue
+            field = violation.get("field")
+            if isinstance(field, str) and re.fullmatch(
+                r"[A-Za-z][A-Za-z0-9_.\[\]-]{0,79}", field
+            ):
+                rejected_fields.add(field)
+
+    if provider_error_code is None:
+        candidate_code = details.get("code")
+        if isinstance(candidate_code, str) and safe_identifier.fullmatch(
+            candidate_code
+        ):
+            provider_error_code = candidate_code
+
+    return (
+        provider_status,
+        provider_reason,
+        provider_error_code,
+        sorted(rejected_fields),
+    )
+
+
 def _provider_error_response(error):
     """Map provider failures to stable, non-sensitive assistant API errors."""
     code = getattr(error, "code", None)
     error_name = type(error).__name__.lower()
+    provider_status, _provider_reason, _provider_error_code, rejected_fields = (
+        _provider_error_diagnostics(error)
+    )
+    model_rejected = (
+        any(field == "model" or field.startswith("model.") for field in rejected_fields)
+        or (code == 404 and provider_status in {"NOT_FOUND", "MODEL_NOT_FOUND"})
+    )
 
     if code in {401, 403}:
         return _("The assistant provider is not configured correctly."), 503, "provider_auth"
@@ -234,7 +306,9 @@ def _provider_error_response(error):
     if code in {408, 504} or "timeout" in error_name:
         return _("The assistant request timed out. Please try again."), 504, "provider_timeout"
     if code is not None and 400 <= code < 500:
-        return _("The assistant configuration is invalid."), 503, "provider_configuration"
+        if model_rejected:
+            return _("The assistant configuration is invalid."), 503, "provider_configuration"
+        return _("The assistant is temporarily unavailable."), 502, "provider_request_rejected"
     if code is not None and code >= 500:
         return _("The assistant provider is temporarily unavailable."), 502, "provider_unavailable"
     if any(term in error_name for term in ("connection", "network", "transport")):
@@ -245,7 +319,9 @@ def _provider_error_response(error):
 @assistant_bp.post("/api/assistant")
 @login_required
 def assistant():
-    payload = request.get_json(silent=True) or {}
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        payload = {}
     message = payload.get("message")
     current_app.logger.info("Assistant request user_id=%s", current_user.id)
     if not isinstance(message, str) or not message.strip():
@@ -271,12 +347,26 @@ def assistant():
         )
 
     api_key = current_app.config.get("GEMINI_API_KEY")
+    model = current_app.config.get("GEMINI_MODEL")
     if not api_key:
         current_app.logger.error(
-            "Assistant request unavailable: missing API key",
+            "Assistant configuration status GEMINI_API_KEY=missing GEMINI_MODEL=%s",
+            model if isinstance(model, str) and re.fullmatch(
+                r"[A-Za-z0-9_.-]{1,100}", model
+            ) else "invalid",
         )
         return jsonify(
             error=_("The assistant is not configured"), code="missing_configuration"
+        ), 503
+
+    if not isinstance(model, str) or not model.strip():
+        current_app.logger.error(
+            "Assistant configuration invalid field=GEMINI_MODEL "
+            "GEMINI_API_KEY=configured GEMINI_MODEL=missing"
+        )
+        return jsonify(
+            error=_("The assistant configuration is invalid."),
+            code="provider_configuration",
         ), 503
 
     try:
@@ -287,7 +377,7 @@ def assistant():
         if rating_context:
             prompt_contents = f"{prompt_contents}\n\n{rating_context}"
         response = client.models.generate_content(
-            model=current_app.config["GEMINI_MODEL"],
+            model=model,
             contents=prompt_contents,
             config={
                 "system_instruction": build_system_prompt(
@@ -296,13 +386,34 @@ def assistant():
             },
         )
     except Exception as error:
-        message_text, status, code = _provider_error_response(error)
-        current_app.logger.error(
-            "Gemini assistant request failed error=%s status=%s",
-            type(error).__name__,
-            status,
+        message_text, response_status, response_code = _provider_error_response(error)
+        (
+            provider_status,
+            provider_reason,
+            provider_error_code,
+            rejected_fields,
+        ) = _provider_error_diagnostics(error)
+        safe_model = (
+            model if re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", model) else "invalid"
         )
-        return jsonify(error=message_text, code=code), status
+        provider_http_status = (
+            error.code if type(getattr(error, "code", None)) is int else "unknown"
+        )
+        current_app.logger.error(
+            "Gemini assistant request failed error=%s response_status=%s "
+            "provider_http_status=%s provider_status=%s provider_error_code=%s "
+            "provider_reason=%s rejected_fields=%s GEMINI_API_KEY=configured "
+            "GEMINI_MODEL=%s",
+            type(error).__name__,
+            response_status,
+            provider_http_status,
+            provider_status or "unknown",
+            provider_error_code if provider_error_code is not None else "unknown",
+            provider_reason or "unknown",
+            ",".join(rejected_fields) or "unknown",
+            safe_model,
+        )
+        return jsonify(error=message_text, code=response_code), response_status
 
     try:
         response_text = response.text

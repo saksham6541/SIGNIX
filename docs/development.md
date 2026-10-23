@@ -13,14 +13,14 @@ Hindi PDF reports use the packaged `app/static/fonts/NotoSansDevanagari-Regular.
 
 ## Environment
 
-Create `.env` from `.env.example` and replace `SECRET_KEY`. Provider keys are optional. `.env`, databases, caches, virtual environments, editor settings, logs, generated PDFs, and build output are ignored.
+Create `.env` from `.env.example` and replace `SECRET_KEY`. The SIGNIX Assistant requires a valid `GEMINI_API_KEY`; the app's `run.py` entry point loads `.env` before creating the Flask application. Set `GEMINI_API_KEY` in the server environment for other deployment entry points. Replace the example placeholder with a key from Google AI Studio, keep it server-side, and restart the application. Provider keys for non-chat features are otherwise optional. `.env`, databases, caches, virtual environments, editor settings, logs, generated PDFs, and build output are ignored.
 
 Important optional variables:
 
 - `DATABASE_URL`
 - `NASA_POWER_URL`, `PVGIS_URL`
 - `NOMINATIM_URL`, `NOMINATIM_REVERSE_URL`
-- `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_ROOF_MODEL`
+- `GEMINI_API_KEY` (required for Assistant chat), `GEMINI_MODEL`, `GEMINI_ROOF_MODEL`
 - `GOOGLE_SOLAR_API_KEY` or `GOOGLE_MAPS_API_KEY`
 - `ROOFTOP_PROTOTYPE_FIXTURE`, `ROOFTOP_EXTERNAL_CACHE_DAYS`
 

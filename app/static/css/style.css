@@ -7087,7 +7087,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     line-height: 1.65;
   }
 
-  .landing-subsidy-portal {
+  .landing-subsidy-copy .subsidy-official-link {
     display: inline-flex;
     min-height: 50px;
     align-items: center;
@@ -7104,16 +7104,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     transition: background-color .16s ease, box-shadow .16s ease;
   }
 
-  .landing-subsidy-portal span {
+  .landing-subsidy-copy .subsidy-official-link span {
     font-size: 20px;
     line-height: 1;
   }
 
-  .landing-subsidy-portal:hover {
+  .landing-subsidy-copy .subsidy-official-link:hover {
     background: #8C4B11;
   }
 
-  .landing-subsidy-portal:focus-visible {
+  .landing-subsidy-copy .subsidy-official-link:focus-visible {
     outline: 3px solid var(--indigo);
     outline-offset: 3px;
   }
@@ -7210,7 +7210,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
       margin-top: 14px;
     }
 
-    .landing-subsidy-portal {
+    .landing-subsidy-copy .subsidy-official-link {
       min-height: 48px;
       margin-top: 19px;
     }

@@ -5,6 +5,10 @@ tables if they don't exist), seeds mock tariff/subsidy reference data if
 empty, and runs the dev server.
 """
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from app import create_app
 from app.database import initialize_database
 from app.models import db, TariffTable, SubsidyScheme

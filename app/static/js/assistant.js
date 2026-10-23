@@ -114,11 +114,7 @@
   }
 
   function friendlyError(error) {
-    if (error?.status === 429) return strings.rateLimit;
-    if (error?.code === 'request_timeout') return strings.timeout;
-    if (error?.code === 'connection_error') return strings.connection;
-    if (error?.code === 'empty_response' || error?.code === 'malformed_response') return strings.emptyResponse;
-    return error?.message || strings.unavailable;
+    return getAssistantErrorMessage(error, strings);
   }
 
   function togglePanel() {
@@ -288,14 +284,27 @@ function createAssistantClient({
         body: JSON.stringify({ message }),
         signal: controller?.signal,
       });
-      const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        const error = new Error(data.error || 'The assistant is temporarily unavailable.');
+        const hasProviderMessage = data && typeof data === 'object' && !Array.isArray(data)
+          && typeof data.error === 'string' && data.error.trim();
+        const errorMessage = hasProviderMessage
+          ? data.error
+          : 'The assistant is temporarily unavailable.';
+        const error = new Error(errorMessage);
         error.status = response.status;
-        error.code = data.code;
+        error.code = data && typeof data === 'object' && !Array.isArray(data)
+          && typeof data.code === 'string'
+          ? data.code
+          : 'unavailable';
         throw error;
       }
-      if (!data || typeof data.response !== 'string' || !data.response.trim()) {
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        const error = new Error('The assistant returned an invalid response.');
+        error.code = 'malformed_response';
+        throw error;
+      }
+      if (typeof data.response !== 'string' || !data.response.trim()) {
         const error = new Error('The assistant returned an empty response.');
         error.code = 'empty_response';
         throw error;
@@ -316,6 +325,17 @@ function createAssistantClient({
   }
 
   return { send, get inFlight() { return inFlight; } };
+}
+
+function getAssistantErrorMessage(error, strings = {}) {
+  if (error?.status === 429) return strings.rateLimit || error.message || strings.unavailable;
+  if (error?.code === 'request_timeout') return strings.timeout || error.message || strings.unavailable;
+  if (error?.code === 'connection_error') return strings.connection || error.message || strings.unavailable;
+  if (error?.code === 'unavailable') return strings.unavailable || error.message;
+  if (error?.code === 'empty_response' || error?.code === 'malformed_response') {
+    return strings.emptyResponse || error.message || strings.unavailable;
+  }
+  return error?.message || strings.unavailable;
 }
 
 function setupVoiceInput({ button, input, recognitionConstructor, locale, strings, onError = () => {} }) {
@@ -421,5 +441,5 @@ function setupSpeechOutput({ synthesis, utteranceConstructor, locale, onError = 
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { createAssistantClient, setupSpeechOutput, setupVoiceInput };
+  module.exports = { createAssistantClient, getAssistantErrorMessage, setupSpeechOutput, setupVoiceInput };
 }

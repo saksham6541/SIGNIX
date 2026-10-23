@@ -1,29 +1,55 @@
 <footer class="site-footer landing-site-footer">
   <div class="footer-top-grid public-footer-grid">
-    <div>
-      <div class="footer-logo"><span class="logo-name">SIGNIX</span><span class="logo-tagline">{{ _('The Solar Survey Sheet') }}</span></div>
-      <p class="footer-desc">{{ _('Rooftop solar planning built around the boundary you draw and the assumptions you can verify.') }}</p>
+    <div class="landing-footer-brand">
+      <a class="landing-footer-logo" href="{{ url_for('pages.index') }}" aria-label="SIGNIX">
+        <span class="landing-footer-logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="38" height="38">
+            <circle cx="20" cy="20" r="7" fill="currentColor"/>
+            <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
+              <line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/>
+              <line x1="8.5" y1="8.5" x2="11.5" y2="11.5"/><line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
+              <line x1="31.5" y1="8.5" x2="28.5" y2="11.5"/><line x1="11.5" y1="28.5" x2="8.5" y2="31.5"/>
+            </g>
+          </svg>
+        </span>
+        <span class="landing-footer-wordmark">
+          <strong>SIGNIX</strong>
+          <small>{{ _('Rooftop solar planning') }}</small>
+        </span>
+      </a>
+      <p class="footer-desc">{{ _('Indicative rooftop solar estimates for Indian homes and businesses. Verify DISCOM and MNRE rules before procurement.') }}</p>
     </div>
     <div class="footer-nav-col">
-      <h4>{{ _('Plan') }}</h4>
+      <h4>{{ _('SOLUTIONS') }}</h4>
       <ul>
-        <li><a href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Solar for Home') }}</a></li>
-        <li><a href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Solar for Business') }}</a></li>
+        <li><a href="{{ url_for('pages.plan', planning_track='home') }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Home') }}{% else %}{{ _('Residential') }}{% endif %}</a></li>
+        <li><a href="{{ url_for('pages.plan', planning_track='business') }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Business') }}{% else %}{{ _('Commercial') }}{% endif %}</a></li>
+        <li><span class="landing-footer-unavailable" aria-disabled="true">{{ _('Industrial (Coming Soon)') }}</span></li>
       </ul>
     </div>
     <div class="footer-nav-col">
-      <h4>{{ _('Account') }}</h4>
+      <h4>{{ _('EXPLORE') }}</h4>
+      <ul>
+        <li><a href="{{ url_for('pages.index') }}#workflow">{{ _('How It Works') }}</a></li>
+        <li><a href="{{ url_for('pages.index') }}#subsidy-title">{{ _('Subsidy Guide') }}</a></li>
+      </ul>
+    </div>
+    <div class="footer-nav-col">
+      <h4>{{ _('CONTACT') }}</h4>
       <ul>
         {% if current_user.is_authenticated %}
         <li><a href="{{ url_for('pages.dashboard') }}">{{ _('Dashboard') }}</a></li>
-        {% else %}
-        <li><a href="{{ url_for('auth.login') }}">{{ _('Log in') }}</a></li>
-        <li><a href="{{ url_for('auth.signup') }}">{{ _('Create account') }}</a></li>
         {% endif %}
+        <li><a href="{{ url_for('pages.consultation') }}">{{ _('Book a Free Consultation') }}</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom-bar">
-    <p>{{ _('Indicative estimates only. Verify structural capacity, DISCOM rules, and subsidy eligibility before procurement.') }}</p>
+    <p>{{ _('© 2026 SIGNIX. All rights reserved.') }}</p>
+    <div class="landing-footer-legal" aria-label="{{ _('Legal information') }}">
+      <span class="landing-footer-unavailable" aria-disabled="true">{{ _('Privacy Policy') }}</span>
+      <span class="landing-footer-unavailable" aria-disabled="true">{{ _('Terms of Service') }}</span>
+    </div>
   </div>
 </footer>

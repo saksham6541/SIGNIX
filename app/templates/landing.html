@@ -263,12 +263,19 @@
         <h2 id="subsidy-title">{{ _('Check subsidy eligibility before you decide.') }}</h2>
         <p>{{ _('Government Schemes such as PM Surya Ghar Muft Bijli Yojana may support eligible residential rooftop solar installations in India. Rules, amounts and application steps are set by the government and can change.') }}</p>
         <a
-          class="landing-subsidy-portal"
+          class="subsidy-official-link"
           href="https://pmsuryaghar.gov.in/"
           target="_blank"
           rel="noopener noreferrer">
           {{ _('Visit Official Subsidy Portal') }} <span aria-hidden="true">→</span>
         </a>
+        <div class="truth-note public-truth-note" role="note">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 11v5M12 8h.01"/>
+          </svg>
+          <p>{{ _('This guidance is informational only. Verify current eligibility and application requirements with the official portal and your DISCOM.') }}</p>
+        </div>
       </div>
       <aside class="landing-subsidy-checklist" aria-labelledby="landing-subsidy-checklist-title">
         <h3 id="landing-subsidy-checklist-title">{{ _('Things to verify') }}</h3>

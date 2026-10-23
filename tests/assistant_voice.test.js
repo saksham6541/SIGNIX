@@ -1,5 +1,10 @@
 const assert = require('node:assert/strict');
-const { createAssistantClient, setupSpeechOutput, setupVoiceInput } = require('../app/static/js/assistant.js');
+const {
+  createAssistantClient,
+  getAssistantErrorMessage,
+  setupSpeechOutput,
+  setupVoiceInput,
+} = require('../app/static/js/assistant.js');
 
 class FakeElement {
   constructor() {
@@ -202,6 +207,64 @@ class FakeUtterance {
     fetchImpl: async () => jsonResponse(200, {}),
   });
   await assert.rejects(malformedClient.send('question'), error => error.code === 'empty_response');
+
+  const invalidPayloadClient = createAssistantClient({
+    csrfToken: 'csrf',
+    fetchImpl: async () => jsonResponse(200, null),
+  });
+  await assert.rejects(
+    invalidPayloadClient.send('question'),
+    error => error.code === 'malformed_response'
+      && getAssistantErrorMessage(error, { emptyResponse: 'No answer returned' }) === 'No answer returned',
+  );
+
+  const providerErrorClient = createAssistantClient({
+    csrfToken: 'csrf',
+    fetchImpl: async () => jsonResponse(503, {
+      code: 'missing_configuration',
+      error: 'The assistant is not configured',
+    }),
+  });
+  await assert.rejects(providerErrorClient.send('question'), error => (
+    error.status === 503
+      && error.code === 'missing_configuration'
+      && getAssistantErrorMessage(error) === 'The assistant is not configured'
+  ));
+
+  const rejectedRequestClient = createAssistantClient({
+    csrfToken: 'csrf',
+    fetchImpl: async () => jsonResponse(502, {
+      code: 'provider_request_rejected',
+      error: 'The assistant is temporarily unavailable.',
+    }),
+  });
+  await assert.rejects(rejectedRequestClient.send('question'), error => (
+    error.status === 502
+      && error.code === 'provider_request_rejected'
+      && getAssistantErrorMessage(error, { unavailable: 'Assistant unavailable' })
+        === 'The assistant is temporarily unavailable.'
+  ));
+
+  const nonJsonErrorClient = createAssistantClient({
+    csrfToken: 'csrf',
+    fetchImpl: async () => ({
+      ok: false,
+      status: 502,
+      json: async () => { throw new SyntaxError('not JSON'); },
+    }),
+  });
+  await assert.rejects(
+    nonJsonErrorClient.send('question'),
+    error => getAssistantErrorMessage(error, { unavailable: 'Assistant unavailable' })
+      === 'Assistant unavailable',
+  );
+  assert.equal(
+    getAssistantErrorMessage(
+      Object.assign(new Error('Daily limit reached'), { status: 429 }),
+      { rateLimit: 'Try again tomorrow' },
+    ),
+    'Try again tomorrow',
+  );
 
   const timeoutClient = createAssistantClient({
     csrfToken: 'csrf',

@@ -8,9 +8,11 @@ from app.models import UserLocation, db
 
 
 class ProviderFailure(Exception):
-    def __init__(self, code):
+    def __init__(self, code, status=None, details=None):
         super().__init__("provider detail that must not reach the client")
         self.code = code
+        self.status = status
+        self.details = details
 
 
 def _system_instruction(gemini_client):
@@ -69,6 +71,17 @@ def test_assistant_missing_credentials_is_explicit(client, app):
 
 
 @pytest.mark.parametrize(
+    "payload",
+    [None, [], "message", {"message": None}, {"message": "   "}],
+)
+def test_assistant_rejects_malformed_or_empty_user_messages(client, payload):
+    response = client.post("/api/assistant", json=payload)
+
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "A non-empty message is required"
+
+
+@pytest.mark.parametrize(
     ("failure", "status", "code"),
     [
         (ProviderFailure(401), 503, "provider_auth"),
@@ -89,6 +102,77 @@ def test_assistant_maps_provider_failures_without_leaking_details(
     assert response.status_code == status
     assert response.get_json()["code"] == code
     assert "provider detail" not in response.get_json()["error"]
+
+
+def test_assistant_identifies_model_rejection_without_logging_secrets(
+    client, app, caplog
+):
+    failure = ProviderFailure(
+        400,
+        status="INVALID_ARGUMENT",
+        details={
+            "error": {
+                "code": 400,
+                "status": "INVALID_ARGUMENT",
+                "details": [
+                    {
+                        "code": "INVALID_MODEL",
+                        "reason": "MODEL_NOT_FOUND",
+                        "fieldViolations": [
+                            {
+                                "field": "model",
+                                "description": "private provider details",
+                            }
+                        ]
+                    }
+                ],
+            }
+        },
+    )
+    gemini_client = Mock()
+    gemini_client.models.generate_content.side_effect = failure
+    with patch("app.assistant._create_gemini_client", return_value=gemini_client):
+        app.config["GEMINI_API_KEY"] = "test-api-secret"
+        app.config["GEMINI_MODEL"] = "gemini-invalid"
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 503
+    assert response.get_json()["code"] == "provider_configuration"
+    assert "GEMINI_MODEL=gemini-invalid" in caplog.text
+    assert "provider_http_status=400" in caplog.text
+    assert "provider_status=INVALID_ARGUMENT" in caplog.text
+    assert "provider_error_code=INVALID_MODEL" in caplog.text
+    assert "provider_reason=MODEL_NOT_FOUND" in caplog.text
+    assert "rejected_fields=model" in caplog.text
+    assert "GEMINI_API_KEY=configured" in caplog.text
+    assert "test-api-secret" not in caplog.text
+    assert "private provider details" not in caplog.text
+
+
+def test_assistant_does_not_label_unidentified_provider_400_as_configuration(
+    client, app
+):
+    gemini_client = Mock()
+    gemini_client.models.generate_content.side_effect = ProviderFailure(400)
+    with patch("app.assistant._create_gemini_client", return_value=gemini_client):
+        app.config["GEMINI_API_KEY"] = "test-key"
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 502
+    assert response.get_json()["code"] == "provider_request_rejected"
+    assert response.get_json()["error"] != "The assistant configuration is invalid."
+
+
+def test_assistant_rejects_empty_model_configuration_safely(client, app, caplog):
+    app.config["GEMINI_API_KEY"] = "test-key"
+    app.config["GEMINI_MODEL"] = " "
+
+    response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 503
+    assert response.get_json()["code"] == "provider_configuration"
+    assert "field=GEMINI_MODEL" in caplog.text
+    assert "test-key" not in caplog.text
 
 
 @pytest.mark.parametrize("provider_text", [None, "", "   "])
