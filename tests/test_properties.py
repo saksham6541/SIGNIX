@@ -60,9 +60,17 @@ def test_properties_page_lists_only_current_users_locations(app):
 
     assert response.status_code == 200
     assert b"My saved rooftop" in response.data
+    assert response.data.count(b"My saved rooftop") == 1
     assert b"Someone else's rooftop" not in response.data
+    assert b"28.61000, 77.20000" in response.data
+    assert b"3.0 kW" in response.data
+    assert b"4,800 kWh" in response.data
+    assert b"15 Jan 2026" in response.data
     assert b"Download PDF" in response.data
-    assert b"Select for compare" in response.data
+    assert b"Open report" in response.data
+    assert b"Select for compare" not in response.data
+    assert b'id="compare"' not in response.data
+    assert b"Scenario comparison" not in response.data
 
 
 def test_legacy_properties_routes_redirect_to_merged_page(app):
@@ -70,11 +78,7 @@ def test_legacy_properties_routes_redirect_to_merged_page(app):
 
     assert client.get("/saved-locations").headers["Location"] == "/properties"
     assert client.get("/reports").headers["Location"] == "/properties"
-    assert client.get("/compare").headers["Location"] == "/properties#compare"
-    assert (
-        client.get("/compare?ids=4,5").headers["Location"]
-        == "/properties?ids=4,5#compare"
-    )
+    assert client.get("/compare").status_code == 302
 
 
 def test_sidebar_has_accessible_my_properties_dropdown(client):
@@ -85,4 +89,7 @@ def test_sidebar_has_accessible_my_properties_dropdown(client):
     assert 'id="properties-nav-toggle"' in body
     assert 'aria-expanded="true"' in body
     assert 'aria-controls="properties-nav-panel"' in body
-    assert 'href="/properties#compare"' in body
+    assert 'href="/properties"' in body
+    assert 'href="/compare"' in body
+    assert "Saved Properties" in body
+    assert "Compare Scenarios" in body

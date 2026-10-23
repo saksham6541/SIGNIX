@@ -3677,8 +3677,20 @@ msgid "Your properties will appear here"
 msgstr "आपकी संपत्तियां यहां दिखाई देंगी"
 
 #: app/templates/properties.html
-msgid "Create an estimate to save a rooftop property, revisit its report, and compare scenarios."
-msgstr "छत की संपत्ति सहेजने, रिपोर्ट फिर से देखने और परिदृश्यों की तुलना करने के लिए अनुमान बनाएं।"
+msgid "Create an estimate to save a rooftop property and revisit its report."
+msgstr "छत की संपत्ति सहेजने और उसकी रिपोर्ट फिर से देखने के लिए अनुमान बनाएं।"
+
+#: app/templates/base.html app/templates/report.html
+msgid "Saved Properties"
+msgstr "सहेजी गई संपत्तियां"
+
+#: app/templates/properties.html
+msgid "Review saved properties and reopen their solar reports."
+msgstr "सहेजी गई संपत्तियां देखें और उनकी सोलर रिपोर्ट फिर से खोलें।"
+
+#: app/templates/base.html
+msgid "Compare Scenarios"
+msgstr "परिदृश्यों की तुलना करें"
 
 #~ msgid "Save up to 90%"
 #~ msgstr ""

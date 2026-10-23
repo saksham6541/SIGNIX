@@ -73,15 +73,16 @@ def test_reports_route_redirects_to_properties(client):
     assert response.headers["Location"] == "/properties"
 
 
-def test_saved_properties_page_has_combined_property_actions_and_compare(client):
+def test_saved_properties_page_has_combined_property_actions(client):
     response = client.get("/properties")
 
     assert response.status_code == 200
     body = response.get_data(as_text=True)
     assert "My properties" in body
-    assert "Compare scenarios" in body
+    assert "Saved Properties" in body
+    assert 'id="compare"' not in body
     assert 'id="properties-nav-toggle"' in body
-    assert 'href="/properties#compare"' in body
+    assert 'href="/compare"' in body
 
 
 def test_saved_locations_route_redirects_to_properties(client):

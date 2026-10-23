@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "compare.html" import comparison_section with context %}
 {% block title %}{{ _('My properties') }} · SIGNIX{% endblock %}
 
 {% block content %}
@@ -7,7 +6,7 @@
   <div>
     <p class="console-index">{{ _('PROPERTY LIBRARY') }}</p>
     <h1>{{ _('My properties') }}</h1>
-    <p class="tagline">{{ _('Review saved properties, reopen reports, and compare your solar scenarios.') }}</p>
+    <p class="tagline">{{ _('Review saved properties and reopen their solar reports.') }}</p>
   </div>
   <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Create an estimate') }} <span aria-hidden="true">→</span></a>
   <svg class="gt-dashboard-pattern" viewBox="0 0 420 220" aria-hidden="true">
@@ -18,8 +17,6 @@
 </section>
 
 {% if locations %}
-<form id="properties-compare-form" method="post" action="{{ url_for('pages.properties') }}#compare">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <section class="gt-property-list" aria-label="{{ _('Saved properties') }}">
     {% for loc in locations %}
     <article class="gt-property-card gt-card">
@@ -30,10 +27,6 @@
           {% if loc.scenario_label %}<p class="gt-property-address">{{ loc.address }}</p>{% endif %}
           <p class="gt-property-coordinates">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</p>
         </div>
-        <label class="gt-compare-check">
-          <input type="checkbox" name="location_ids" value="{{ loc.id }}"{% if loc.id in selected_locations|map(attribute='id') %} checked{% endif %}>
-          <span>{{ _('Select for compare') }}</span>
-        </label>
       </div>
       <dl class="gt-property-facts">
         <div>
@@ -56,7 +49,6 @@
     </article>
     {% endfor %}
   </section>
-</form>
 {% else %}
 <section class="gt-empty-state gt-card" aria-labelledby="properties-empty-title">
   <svg class="gt-empty-illustration" viewBox="0 0 120 100" aria-hidden="true">
@@ -65,12 +57,8 @@
     <circle cx="89" cy="22" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
   </svg>
   <h2 id="properties-empty-title">{{ _('Your properties will appear here') }}</h2>
-  <p>{{ _('Create an estimate to save a rooftop property, revisit its report, and compare scenarios.') }}</p>
+  <p>{{ _('Create an estimate to save a rooftop property and revisit its report.') }}</p>
   <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Create an estimate') }}</a>
 </section>
 {% endif %}
-
-<section class="gt-compare-area" id="compare" aria-labelledby="properties-compare-title">
-  {{ comparison_section(locations, selected_locations, comparison, selection_error, show_picker=false) }}
-</section>
 {% endblock %}

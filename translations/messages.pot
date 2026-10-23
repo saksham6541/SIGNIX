@@ -3474,5 +3474,17 @@ msgid "Your properties will appear here"
 msgstr ""
 
 #: app/templates/properties.html
-msgid "Create an estimate to save a rooftop property, revisit its report, and compare scenarios."
+msgid "Create an estimate to save a rooftop property and revisit its report."
+msgstr ""
+
+#: app/templates/base.html app/templates/report.html
+msgid "Saved Properties"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Review saved properties and reopen their solar reports."
+msgstr ""
+
+#: app/templates/base.html
+msgid "Compare Scenarios"
 msgstr ""

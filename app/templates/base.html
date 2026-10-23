@@ -58,25 +58,28 @@
         </div>
 
         <!-- 3. My Properties -->
-        <div class="nav-group gt-properties-nav" id="properties-nav"
-          data-default-open="{{ 'true' if request.endpoint in ('pages.properties', 'pages.report') else 'false' }}">
+        <div class="nav-group gt-properties-nav" id="properties-nav">
           <button class="nav-group-title gt-properties-nav-toggle" id="properties-nav-toggle"
-            type="button" aria-expanded="{{ 'true' if request.endpoint in ('pages.properties', 'pages.report') else 'false' }}"
+            type="button" data-default-open="true" aria-expanded="true"
             aria-controls="properties-nav-panel">
             <span>{{ _('My properties') }}</span>
             <svg class="gt-properties-nav-chevron" viewBox="0 0 16 16" aria-hidden="true">
               <path d="m4 6 4 4 4-4"/>
             </svg>
           </button>
-          <div class="gt-properties-nav-panel{% if request.endpoint in ('pages.properties', 'pages.report') %} is-open{% endif %}"
-            id="properties-nav-panel" aria-hidden="{{ 'false' if request.endpoint in ('pages.properties', 'pages.report') else 'true' }}">
-            <a class="nav-item gt-properties-nav-link{% if request.endpoint in ('pages.properties', 'pages.report') %} active{% endif %}"
-              href="{{ url_for('pages.properties') }}" {% if request.endpoint in ('pages.properties', 'pages.report') %}aria-current="page"{% endif %}>
-              <span>{{ _('All properties') }}</span>
-            </a>
-            <a class="nav-item gt-properties-nav-link" href="{{ url_for('pages.properties') }}#compare">
-              <span>{{ _('Compare scenarios') }}</span>
-            </a>
+          <div class="gt-properties-nav-panel is-open" id="properties-nav-panel" aria-hidden="false">
+            <div class="gt-properties-nav-items">
+              <a class="nav-item gt-properties-nav-link{% if request.endpoint in ('pages.properties', 'pages.report') %} active{% endif %}"
+                href="{{ url_for('pages.properties') }}" {% if request.endpoint in ('pages.properties', 'pages.report') %}aria-current="page"{% endif %}>
+                <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10 12 3l9 7v10H3z"/><path d="M8 20v-6h8v6"/></svg></span>
+                <span>{{ _('Saved Properties') }}</span>
+              </a>
+              <a class="nav-item gt-properties-nav-link{% if request.endpoint == 'pages.compare' %} active{% endif %}"
+                href="{{ url_for('pages.compare') }}" {% if request.endpoint == 'pages.compare' %}aria-current="page"{% endif %}>
+                <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V5m8 14V9m8 10V3"/><path d="M2 19h20"/></svg></span>
+                <span>{{ _('Compare Scenarios') }}</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -206,6 +209,8 @@
         }
       }
 
+      setExpanded(expanded, false);
+
       toggle.addEventListener('click', function() {
         setExpanded(!expanded, true);
       });
@@ -219,7 +224,7 @@
 
       var links = Array.from(panel.querySelectorAll('.gt-properties-nav-link'));
       function updateActiveLink() {
-        var compareActive = window.location.hash === '#compare';
+        var compareActive = window.location.pathname === '/compare';
         links.forEach(function(link, index) {
           var active = compareActive ? index === 1 : index === 0;
           link.classList.toggle('active', active);

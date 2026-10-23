@@ -1,28 +1,24 @@
-{% macro comparison_section(locations, selected_locations, comparison, selection_error=false, show_picker=true) %}
+{% extends "base.html" %}
+{% block title %}{{ _('Compare') }} · SIGNIX{% endblock %}
+{% block content %}
 <section class="compare-page">
   <div class="compare-header">
     <div>
-      {% if show_picker %}
       <p class="console-index">{{ _('SCENARIO ANALYSIS') }}</p>
       <h1>{{ _('Compare estimates') }}</h1>
       <p class="tagline">{{ _('Hold 2–3 configurations side-by-side — same roof, different sizing or battery choices.') }}</p>
-      {% else %}
-      <p class="console-index">{{ _('SCENARIO ANALYSIS') }}</p>
-      <h2>{{ _('Compare scenarios') }}</h2>
-      <p class="tagline">{{ _('Select saved properties above to compare scenarios.') }}</p>
-      {% endif %}
     </div>
   </div>
 
   {% if locations|length < 1 %}
   <div class="empty-state reports-empty">
+    <span class="empty-index" aria-hidden="true">01</span>
     <h3>{{ _('No saved estimates yet') }}</h3>
     <p>{{ _('Run an estimate, then use “Duplicate scenario” on the report to compare options.') }}</p>
     <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
   </div>
   {% else %}
-  {% if show_picker %}
-  <form method="post" action="{{ url_for('pages.properties') }}#compare" class="compare-picker">
+  <form method="post" class="compare-picker">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="compare-picker-heading">
       <div>
@@ -54,15 +50,6 @@
       {% endfor %}
     </div>
   </form>
-  {% else %}
-  <div class="compare-picker-heading">
-    <div>
-      <p class="console-index">{{ _('SELECTION') }}</p>
-      <p class="tagline">{{ _('Pick 2 or 3 saved estimates (ideally from the same roof group).') }}</p>
-    </div>
-    <button type="submit" form="properties-compare-form" class="btn-primary-lg">{{ _('Compare selected') }}</button>
-  </div>
-  {% endif %}
 
   {% if selected_locations|length >= 2 %}
   <section class="comparison-card">
@@ -207,15 +194,9 @@
     {% endif %}
     <p class="monetary-disclaimer compare-disclaimer">{{ monetary_disclaimer }}</p>
   </section>
-  {% elif selection_error %}
+  {% elif request.method == "POST" or request.args.get('ids') %}
   <p class="compare-selection-error" role="alert" aria-live="assertive">{{ _('Select at least 2 of your saved estimates to compare them.') }}</p>
   {% endif %}
   {% endif %}
 </section>
-{% endmacro %}
-
-{% extends "base.html" %}
-{% block title %}{{ _('Compare') }} · SIGNIX{% endblock %}
-{% block content %}
-{{ comparison_section(locations, selected_locations, comparison, request.method == "POST" or request.args.get('ids')) }}
 {% endblock %}

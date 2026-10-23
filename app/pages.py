@@ -100,9 +100,26 @@ def dashboard():
     )
 
 
-@pages_bp.route("/properties", methods=["GET", "POST"])
+@pages_bp.get("/properties")
 @login_required
 def properties():
+    locations = location_service.list_locations(current_user.id)
+    return render_template("properties.html", locations=locations)
+
+
+@pages_bp.get("/reports")
+def reports():
+    return redirect(url_for("pages.properties"))
+
+
+@pages_bp.get("/saved-locations")
+def saved_locations():
+    return redirect(url_for("pages.properties"))
+
+
+@pages_bp.route("/compare", methods=["GET", "POST"])
+@login_required
+def compare():
     locations = location_service.list_locations(current_user.id)
     selected_locations = []
     selected_ids = []
@@ -115,7 +132,7 @@ def properties():
         except ValueError:
             selected_ids = []
     else:
-        # Deep-link from clone flow: /properties?ids=12,34,56#compare
+        # Deep-link from clone flow: /compare?ids=12,34,56
         raw = (request.args.get("ids") or "").strip()
         if raw:
             try:
@@ -131,8 +148,7 @@ def properties():
                 )
             ]
 
-    # A repeated ID is still one scenario; preserve order while preventing a
-    # self-comparison from rendering duplicate columns.
+    # Prevent repeated IDs from rendering duplicate scenario columns.
     selected_ids = list(dict.fromkeys(selected_ids))[:3]
 
     if selected_ids:
@@ -145,34 +161,11 @@ def properties():
         comparison = _build_scenario_comparison(selected_locations)
 
     return render_template(
-        "properties.html",
+        "compare.html",
         locations=locations,
         selected_locations=selected_locations,
         comparison=comparison,
-        selection_error=(
-            len(selected_locations) < 2
-            and (request.method == "POST" or bool(request.args.get("ids")))
-        ),
     )
-
-
-@pages_bp.get("/reports")
-def reports():
-    return redirect(url_for("pages.properties"))
-
-
-@pages_bp.get("/saved-locations")
-def saved_locations():
-    return redirect(url_for("pages.properties"))
-
-
-@pages_bp.route("/compare", methods=["GET", "POST"])
-def compare():
-    target = url_for(
-        "pages.properties",
-        **request.args.to_dict(flat=True),
-    )
-    return redirect(f"{target}#compare")
 
 
 
