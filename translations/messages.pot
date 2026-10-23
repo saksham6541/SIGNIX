@@ -3424,3 +3424,55 @@ msgstr ""
 #: app/templates/consultation.html:139
 msgid "Book your free consultation"
 msgstr ""
+
+#: app/templates/base.html app/templates/report.html app/templates/properties.html
+msgid "My properties"
+msgstr ""
+
+#: app/templates/base.html
+msgid "All properties"
+msgstr ""
+
+#: app/templates/base.html app/templates/properties.html app/templates/compare.html
+msgid "Compare scenarios"
+msgstr ""
+
+#: app/templates/compare.html
+msgid "Select saved properties above to compare scenarios."
+msgstr ""
+
+#: app/templates/dashboard.html
+msgid "View all properties"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Review saved properties, reopen reports, and compare your solar scenarios."
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Create an estimate"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Saved properties"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "PROPERTY %(number)02d"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Select for compare"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Download PDF"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Your properties will appear here"
+msgstr ""
+
+#: app/templates/properties.html
+msgid "Create an estimate to save a rooftop property, revisit its report, and compare scenarios."
+msgstr ""

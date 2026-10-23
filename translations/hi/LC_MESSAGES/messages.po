@@ -3628,6 +3628,58 @@ msgstr "SIGNIX को इंस्टॉलर से शुल्क मिल 
 msgid "Book your free consultation"
 msgstr "अपना मुफ़्त परामर्श बुक करें"
 
+#: app/templates/base.html app/templates/report.html app/templates/properties.html
+msgid "My properties"
+msgstr "मेरी संपत्तियां"
+
+#: app/templates/base.html
+msgid "All properties"
+msgstr "सभी संपत्तियां"
+
+#: app/templates/base.html app/templates/properties.html app/templates/compare.html
+msgid "Compare scenarios"
+msgstr "परिदृश्यों की तुलना करें"
+
+#: app/templates/compare.html
+msgid "Select saved properties above to compare scenarios."
+msgstr "परिदृश्यों की तुलना करने के लिए ऊपर सहेजी गई संपत्तियां चुनें।"
+
+#: app/templates/dashboard.html
+msgid "View all properties"
+msgstr "सभी संपत्तियां देखें"
+
+#: app/templates/properties.html
+msgid "Review saved properties, reopen reports, and compare your solar scenarios."
+msgstr "सहेजी गई संपत्तियां देखें, रिपोर्ट फिर से खोलें और अपने सोलर परिदृश्यों की तुलना करें।"
+
+#: app/templates/properties.html
+msgid "Create an estimate"
+msgstr "एक अनुमान बनाएं"
+
+#: app/templates/properties.html
+msgid "Saved properties"
+msgstr "सहेजी गई संपत्तियां"
+
+#: app/templates/properties.html
+msgid "PROPERTY %(number)02d"
+msgstr "संपत्ति %(number)02d"
+
+#: app/templates/properties.html
+msgid "Select for compare"
+msgstr "तुलना के लिए चुनें"
+
+#: app/templates/properties.html
+msgid "Download PDF"
+msgstr "PDF डाउनलोड करें"
+
+#: app/templates/properties.html
+msgid "Your properties will appear here"
+msgstr "आपकी संपत्तियां यहां दिखाई देंगी"
+
+#: app/templates/properties.html
+msgid "Create an estimate to save a rooftop property, revisit its report, and compare scenarios."
+msgstr "छत की संपत्ति सहेजने, रिपोर्ट फिर से देखने और परिदृश्यों की तुलना करने के लिए अनुमान बनाएं।"
+
 #~ msgid "Save up to 90%"
 #~ msgstr ""
 
