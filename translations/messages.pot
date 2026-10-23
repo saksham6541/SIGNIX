@@ -3177,3 +3177,250 @@ msgstr ""
 msgid "Already registered?"
 msgstr ""
 
+#: app/templates/_public_nav.html:18
+msgid "Rooftop solar planning"
+msgstr ""
+
+#: app/templates/_public_nav.html:25
+msgid "Open navigation menu"
+msgstr ""
+
+#: app/templates/_public_nav.html:29
+msgid "Solutions"
+msgstr ""
+
+#: app/templates/_public_nav.html:38
+msgid "Residential Solar"
+msgstr ""
+
+#: app/templates/_public_nav.html:39
+msgid "Plan an indicative home rooftop system with residential assumptions."
+msgstr ""
+
+#: app/templates/_public_nav.html:41
+msgid "Explore Residential"
+msgstr ""
+
+#: app/templates/_public_nav.html:44
+msgid "Commercial Solar"
+msgstr ""
+
+#: app/templates/_public_nav.html:45
+msgid "Explore business rooftop planning with separate commercial assumptions."
+msgstr ""
+
+#: app/templates/_public_nav.html:47
+msgid "Explore Commercial"
+msgstr ""
+
+#: app/templates/_public_nav.html:50
+msgid "Industrial Solar"
+msgstr ""
+
+#: app/templates/_public_nav.html:50
+msgid "Coming Soon"
+msgstr ""
+
+#: app/templates/_public_nav.html:51
+msgid "Industrial planning is not available yet."
+msgstr ""
+
+#: app/templates/_public_nav.html:58
+msgid "How It Works"
+msgstr ""
+
+#: app/templates/_public_nav.html:59
+msgid "Subsidy Guide"
+msgstr ""
+
+#: app/templates/_public_nav.html:63
+msgid "Book a Free Consultation"
+msgstr ""
+
+#: app/templates/_public_nav.html:76
+msgid "Log In"
+msgstr ""
+
+#: app/templates/_public_nav.html:77
+msgid "Get Started"
+msgstr ""
+
+#: app/templates/_public_nav.html:112
+msgid "Close navigation menu"
+msgstr ""
+
+#: app/templates/consultation.html:3
+msgid "Book your free solar consultation"
+msgstr ""
+
+#: app/templates/consultation.html:13
+msgid "ROOFTOP SOLAR CONSULTATION"
+msgstr ""
+
+#: app/templates/consultation.html:14
+msgid "Talk through your rooftop solar needs."
+msgstr ""
+
+#: app/templates/consultation.html:16
+msgid "Share your rooftop context and electricity use."
+msgstr ""
+
+#: app/templates/consultation.html:17
+msgid "This page does not generate an estimate or installer match."
+msgstr ""
+
+#: app/templates/consultation.html:18
+msgid "Consultation requests are not live; details are not sent."
+msgstr ""
+
+#: app/templates/consultation.html:24
+msgid "Tell us a little about your rooftop and electricity use. We will help you with the next step."
+msgstr ""
+
+#: app/templates/consultation.html:27
+msgid "Please complete this field."
+msgstr ""
+
+#: app/templates/consultation.html:28
+msgid "Enter a valid 10-digit Indian mobile number."
+msgstr ""
+
+#: app/templates/consultation.html:29
+msgid "Enter a valid 6-digit PIN code."
+msgstr ""
+
+#: app/templates/consultation.html:30
+msgid "Please agree before continuing."
+msgstr ""
+
+#: app/templates/consultation.html:31
+msgid "Consultation requests are not live yet. Nothing has been saved or sent."
+msgstr ""
+
+#: app/templates/consultation.html:34
+msgid "I am enquiring for"
+msgstr ""
+
+#: app/templates/consultation.html:45
+msgid "Industrial"
+msgstr ""
+
+#: app/templates/consultation.html:52
+msgid "Full name"
+msgstr ""
+
+#: app/templates/consultation.html:57
+msgid "Phone number (10-digit Indian mobile)"
+msgstr ""
+
+#: app/templates/consultation.html:62
+msgid "PIN code"
+msgstr ""
+
+#: app/templates/consultation.html:67
+msgid "Average monthly electricity bill"
+msgstr ""
+
+#: app/templates/consultation.html:69
+msgid "Select your bill range"
+msgstr ""
+
+#: app/templates/consultation.html:70
+msgid "Below Rs 2,000"
+msgstr ""
+
+#: app/templates/consultation.html:71
+msgid "Rs 2,000-5,000"
+msgstr ""
+
+#: app/templates/consultation.html:72
+msgid "Rs 5,000-10,000"
+msgstr ""
+
+#: app/templates/consultation.html:73
+msgid "Rs 10,000-25,000"
+msgstr ""
+
+#: app/templates/consultation.html:74
+msgid "Rs 25,000-1,00,000"
+msgstr ""
+
+#: app/templates/consultation.html:75
+msgid "Above Rs 1,00,000"
+msgstr ""
+
+#: app/templates/consultation.html:82
+msgid "Industrial requirements"
+msgstr ""
+
+#: app/templates/consultation.html:85
+msgid "Approximate rooftop or land area (sq ft)"
+msgstr ""
+
+#: app/templates/consultation.html:89
+msgid "Approximate connected load or monthly units (kWh)"
+msgstr ""
+
+#: app/templates/consultation.html:93
+msgid "Type of industry"
+msgstr ""
+
+#: app/templates/consultation.html:96
+msgid "Industrial estimates are coming soon. Share your requirement and we will get back to you."
+msgstr ""
+
+#: app/templates/consultation.html:101
+msgid "I agree to be contacted about my solar consultation. My details are shared with installers only if I choose to."
+msgstr ""
+
+#: app/templates/consultation.html:105
+msgid "Book my free consultation"
+msgstr ""
+
+#: app/templates/consultation.html:113
+msgid "WHAT HAPPENS NEXT"
+msgstr ""
+
+#: app/templates/consultation.html:114
+msgid "How we connect you with installers"
+msgstr ""
+
+#: app/templates/consultation.html:119
+msgid "Share your details"
+msgstr ""
+
+#: app/templates/consultation.html:120
+msgid "Tell us about your property and electricity use."
+msgstr ""
+
+#: app/templates/consultation.html:124
+msgid "We review your rooftop needs"
+msgstr ""
+
+#: app/templates/consultation.html:125
+msgid "Your information helps frame the kind of solar enquiry you have."
+msgstr ""
+
+#: app/templates/consultation.html:129
+msgid "Installers get in touch only with your consent"
+msgstr ""
+
+#: app/templates/consultation.html:130
+msgid "Your details are shared with installers only if you choose to."
+msgstr ""
+
+#: app/templates/consultation.html:134
+msgid "You compare and decide"
+msgstr ""
+
+#: app/templates/consultation.html:135
+msgid "Choose what works for you; there is no obligation to proceed."
+msgstr ""
+
+#: app/templates/consultation.html:138
+msgid "SIGNIX may receive a fee from installers."
+msgstr ""
+
+#: app/templates/consultation.html:139
+msgid "Book your free consultation"
+msgstr ""
