@@ -109,6 +109,39 @@
       </section>
     </div>
   </section>
+
+  <section class="consult-installers" aria-labelledby="consult-installers-title">
+    <div class="consult-installers-inner">
+      <div class="consult-installers-heading">
+        <p class="consult-kicker">{{ _('WHAT HAPPENS NEXT') }}</p>
+        <h2 id="consult-installers-title">{{ _('How we connect you with installers') }}</h2>
+      </div>
+      <ol class="consult-steps">
+        <li>
+          <span class="consult-step-number" aria-hidden="true">01</span>
+          <h3>{{ _('Share your details') }}</h3>
+          <p>{{ _('Tell us about your property and electricity use.') }}</p>
+        </li>
+        <li>
+          <span class="consult-step-number" aria-hidden="true">02</span>
+          <h3>{{ _('We review your rooftop needs') }}</h3>
+          <p>{{ _('Your information helps frame the kind of solar enquiry you have.') }}</p>
+        </li>
+        <li>
+          <span class="consult-step-number" aria-hidden="true">03</span>
+          <h3>{{ _('Installers get in touch only with your consent') }}</h3>
+          <p>{{ _('Your details are shared with installers only if you choose to.') }}</p>
+        </li>
+        <li>
+          <span class="consult-step-number" aria-hidden="true">04</span>
+          <h3>{{ _('You compare and decide') }}</h3>
+          <p>{{ _('Choose what works for you; there is no obligation to proceed.') }}</p>
+        </li>
+      </ol>
+      <p class="consult-fee-note">{{ _('SIGNIX may receive a fee from installers.') }}</p>
+      <a class="consult-bottom-cta" href="#consultation-form">{{ _('Book your free consultation') }}</a>
+    </div>
+  </section>
 </div>
 {% endblock %}
 
@@ -127,6 +160,18 @@
     var consent = document.getElementById('consult-consent');
     var industrialFields = document.getElementById('industrial-fields');
     var status = document.getElementById('consult-submit-status');
+
+    var bottomCta = document.querySelector('.consult-bottom-cta');
+    bottomCta.addEventListener('click', function(event) {
+      event.preventDefault();
+      var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('consultation-form').scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start'
+      });
+      window.history.replaceState(null, '', '#consultation-form');
+      fullName.focus({ preventScroll: true });
+    });
 
     function setError(field, message) {
       var error = document.getElementById(field.id + '-error');

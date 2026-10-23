@@ -5138,6 +5138,108 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   line-height: 1.5;
 }
 
+.consult-installers {
+  padding: clamp(48px, 7vw, 88px) 20px;
+  background: var(--card);
+}
+
+.consult-installers-inner {
+  width: min(100%, 1160px);
+  margin-inline: auto;
+}
+
+.consult-installers-heading {
+  max-width: 700px;
+  margin: 0 auto 34px;
+  text-align: center;
+}
+
+.consult-installers-heading .consult-kicker {
+  margin-bottom: 12px;
+}
+
+.consult-installers-heading h2 {
+  margin: 0;
+  color: var(--indigo);
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.15;
+}
+
+.consult-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consult-steps li {
+  min-width: 0;
+  padding: 22px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.consult-step-number {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-amber) 16%, var(--card));
+  color: var(--indigo);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.consult-steps h3 {
+  margin: 18px 0 8px;
+  color: var(--indigo);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.consult-steps p {
+  margin: 0;
+  color: var(--gray);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.consult-fee-note {
+  margin: 22px 0 28px;
+  color: var(--gray);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.consult-bottom-cta {
+  display: flex;
+  width: fit-content;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  margin-inline: auto;
+  padding: 12px 22px;
+  border: 1px solid var(--accent-amber);
+  border-radius: 12px;
+  background: var(--accent-amber);
+  color: var(--indigo);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: background .16s ease, border-color .16s ease;
+}
+
+.consult-bottom-cta:hover {
+  border-color: var(--accent-orange);
+  background: var(--accent-orange);
+}
+
 @media (max-width: 520px) {
   .consult-fields-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -5150,6 +5252,29 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   .consult-segment-option label {
     padding-inline: 5px;
     font-size: 11px;
+  }
+}
+
+@media (max-width: 900px) {
+  .consult-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .consult-installers {
+    padding-inline: 18px;
+  }
+
+  .consult-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consult-submit,
+  .consult-bottom-cta {
+    transition: none;
   }
 }
 
