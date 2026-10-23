@@ -6000,3 +6000,611 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     transform: none;
   }
 }
+
+/* Report and PM Surya Ghar guidance */
+.rpt-header,
+.rpt-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.rpt-header {
+  padding: clamp(24px, 3vw, 40px) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rpt-back-link {
+  display: inline-flex;
+  margin-bottom: 20px;
+  color: var(--indigo);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.rpt-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.rpt-header-copy {
+  min-width: 0;
+}
+
+.rpt-kicker {
+  margin: 0 0 8px;
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.rpt-header h1 {
+  margin: 0;
+  color: var(--indigo);
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.rpt-meta {
+  margin: 12px 0 0;
+  color: var(--gray);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rpt-primary-download,
+.rpt-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid var(--accent-amber);
+  border-radius: 14px;
+  background: var(--accent-amber);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rpt-primary-download {
+  flex: 0 0 auto;
+  min-height: 56px;
+  padding-inline: 24px;
+  font-size: 16px;
+}
+
+.rpt-primary-download:hover,
+.rpt-action-button:hover {
+  filter: brightness(.97);
+}
+
+.rpt-primary-download:focus-visible,
+.rpt-action-button:focus-visible,
+.rpt-back-link:focus-visible,
+.rpt-accordion summary:focus-visible,
+.psg-card summary:focus-visible {
+  outline: 3px solid var(--indigo);
+  outline-offset: 3px;
+}
+
+.investment-list > .psg-result-finance {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+
+.psg-result-finance > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.psg-result-finance > p {
+  margin: 8px 0;
+}
+
+.rpt-section {
+  padding-block: clamp(32px, 4vw, 56px);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.rpt-section > .report-section-heading,
+.rpt-section > .report-section-heading h2,
+.rpt-section > h2 {
+  max-width: none;
+}
+
+.rpt-section > h2,
+.rpt-section .report-section-heading h2 {
+  margin: 0 0 14px;
+  color: var(--indigo);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.2;
+}
+
+.rpt-section .report-section-heading p,
+.rpt-indicative {
+  color: var(--gray);
+  font-size: 16px;
+}
+
+.rpt-summary {
+  padding-top: 32px;
+}
+
+.rpt-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.rpt-summary-card {
+  display: flex;
+  min-width: 0;
+  min-height: 148px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: clamp(18px, 2vw, 28px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(38, 25, 66, .07);
+}
+
+.rpt-summary-card > span {
+  color: var(--gray);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rpt-summary-card strong {
+  color: var(--indigo);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.rpt-summary-card small {
+  font-size: .55em;
+  font-weight: 700;
+}
+
+.rpt-indicative {
+  margin: 16px 0 0;
+  text-align: right;
+}
+
+.rpt-section .suitability-card,
+.rpt-section .viz-3d-card,
+.rpt-section .dial-panel,
+.rpt-section .area-breakdown-card,
+.rpt-section .financial-summary-box,
+.rpt-next-card {
+  border-radius: 20px;
+  box-shadow: 0 8px 26px rgba(38, 25, 66, .08);
+}
+
+.rpt-section .viz-3d-card {
+  width: 100%;
+  max-width: none;
+}
+
+.rpt-section .roof3d-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rpt-section .roof3d-inspector {
+  order: -1;
+}
+
+.rpt-section .roof3d-classification-metrics {
+  margin-top: 16px;
+}
+
+.rpt-accordion {
+  margin-top: 16px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.rpt-accordion summary {
+  padding: 16px 0;
+  color: var(--indigo);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rpt-accordion-content {
+  padding: 0 0 18px;
+}
+
+.rpt-accordion-content > :first-child {
+  margin-top: 0;
+}
+
+.rpt-assumption-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.rpt-next-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.rpt-next-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: clamp(20px, 2.5vw, 32px);
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.rpt-next-card > svg {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: var(--indigo);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rpt-next-card h3 {
+  margin: 0;
+  color: var(--indigo);
+  font-size: 22px;
+}
+
+.rpt-next-card p {
+  margin: 0;
+  color: var(--gray);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.rpt-next-card .rpt-action-button {
+  width: 100%;
+  margin-top: auto;
+}
+
+.rpt-clone-card .clone-scenario-panel {
+  width: 100%;
+}
+
+.rpt-clone-card .clone-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rpt-clone-card .clone-controls label,
+.rpt-clone-card .clone-controls select,
+.rpt-clone-card .clone-controls input {
+  min-width: 0;
+}
+
+.rpt-clone-card .clone-controls .rpt-action-button {
+  grid-column: 1 / -1;
+}
+
+.psg-estimate-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, .8fr);
+  align-items: start;
+  gap: clamp(20px, 3vw, 40px);
+  min-width: 0;
+}
+
+.psg-estimate-layout > .system-options-panel {
+  min-width: 0;
+  margin: 0;
+}
+
+.psg-card {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: 0 8px 26px rgba(38, 25, 66, .08);
+}
+
+.psg-card[hidden] {
+  display: none !important;
+}
+
+.psg-card > summary {
+  padding: 20px 22px;
+  color: var(--indigo);
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.psg-card-content {
+  padding: 0 22px 22px;
+}
+
+.psg-card-content p,
+.psg-report-card > p {
+  color: var(--gray);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.psg-rule {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 90%, var(--accent-amber));
+  color: var(--text) !important;
+}
+
+.psg-rule small {
+  display: block;
+  margin-top: 6px;
+  color: var(--gray);
+}
+
+.psg-card h3,
+.psg-report-card h4 {
+  margin: 20px 0 10px;
+  color: var(--indigo);
+  font-size: 17px;
+}
+
+.psg-step-list,
+.psg-keep-ready {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 22px;
+  color: var(--text);
+}
+
+.psg-step-list li strong,
+.psg-step-list li span {
+  display: block;
+}
+
+.psg-step-list li span {
+  color: var(--gray);
+  font-size: 14px;
+}
+
+.psg-portal-button,
+.subsidy-official-link {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--accent-amber);
+  color: var(--text);
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+
+.psg-disclaimer {
+  margin: 14px 0 0;
+  color: var(--gray);
+  font-size: 13px !important;
+}
+
+.psg-landing-guide .section-header-block {
+  min-width: 0;
+}
+
+.psg-landing-guide .psg-step-list {
+  margin-top: 22px;
+}
+
+.psg-report-facts {
+  width: 100%;
+  margin: 6px 0 0;
+}
+
+.psg-report-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.psg-report-facts dt {
+  color: var(--gray);
+}
+
+.psg-report-facts dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.psg-status-chip {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--card) 90%, var(--accent-amber));
+  color: var(--indigo) !important;
+  font-size: 13px !important;
+  font-weight: 800;
+}
+
+.psg-timeline {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+.psg-timeline li {
+  padding-left: 4px;
+}
+
+.psg-timeline time,
+.psg-timeline span {
+  display: block;
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.psg-timeline p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.psg-tracker-form {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin-top: 18px;
+}
+
+.psg-tracker-form label {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.psg-tracker-form input,
+.psg-tracker-form select,
+.psg-tracker-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+
+.psg-tracker-form input:focus-visible,
+.psg-tracker-form select:focus-visible,
+.psg-tracker-form textarea:focus-visible {
+  outline: 3px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .psg-estimate-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .psg-card {
+    position: static;
+    order: 2;
+  }
+
+  .rpt-section .roof3d-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rpt-section .roof3d-inspector {
+    order: -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .rpt-header-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rpt-primary-download {
+    width: 100%;
+  }
+
+  .rpt-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .rpt-summary-card {
+    min-height: 120px;
+    padding: 16px;
+  }
+
+  .rpt-summary-card strong {
+    font-size: 23px;
+  }
+
+  .rpt-indicative {
+    text-align: left;
+  }
+
+  .rpt-next-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rpt-clone-card .clone-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rpt-clone-card .clone-controls .rpt-action-button {
+    grid-column: auto;
+  }
+
+  .psg-report-facts > div {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .psg-report-facts dd {
+    text-align: left;
+  }
+}
+
+@media (max-width: 420px) {
+  .rpt-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rpt-summary-card {
+    min-height: 100px;
+  }
+}
