@@ -4086,7 +4086,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   display: none;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1100px) {
   .landing-body .top-bar,
   .login-body .top-bar,
   .consultation-body .top-bar {
@@ -5427,8 +5427,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .page-content,
 .top-bar {
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
   margin-inline: auto;
+  padding-inline: clamp(16px, 3vw, 48px);
 }
 
 .landing-body .page-content,
@@ -5436,8 +5437,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .login-body .page-content,
 .auth-body .page-content {
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
   margin-inline: auto;
+}
+
+.landing-body .page-content,
+.auth-body .page-content {
+  padding-inline: clamp(16px, 3vw, 48px);
 }
 
 .landing-body .top-bar,
@@ -5445,34 +5451,48 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .login-body .top-bar,
 .auth-body .top-bar {
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
   margin-inline: auto;
 }
 
 .public-nav-menu {
-  justify-content: initial;
-  gap: clamp(16px, 2vw, 28px);
+  width: 100%;
+  max-width: none;
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 32px);
+  padding-inline: clamp(16px, 3vw, 48px);
 }
 
 .public-nav-content {
-  display: grid;
+  display: flex;
   min-width: 0;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: clamp(12px, 1.6vw, 22px);
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 32px);
 }
 
 .public-nav-links {
-  grid-column: 2;
-  justify-self: center;
+  flex: 1 1 auto;
+  justify-content: center;
   gap: clamp(16px, 1.8vw, 26px);
 }
 
 .public-nav-actions {
-  grid-column: 3;
-  justify-self: end;
+  flex: 0 1 auto;
+  justify-content: flex-end;
   gap: clamp(12px, 1.3vw, 18px);
+}
+
+.public-nav-link,
+.public-nav-solutions-trigger,
+.public-nav-consultation,
+.public-nav-language,
+.public-nav-login,
+.public-nav-get-started,
+.public-nav-user-chip,
+.public-nav-logout {
+  white-space: nowrap;
 }
 
 .public-nav-language a,
@@ -5482,19 +5502,27 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 
 .consult-hero-inner {
-  max-width: 1200px;
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(16px, 3vw, 48px);
 }
 
 .gt-properties-nav-toggle {
+  display: flex;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 7px;
   border: 0;
   background: transparent;
-  color: var(--accent-amber);
   cursor: pointer;
-  font: inherit;
+  font-family: inherit;
   text-align: left;
+}
+
+.gt-properties-nav-toggle .gt-properties-nav-chevron {
+  width: 10px;
+  height: 10px;
 }
 
 .gt-properties-nav-toggle:focus-visible {
@@ -5530,16 +5558,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   opacity: 1;
 }
 
-.gt-properties-nav-panel > * {
+.gt-properties-nav-items {
   min-height: 0;
   overflow: hidden;
-}
-
-.gt-properties-nav-panel .nav-item {
-  margin-left: 6px;
-  padding-left: 16px;
-  font-size: 13px;
-  text-transform: none;
 }
 
 .nav-item.active {
@@ -5786,7 +5807,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   font-size: clamp(24px, 3.5vw, 34px);
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1100px) {
   .public-nav-content {
     display: none;
   }
@@ -5797,8 +5818,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
   .public-nav-links,
   .public-nav-actions {
-    grid-column: auto;
-    justify-self: stretch;
+    flex: 0 0 auto;
+    justify-content: flex-start;
   }
 
   .public-nav-menu {
@@ -5841,6 +5862,128 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
   .gt-property-actions {
     gap: 12px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .public-nav-content {
+    align-items: stretch;
+  }
+}
+
+@media (min-width: 1101px) {
+  .public-nav-menu {
+    display: flex;
+    grid-template-columns: none;
+  }
+
+  .public-nav-content {
+    display: flex;
+    position: static;
+    max-height: none;
+    flex-direction: row;
+    align-items: center;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .public-nav-links {
+    width: auto;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .public-nav-actions {
+    width: auto;
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .public-nav-consultation {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 1100px) {
+  .public-nav-content,
+  .public-nav-content.is-open {
+    position: absolute;
+  }
+
+  .public-nav-links,
+  .public-nav-actions {
+    width: 100%;
+  }
+
+  .public-nav-links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .public-nav-actions {
+    flex-wrap: wrap;
+  }
+
+  .public-nav-consultation {
+    flex: 1 0 100%;
+  }
+}
+
+@media (min-width: 1801px) {
+  .page-content,
+  .top-bar,
+  .landing-body .page-content,
+  .consultation-body .page-content,
+  .login-body .page-content,
+  .auth-body .page-content,
+  .landing-body .top-bar,
+  .consultation-body .top-bar,
+  .login-body .top-bar,
+  .auth-body .top-bar,
+  .public-nav-menu,
+  .consult-hero-inner {
+    max-width: 1680px;
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 1801px) {
+  .app-shell .page-content,
+  .app-shell .top-bar {
+    max-width: 1680px;
+    margin-inline: auto;
+  }
+}
+
+.app-shell:not(.no-sidebar) .top-bar {
+  min-height: 0;
+  height: auto;
+  padding: 4px clamp(16px, 3vw, 48px);
+  border: 0;
+  background: transparent;
+}
+
+.app-shell:not(.no-sidebar) .top-bar-right {
+  display: flex;
+}
+
+.app-shell:not(.no-sidebar) .page-content {
+  max-width: none;
+  padding: 8px clamp(16px, 3vw, 48px) 40px;
+}
+
+@media (min-width: 1801px) {
+  .app-shell:not(.no-sidebar) .page-content,
+  .app-shell:not(.no-sidebar) .top-bar {
+    max-width: 1680px;
+    margin-inline: auto;
   }
 }
 
