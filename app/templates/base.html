@@ -18,7 +18,7 @@
     <aside class="sidebar" id="primary-sidebar" aria-label="{{ _('Primary navigation') }}">
       <a href="{{ url_for('pages.dashboard') }}" class="logo-block">
         <span class="logo-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40" width="40" height="40">
+          <svg viewBox="0 0 40 40" width="44" height="44">
             <circle cx="20" cy="20" r="7" fill="currentColor"/>
             <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
               <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
@@ -58,20 +58,26 @@
         </div>
 
         <!-- 3. My Properties -->
-        <div class="nav-group">
-          <span class="nav-group-title">{{ _('My Properties') }}</span>
-          <a href="{{ url_for('pages.saved_locations') }}" class="nav-item {% if request.endpoint == 'pages.saved_locations' %}active{% endif %}">
-            <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></span>
-            <span>{{ _('Saved Locations') }}</span>
-          </a>
-          <a href="{{ url_for('pages.reports') }}" class="nav-item {% if request.endpoint == 'pages.reports' or request.endpoint == 'pages.report' %}active{% endif %}">
-            <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6"/></svg></span>
-            <span>{{ _('Saved Reports') }}</span>
-          </a>
-          <a href="{{ url_for('pages.compare') }}" class="nav-item {% if request.endpoint == 'pages.compare' %}active{% endif %}">
-            <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14M16 5l3 3-3 3M19 16H5M8 13l-3 3 3 3"/></svg></span>
-            <span>{{ _('Compare Scenarios') }}</span>
-          </a>
+        <div class="nav-group gt-properties-nav" id="properties-nav"
+          data-default-open="{{ 'true' if request.endpoint in ('pages.properties', 'pages.report') else 'false' }}">
+          <button class="nav-group-title gt-properties-nav-toggle" id="properties-nav-toggle"
+            type="button" aria-expanded="{{ 'true' if request.endpoint in ('pages.properties', 'pages.report') else 'false' }}"
+            aria-controls="properties-nav-panel">
+            <span>{{ _('My properties') }}</span>
+            <svg class="gt-properties-nav-chevron" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m4 6 4 4 4-4"/>
+            </svg>
+          </button>
+          <div class="gt-properties-nav-panel{% if request.endpoint in ('pages.properties', 'pages.report') %} is-open{% endif %}"
+            id="properties-nav-panel" aria-hidden="{{ 'false' if request.endpoint in ('pages.properties', 'pages.report') else 'true' }}">
+            <a class="nav-item gt-properties-nav-link{% if request.endpoint in ('pages.properties', 'pages.report') %} active{% endif %}"
+              href="{{ url_for('pages.properties') }}" {% if request.endpoint in ('pages.properties', 'pages.report') %}aria-current="page"{% endif %}>
+              <span>{{ _('All properties') }}</span>
+            </a>
+            <a class="nav-item gt-properties-nav-link" href="{{ url_for('pages.properties') }}#compare">
+              <span>{{ _('Compare scenarios') }}</span>
+            </a>
+          </div>
         </div>
 
         <!-- 4. Account -->
@@ -168,6 +174,65 @@
       const isOpen = document.querySelector('.app-shell')?.classList.toggle('sidebar-open') || false;
       event.currentTarget.setAttribute('aria-expanded', String(isOpen));
     });
+  </script>
+  <script>
+    (function() {
+      var toggle = document.getElementById('properties-nav-toggle');
+      var panel = document.getElementById('properties-nav-panel');
+      if (!toggle || !panel) return;
+
+      var storageKey = 'signix-properties-nav-open';
+      var expanded = toggle.dataset.defaultOpen === 'true';
+      try {
+        var savedState = window.localStorage.getItem(storageKey);
+        if (savedState === 'true' || savedState === 'false') {
+          expanded = savedState === 'true';
+        }
+      } catch (error) {
+        // Storage may be unavailable in private browsing or restricted contexts.
+      }
+
+      function setExpanded(value, persist) {
+        expanded = value;
+        toggle.setAttribute('aria-expanded', String(expanded));
+        panel.setAttribute('aria-hidden', String(!expanded));
+        panel.classList.toggle('is-open', expanded);
+        if (persist) {
+          try {
+            window.localStorage.setItem(storageKey, String(expanded));
+          } catch (error) {
+            // Keep the menu usable when storage is unavailable.
+          }
+        }
+      }
+
+      toggle.addEventListener('click', function() {
+        setExpanded(!expanded, true);
+      });
+
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && expanded) {
+          setExpanded(false, true);
+          toggle.focus();
+        }
+      });
+
+      var links = Array.from(panel.querySelectorAll('.gt-properties-nav-link'));
+      function updateActiveLink() {
+        var compareActive = window.location.hash === '#compare';
+        links.forEach(function(link, index) {
+          var active = compareActive ? index === 1 : index === 0;
+          link.classList.toggle('active', active);
+          if (active) {
+            link.setAttribute('aria-current', 'page');
+          } else {
+            link.removeAttribute('aria-current');
+          }
+        });
+      }
+      updateActiveLink();
+      window.addEventListener('hashchange', updateActiveLink);
+    })();
   </script>
 
   {% if current_user.is_authenticated %}

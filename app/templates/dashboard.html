@@ -2,34 +2,51 @@
 {% block title %}{{ _('Dashboard') }} · SIGNIX{% endblock %}
 
 {% block content %}
-<section class="dashboard-hero dashboard-hero-split">
+<section class="dashboard-hero dashboard-hero-split gt-dashboard-hero">
   <div>
     <p class="console-index">{{ _('PORTFOLIO OVERVIEW') }}</p>
     <h1>{{ _('Your solar planning workspace') }}</h1>
     <p class="tagline">{{ _('Review saved estimates, reopen reports, or begin another rooftop assessment.') }}</p>
   </div>
   <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
+  <svg class="gt-dashboard-pattern" viewBox="0 0 420 220" aria-hidden="true">
+    <path d="M10 180 105 85l63 63 57-57 165 165M130 220l90-90 100 90M286 220l55-55 55 55" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="316" cy="55" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path d="M316 18v-9m0 92v-9m37-37h9m-92 0h9m63-26 7-7m-65 65 7-7m0-51-7-7m65 65-7-7" fill="none" stroke="currentColor" stroke-width="2"/>
+  </svg>
 </section>
 
 <section class="dashboard-metrics" aria-label="{{ _('Saved estimate summary') }}">
-  <article>
-    <span>{{ _('Saved rooftops') }}</span>
+  <article class="gt-card">
+    <div class="gt-stat-label">
+      <svg class="gt-stat-icon gt-icon-roof" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7M5 10v10h14V10M9 20v-6h6v6"/></svg>
+      <span>{{ _('Saved rooftops') }}</span>
+    </div>
     <strong>{{ summary.saved_locations }}</strong>
     <small>{{ _('owned by this account') }}</small>
   </article>
-  <article>
-    <span>{{ _('Planned capacity') }}</span>
+  <article class="gt-card">
+    <div class="gt-stat-label">
+      <svg class="gt-stat-icon gt-icon-bolt" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-13h-7z"/></svg>
+      <span>{{ _('Planned capacity') }}</span>
+    </div>
     <strong>{{ '{:,.1f}'.format(summary.total_capacity_kw) }} <small>kW</small></strong>
     <small>{{ _('across saved estimates') }}</small>
   </article>
-  <article>
-    <span>{{ _('Annual generation') }}</span>
+  <article class="gt-card">
+    <div class="gt-stat-label">
+      <svg class="gt-stat-icon gt-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+      <span>{{ _('Annual generation') }}</span>
+    </div>
     <strong>{{ '{:,.0f}'.format(summary.annual_generation_kwh) }} <small>kWh</small></strong>
     <small>{{ _('persisted estimate total') }}</small>
   </article>
-  <article>
-    <span>{{ _('Monthly savings') }}</span>
-    <strong>₹{{ '{:,.0f}'.format(summary.monthly_savings) }}</strong>
+  <article class="gt-card">
+    <div class="gt-stat-label">
+      <svg class="gt-stat-icon gt-icon-rupee" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14M5 8h14M8 4c5 0 7 2 7 5s-2 5-7 5l8 6"/></svg>
+      <span>{{ _('Monthly savings') }}</span>
+    </div>
+    <strong class="gt-savings">₹{{ '{:,.0f}'.format(summary.monthly_savings) }}</strong>
     <small>{{ _('persisted estimate total') }}</small>
   </article>
 </section>
@@ -41,7 +58,7 @@
       <h2 id="recent-reports-title">{{ _('Latest saved estimates') }}</h2>
     </div>
     {% if locations %}
-    <a class="table-action-link" href="{{ url_for('pages.reports') }}">{{ _('View all reports') }} <span aria-hidden="true">→</span></a>
+    <a class="table-action-link" href="{{ url_for('pages.properties') }}">{{ _('View all properties') }} <span aria-hidden="true">→</span></a>
     {% endif %}
   </div>
 
@@ -74,8 +91,12 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state reports-empty">
-    <span class="empty-index" aria-hidden="true">01</span>
+  <div class="empty-state reports-empty gt-empty-state gt-card">
+    <svg class="gt-empty-illustration" viewBox="0 0 120 100" aria-hidden="true">
+      <path d="M14 50 60 14l46 36v38H14Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M40 88V58h40v30M50 42h20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="89" cy="22" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
+    </svg>
     <h3>{{ _('Your first rooftop starts here') }}</h3>
     <p>{{ _('Select a property, trace its roof, and SIGNIX will keep the resulting estimate in this workspace.') }}</p>
     <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
