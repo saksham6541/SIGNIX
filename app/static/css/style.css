@@ -3727,14 +3727,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 .landing-body .auth-top-logo,
 .login-body .auth-top-logo,
+.signup-body .auth-top-logo,
 .landing-body .top-bar-right,
-.login-body .top-bar-right {
+.login-body .top-bar-right,
+.signup-body .top-bar-right {
   display: none;
 }
 
 .landing-body .top-bar,
 .login-body .top-bar,
-.consultation-body .top-bar {
+.signup-body .top-bar {
   position: relative;
   z-index: 30;
   display: flex;
@@ -4089,7 +4091,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 @media (max-width: 1100px) {
   .landing-body .top-bar,
   .login-body .top-bar,
-  .consultation-body .top-bar {
+  .signup-body .top-bar {
     padding-inline: 0;
   }
 
