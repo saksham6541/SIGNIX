@@ -4,11 +4,60 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from flask_babel import gettext as _
+
+from app.config import Config
+
 NATIONAL_PORTAL = {
     "name": "National Portal for Rooftop Solar",
     "url": "https://pmsuryaghar.gov.in/",
     "note": "Apply for PM Surya Ghar central subsidy and track application status.",
 }
+
+
+def build_pm_surya_ghar_guidance(
+    system_size_kw: Optional[float] = None,
+    subsidy_amount: Optional[float] = None,
+    discom_name: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Return shared, translated residential scheme guidance for web pages."""
+    return {
+        "system_size_kw": system_size_kw,
+        "subsidy_amount": subsidy_amount,
+        "discom_name": discom_name,
+        "portal_url": "https://pmsuryaghar.gov.in/",
+        "subsidy_rule": {
+            "per_kw_first_2": Config.SUBSIDY_PER_KW_FIRST_2,
+            "per_kw_extra_2_to_3": Config.SUBSIDY_EXTRA_2_TO_3,
+            "cap": Config.SUBSIDY_CAP,
+        },
+        "steps": [
+            {
+                "title": _("Register on the official portal"),
+                "detail": _("Create an account using your residential electricity connection."),
+            },
+            {
+                "title": _("Submit the rooftop application"),
+                "detail": _("Select your DISCOM and wait for feasibility approval before installation."),
+            },
+            {
+                "title": _("Choose a DISCOM-registered vendor"),
+                "detail": _("Agree the price directly with the vendor and complete installation."),
+            },
+            {
+                "title": _("Complete inspection and claim"),
+                "detail": _("Follow the portal and DISCOM process for net metering, inspection, and any eligible assistance."),
+            },
+        ],
+        "keep_ready": [
+            _("Consumer number"),
+            _("Registered mobile"),
+            _("Latest electricity bill"),
+            _("Sanctioned load"),
+            _("Roof ownership proof"),
+        ],
+    }
+
 
 # Best-effort state energy / DISCOM portal links (public sites; may change).
 STATE_PORTALS: Dict[str, Dict[str, str]] = {

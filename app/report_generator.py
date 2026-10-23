@@ -36,6 +36,12 @@ def _enrich_location_data(location):
 
     data = location.to_dict() if hasattr(location, "to_dict") else dict(location)
     extras = data.get("extras") or {}
+    property_type = str(extras.get("property_type") or "").strip().lower()
+    inverter_type = str(extras.get("inverter_type") or "").strip().lower().replace(" ", "-")
+    data["psg_guidance_allowed"] = property_type == "residential" and (
+        inverter_type in ("on-grid", "hybrid")
+        or float(data.get("subsidy_amount") or 0) > 0
+    )
 
     data["environmental_equivalents"] = extras.get(
         "environmental_equivalents"
@@ -785,10 +791,11 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
         fin.append(
             (f"Battery ({loc.get('battery_kwh')} kWh)", _inr(loc.get("battery_cost")))
         )
-    fin.append(("PM Surya Ghar subsidy", f"-{_inr(loc.get('subsidy_amount'))}"))
-    from app.assumptions import SUBSIDY_CAVEAT, SUBSIDY_ELIGIBILITY_ASSUMPTION
-    fin.append((SUBSIDY_CAVEAT, ""))
-    fin.append((SUBSIDY_ELIGIBILITY_ASSUMPTION, ""))
+    if loc.get("psg_guidance_allowed"):
+        fin.append(("PM Surya Ghar subsidy", f"-{_inr(loc.get('subsidy_amount'))}"))
+        from app.assumptions import SUBSIDY_CAVEAT, SUBSIDY_ELIGIBILITY_ASSUMPTION
+        fin.append((SUBSIDY_CAVEAT, ""))
+        fin.append((SUBSIDY_ELIGIBILITY_ASSUMPTION, ""))
     fin.append(("Net investment", _inr(loc.get("net_investment"))))
     fin.append(("Estimated monthly savings", _inr(loc.get("monthly_savings"))))
     lifecycle = loc.get("lifecycle_projection") or {}
@@ -821,14 +828,15 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
                 f"<b>Best for:</b> {inv.get('best_for', '')}", styles["BodySmall"]
             )
         )
-        elig = (
-            "Typically eligible (DISCOM conditions apply)"
-            if inv.get("subsidy_eligible")
-            else "Usually not eligible"
-        )
-        story.append(
-            Paragraph(f"<b>Subsidy eligibility:</b> {elig}", styles["BodySmall"])
-        )
+        if loc.get("psg_guidance_allowed"):
+            elig = (
+                "Eligible, subject to official verification"
+                if inv.get("subsidy_eligible")
+                else "Not confirmed"
+            )
+            story.append(
+                Paragraph(f"<b>Scheme eligibility:</b> {elig}", styles["BodySmall"])
+            )
         for a in inv.get("advantages") or []:
             story.append(Paragraph(f"• {a}", styles["Muted"]))
 
@@ -853,16 +861,21 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     kv_table(env_rows)
 
     story.append(Spacer(1, 8))
-    story.append(
-        Paragraph(
-            "<b>Key assumptions:</b> Bill path ≈ ₹10/unit · ~135 units/month/kW (~4–5.5 units/day/kWp). "
-            "PM Surya Ghar: ₹30,000/kW first 2 kW + ₹18,000 for 2–3 kW step · max ₹78,000. "
-            "Residential cost band ~₹55k–85k/kW. ~10 m² usable roof per kWp. 0.5%/yr degradation; "
-            "annual O&M is subtracted and discounted metrics use an explicit planning rate. "
-            "Not a licensed design or DISCOM quote.",
-            styles["Muted"],
-        )
+    assumption_text = (
+        "<b>Key assumptions:</b> Bill path ≈ ₹10/unit · ~135 units/month/kW "
+        "(~4–5.5 units/day/kWp). "
     )
+    if loc.get("psg_guidance_allowed"):
+        assumption_text += (
+            "PM Surya Ghar: ₹30,000/kW first 2 kW + ₹18,000 for 2–3 kW step "
+            "· max ₹78,000. "
+        )
+    assumption_text += (
+        "Residential cost band ~₹55k–85k/kW. ~10 m² usable roof per kWp. "
+        "0.5%/yr degradation; annual O&M is subtracted and discounted metrics "
+        "use an explicit planning rate. Not a licensed design or DISCOM quote."
+    )
+    story.append(Paragraph(assumption_text, styles["Muted"]))
 
     notes = loc.get("planning_notes") or []
     if notes:
@@ -1040,11 +1053,12 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     story.append(Spacer(1, 12))
     story.append(HRFlowable(width="100%", thickness=0.5, color=HexColor("#dddddd")))
     story.append(Paragraph("What it costs", styles["SumH2"]))
-    cost_rows = [
-        ["System cost (mid)", _inr(loc.get("system_cost") or 0)],
-        ["Central subsidy (estimate)", f"-{_inr(loc.get('subsidy_amount') or 0)}"],
-        ["Net investment", _inr(loc.get("net_investment") or 0)],
-    ]
+    cost_rows = [["System cost (mid)", _inr(loc.get("system_cost") or 0)]]
+    if loc.get("psg_guidance_allowed"):
+        cost_rows.append(
+            ["Central subsidy (estimate)", f"-{_inr(loc.get('subsidy_amount') or 0)}"]
+        )
+    cost_rows.append(["Net investment", _inr(loc.get("net_investment") or 0)])
     ct = Table(cost_rows, colWidths=[100 * mm, 70 * mm])
     ct.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (0, -1), font_name),
@@ -1099,11 +1113,12 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         story.append(Paragraph(f"Roof orientation: {loc.get('orientation_label')}", styles["SumBody"]))
     if float(loc.get("battery_kwh") or 0) > 0:
         story.append(Paragraph(f"Battery included: {float(loc.get('battery_kwh')):.1f} kWh", styles["SumBody"]))
-    story.append(Paragraph(f"Subsidy (estimate): {_inr(loc.get('subsidy_amount') or 0)}", styles["SumBody"]))
+    if loc.get("psg_guidance_allowed"):
+        story.append(Paragraph(f"Subsidy (estimate): {_inr(loc.get('subsidy_amount') or 0)}", styles["SumBody"]))
     story.append(Paragraph("Suggested next steps", styles["SumH2"]))
     for line in (
         "1. Share this summary with your family or building society.",
-        "2. Confirm subsidy eligibility with your DISCOM / vendor.",
+        *(("2. Confirm subsidy eligibility with your DISCOM / vendor.",) if loc.get("psg_guidance_allowed") else ()),
         "3. Ask installers for a site survey and a firm quote.",
         "4. Download the full technical report if you need detailed assumptions.",
     ):
