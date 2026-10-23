@@ -1,7 +1,181 @@
-<nav class="top-nav-menu" id="public-top-nav" aria-label="{{ _('Public navigation') }}">
-  <a href="{{ url_for('pages.plan', planning_track='home') }}" class="top-nav-link {% if planning_track == 'home' %}active{% endif %}">{{ _('Solar for Home') }}</a>
-  <a href="{{ url_for('pages.plan', planning_track='business') }}" class="top-nav-link {% if planning_track == 'business' %}active{% endif %}">{{ _('Solar for Business') }}</a>
-  <a href="{{ url_for('pages.index') }}#workflow" class="top-nav-link">{{ _('How it works') }}</a>
-  <a href="{{ url_for('pages.index') }}#capabilities" class="top-nav-link">{{ _('Capabilities') }}</a>
-  <a href="{{ url_for('pages.plan', planning_track='home') }}" class="top-nav-cta">{{ _('Start planning') }}</a>
+<nav class="public-nav-menu" id="public-top-nav" aria-label="{{ _('Public navigation') }}">
+  <a href="{{ url_for('pages.index') }}" class="public-nav-brand" aria-label="SIGNIX">
+    <span class="public-nav-logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 40 40" width="34" height="34">
+        <circle cx="20" cy="20" r="7" fill="currentColor"/>
+        <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
+          <line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/>
+          <line x1="8.5" y1="8.5" x2="11.5" y2="11.5"/><line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
+          <line x1="31.5" y1="8.5" x2="28.5" y2="11.5"/><line x1="11.5" y1="28.5" x2="8.5" y2="31.5"/>
+        </g>
+      </svg>
+    </span>
+    <span class="public-nav-wordmark">
+      <strong>SIGNIX</strong>
+      <small>{{ _('Rooftop solar planning') }}</small>
+    </span>
+  </a>
+
+  <button class="public-nav-toggle" type="button" aria-expanded="false" aria-controls="public-nav-content" aria-label="{{ _('Open navigation menu') }}">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M4 7h16M4 12h16M4 17h16"/>
+    </svg>
+  </button>
+
+  <div class="public-nav-content" id="public-nav-content">
+    <div class="public-nav-links">
+      <div class="public-nav-solutions">
+        <button class="public-nav-solutions-trigger" type="button" aria-expanded="false" aria-controls="public-nav-solutions-panel">
+          {{ _('Solutions') }}
+          <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m4 6 4 4 4-4"/>
+          </svg>
+        </button>
+        <div class="public-nav-solutions-panel" id="public-nav-solutions-panel" hidden>
+          <section class="public-nav-solution">
+            <div>
+              <h2>{{ _('Residential Solar') }}</h2>
+              <p>{{ _('Plan an indicative home rooftop system with residential assumptions.') }}</p>
+            </div>
+            <a href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
+          </section>
+          <section class="public-nav-solution">
+            <div>
+              <h2>{{ _('Commercial Solar') }}</h2>
+              <p>{{ _('Explore business rooftop planning with separate commercial assumptions.') }}</p>
+            </div>
+            <a href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
+          </section>
+          <section class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true">
+            <div>
+              <h2>{{ _('Industrial Solar') }} <span class="public-nav-coming-soon">{{ _('Coming Soon') }}</span></h2>
+              <p>{{ _('Industrial planning is not available yet.') }}</p>
+            </div>
+          </section>
+        </div>
+      </div>
+      <a class="public-nav-link" href="{{ url_for('pages.index') }}#workflow">{{ _('How It Works') }}</a>
+      <a class="public-nav-link" href="{{ url_for('pages.index') }}#subsidy-title">{{ _('Subsidy Guide') }}</a>
+    </div>
+
+    <div class="public-nav-actions">
+      <span class="public-nav-consultation" aria-disabled="true">
+        {{ _('Book a Free Consultation') }}
+        <small>{{ _('Not available yet') }}</small>
+      </span>
+      <span class="public-nav-language" aria-label="{{ _('Language') }}">
+        <a href="{{ url_for('auth.set_language', language='en') }}" lang="en" {% if get_locale() == 'en' %}aria-current="true"{% endif %}>EN</a>
+        <span aria-hidden="true">/</span>
+        <a href="{{ url_for('auth.set_language', language='hi') }}" lang="hi" {% if get_locale() == 'hi' %}aria-current="true"{% endif %}>हिंदी</a>
+      </span>
+      {% if current_user.is_authenticated %}
+      <span class="public-nav-user-chip">
+        <span class="public-nav-user-avatar">{{ current_user.display_name[0]|upper }}</span>
+        <span>{{ current_user.display_name }}</span>
+      </span>
+      <form class="public-nav-logout-form" method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="public-nav-logout" type="submit">{{ _('Log out') }}</button>
+      </form>
+      {% else %}
+      <a class="public-nav-login" href="{{ url_for('auth.login', next=request.args.get('next')) if request.args.get('next') else url_for('auth.login') }}">{{ _('Log In') }}</a>
+      <a class="public-nav-get-started" href="{{ url_for('auth.signup', next=request.args.get('next')) if request.args.get('next') else url_for('auth.signup') }}">{{ _('Get Started') }}</a>
+      {% endif %}
+    </div>
+  </div>
 </nav>
+
+<script>
+  (function() {
+    var nav = document.getElementById('public-top-nav');
+    if (!nav) return;
+
+    var menuToggle = nav.querySelector('.public-nav-toggle');
+    var menuContent = nav.querySelector('.public-nav-content');
+    var solutionsToggle = nav.querySelector('.public-nav-solutions-trigger');
+    var solutionsPanel = nav.querySelector('.public-nav-solutions-panel');
+
+    function closeSolutions(restoreFocus) {
+      if (!solutionsToggle || !solutionsPanel || solutionsToggle.getAttribute('aria-expanded') !== 'true') return;
+      solutionsToggle.setAttribute('aria-expanded', 'false');
+      solutionsPanel.hidden = true;
+      if (restoreFocus) solutionsToggle.focus();
+    }
+
+    function closeMenu(restoreFocus) {
+      if (!menuToggle || !menuContent || menuToggle.getAttribute('aria-expanded') !== 'true') return;
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuToggle.setAttribute('aria-label', "{{ _('Open navigation menu') }}");
+      menuContent.classList.remove('is-open');
+      closeSolutions(false);
+      if (restoreFocus) menuToggle.focus();
+    }
+
+    if (menuToggle && menuContent) {
+      menuToggle.addEventListener('click', function() {
+        var isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+        menuToggle.setAttribute('aria-expanded', String(!isOpen));
+        menuToggle.setAttribute('aria-label', isOpen ? "{{ _('Open navigation menu') }}" : "{{ _('Close navigation menu') }}");
+        menuContent.classList.toggle('is-open', !isOpen);
+        if (isOpen) closeSolutions(false);
+      });
+    }
+
+    if (solutionsToggle && solutionsPanel) {
+      solutionsToggle.addEventListener('click', function() {
+        var isOpen = solutionsToggle.getAttribute('aria-expanded') === 'true';
+        solutionsToggle.setAttribute('aria-expanded', String(!isOpen));
+        solutionsPanel.hidden = isOpen;
+      });
+
+      solutionsToggle.addEventListener('keydown', function(event) {
+        if (event.key === 'ArrowDown' && solutionsToggle.getAttribute('aria-expanded') !== 'true') {
+          event.preventDefault();
+          solutionsToggle.click();
+          solutionsPanel.querySelector('a')?.focus();
+        }
+      });
+
+      solutionsPanel.addEventListener('keydown', function(event) {
+        var links = Array.from(solutionsPanel.querySelectorAll('a'));
+        if (!links.length) return;
+        var currentIndex = links.indexOf(document.activeElement);
+        if (event.key === 'ArrowUp' && currentIndex === 0) {
+          event.preventDefault();
+          solutionsToggle.focus();
+          return;
+        }
+        var nextIndex = event.key === 'ArrowDown' ? (currentIndex + 1) % links.length :
+          event.key === 'ArrowUp' ? (currentIndex - 1 + links.length) % links.length :
+          event.key === 'Home' ? 0 :
+          event.key === 'End' ? links.length - 1 : -1;
+        if (nextIndex >= 0) {
+          event.preventDefault();
+          links[nextIndex].focus();
+        }
+      });
+    }
+
+    document.addEventListener('click', function(event) {
+      if (!nav.contains(event.target)) {
+        closeSolutions(false);
+        closeMenu(false);
+      } else if (event.target.closest('.public-nav-solutions-panel a')) {
+        closeSolutions(false);
+        closeMenu(false);
+      } else if (event.target.closest('.public-nav-links > a, .public-nav-actions a')) {
+        closeMenu(false);
+      }
+    });
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key !== 'Escape') return;
+      if (solutionsToggle && solutionsToggle.getAttribute('aria-expanded') === 'true') {
+        closeSolutions(true);
+      } else if (menuToggle && menuToggle.getAttribute('aria-expanded') === 'true') {
+        closeMenu(true);
+      }
+    });
+  })();
+</script>

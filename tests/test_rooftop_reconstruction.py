@@ -507,6 +507,7 @@ def test_renderer_contract_keeps_geometry_and_generation_concerns_separate():
     packaged_three = root / "app/static/js/vendor/three.r128.min.js"
 
     assert "new THREE.OrthographicCamera" in source
+    assert "return !!c.getContext('webgl2')" in source
     assert "requestAnimationFrame(animate);renderer.render(scene,camera)" in source
     assert "cameraAzimuth+=" not in source
     assert "polygonFitReason(corners,surface.polygon,obstructions,{edgeSetback:0,obstructionSetback:0,checkGrid:false,surfaceCheck:true})" in source

@@ -34,7 +34,7 @@
   var RECONSTRUCTED_ROOF_BASE_Y = 0.18;
 
   function hasWebGL() {
-    try { var c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); }
+    try { var c = document.createElement('canvas'); return !!c.getContext('webgl2'); }
     catch (e) { return false; }
   }
   function viewerCapability(threeAvailable,webglAvailable){
