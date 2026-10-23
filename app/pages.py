@@ -16,6 +16,11 @@ def index():
     return render_template("landing.html")
 
 
+@pages_bp.get("/consultation")
+def consultation():
+    return render_template("consultation.html")
+
+
 PLANNING_TRACKS = {
     "home": {
         "property_type": "residential",

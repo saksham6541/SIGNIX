@@ -4809,6 +4809,137 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   }
 }
 
+.consultation-body .auth-top-logo,
+.consultation-body .top-bar-right {
+  display: none;
+}
+
+.consultation-body .page-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.consult-page {
+  width: 100%;
+}
+
+.consult-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.consult-hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-image: url("../images/login-rooftop-solar.png");
+  background-position: center;
+  background-size: cover;
+  content: "";
+  opacity: .2;
+}
+
+.consult-hero-inner {
+  display: grid;
+  width: min(100%, 1240px);
+  min-height: 650px;
+  grid-template-columns: minmax(0, 1fr) minmax(390px, .92fr);
+  align-items: center;
+  gap: clamp(32px, 6vw, 88px);
+  margin-inline: auto;
+  padding: clamp(36px, 5vw, 72px) clamp(20px, 4vw, 52px);
+}
+
+.consult-intro,
+.consult-card {
+  min-width: 0;
+}
+
+.consult-kicker {
+  margin: 0 0 18px;
+  color: var(--indigo);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.consult-intro h1 {
+  max-width: 590px;
+  margin: 0;
+  color: var(--indigo);
+  font-size: clamp(38px, 5vw, 62px);
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: 1.08;
+}
+
+.consult-points {
+  display: grid;
+  gap: 14px;
+  max-width: 550px;
+  margin: 30px 0 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.55;
+  list-style: none;
+}
+
+.consult-points li {
+  position: relative;
+  padding-left: 28px;
+}
+
+.consult-points li::before {
+  position: absolute;
+  top: .55em;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  content: "";
+}
+
+.consult-card {
+  padding: clamp(24px, 3.2vw, 38px);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--card) 96%, transparent);
+  box-shadow: 0 18px 52px color-mix(in srgb, var(--indigo) 12%, transparent);
+}
+
+.consult-card h2 {
+  margin: 0;
+  color: var(--indigo);
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.2;
+}
+
+.consult-card-intro {
+  margin: 12px 0 24px;
+  color: var(--gray);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .consult-hero-inner {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 38px 18px 46px;
+  }
+
+  .consult-intro h1 {
+    font-size: clamp(36px, 10vw, 52px);
+  }
+}
+
 /* ---------- Profile page refinements ---------- */
 .profile-page .console-index { margin-bottom: 6px; }
 .profile-page .tagline { margin: 0; color: var(--gray); font-size: 13px; line-height: 1.55; }

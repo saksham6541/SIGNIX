@@ -1,0 +1,34 @@
+{% set hide_sidebar = true %}
+{% extends "base.html" %}
+{% block title %}{{ _('Book your free solar consultation') }} | SIGNIX{% endblock %}
+{% block body_class %}consultation-body public-page-body{% endblock %}
+
+{% block top_bar_nav %}{% include "_public_nav.html" %}{% endblock %}
+
+{% block content %}
+<div class="consult-page">
+  <section class="consult-hero" aria-labelledby="consult-title">
+    <div class="consult-hero-inner">
+      <div class="consult-intro">
+        <p class="consult-kicker">{{ _('ROOFTOP SOLAR CONSULTATION') }}</p>
+        <h1 id="consult-title">{{ _('Talk through your rooftop solar needs.') }}</h1>
+        <ul class="consult-points">
+          <li>{{ _('Share your rooftop context and electricity use.') }}</li>
+          <li>{{ _('This page does not generate an estimate or installer match.') }}</li>
+          <li>{{ _('Consultation requests are not live; details are not sent.') }}</li>
+        </ul>
+      </div>
+
+      <section class="consult-card" id="consultation-form" aria-labelledby="consult-form-title">
+        <h2 id="consult-form-title">{{ _('Book your free solar consultation') }}</h2>
+        <p class="consult-card-intro">{{ _('Tell us a little about your rooftop and electricity use. We will help you with the next step.') }}</p>
+        <form id="consultation-request-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        </form>
+      </section>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block site_footer %}{% include "_public_footer.html" %}{% endblock %}
