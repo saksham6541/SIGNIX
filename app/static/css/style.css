@@ -4940,6 +4940,219 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   }
 }
 
+.consult-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.consult-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.consult-fieldset legend,
+.consult-field label,
+.consult-consent-field label {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.consult-fieldset legend {
+  margin-bottom: 10px;
+}
+
+.consult-segment-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.consult-segment-option {
+  position: relative;
+  min-width: 0;
+}
+
+.consult-segment-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.consult-segment-option label {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--gray);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.consult-segment-option input:checked + label {
+  border-color: var(--accent-amber);
+  background: color-mix(in srgb, var(--accent-amber) 12%, var(--card));
+  color: var(--indigo);
+}
+
+.consult-segment-option input:focus-visible + label {
+  outline: 3px solid var(--accent-amber);
+  outline-offset: 2px;
+}
+
+.consult-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 14px;
+}
+
+.consult-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.consult-field-wide {
+  grid-column: 1 / -1;
+}
+
+.consult-field input,
+.consult-field select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.consult-field input:focus-visible,
+.consult-field select:focus-visible,
+.consult-consent-field input:focus-visible,
+.consult-submit:focus-visible,
+.consult-bottom-cta:focus-visible {
+  outline: 3px solid var(--accent-amber);
+  outline-offset: 2px;
+}
+
+.consult-field input[aria-invalid="true"],
+.consult-field select[aria-invalid="true"],
+.consult-consent-field input[aria-invalid="true"] {
+  border-color: var(--accent-orange);
+}
+
+.consult-field-error {
+  color: var(--indigo);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.consult-industrial-fields {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg) 50%, var(--card));
+}
+
+.consult-industrial-note {
+  margin: 14px 0 0;
+  padding: 11px 12px;
+  border-left: 3px solid var(--accent-amber);
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.consult-consent-field {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+
+.consult-consent-field input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--indigo);
+}
+
+.consult-consent-field label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.consult-consent-error {
+  margin-top: -14px;
+  padding-left: 30px;
+}
+
+.consult-submit {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 18px;
+  border: 1px solid var(--accent-amber);
+  border-radius: 12px;
+  background: var(--accent-amber);
+  color: var(--indigo);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  transition: background .16s ease, border-color .16s ease;
+}
+
+.consult-submit:hover {
+  border-color: var(--accent-orange);
+  background: var(--accent-orange);
+}
+
+.consult-submit-status {
+  margin: -4px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-amber) 12%, var(--card));
+  color: var(--indigo);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .consult-fields-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .consult-segment-options {
+    gap: 5px;
+  }
+
+  .consult-segment-option label {
+    padding-inline: 5px;
+    font-size: 11px;
+  }
+}
+
 /* ---------- Profile page refinements ---------- */
 .profile-page .console-index { margin-bottom: 6px; }
 .profile-page .tagline { margin: 0; color: var(--gray); font-size: 13px; line-height: 1.55; }
