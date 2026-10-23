@@ -30,8 +30,8 @@ def make_location(user_id, address, system_size, annual_generation):
     )
 
 
-def test_compare_page_requires_login(app):
-    response = app.test_client().get("/compare")
+def test_properties_compare_page_requires_login(app):
+    response = app.test_client().get("/properties#compare")
 
     assert response.status_code == 302
     assert response.headers["Location"].startswith("/login?next=")
@@ -61,7 +61,7 @@ def test_compare_rejects_another_users_location_id(app):
     test_client = app.test_client()
     assert login(test_client, "compare-a@example.com", "password-a").status_code == 302
     response = test_client.post(
-        "/compare",
+        "/properties",
         data={"location_ids": [str(own_id), str(foreign_id)]},
     )
 
@@ -83,7 +83,7 @@ def test_compare_displays_selected_location_data(app):
     test_client = app.test_client()
     assert login(test_client, "test@example.com", "unused").status_code == 302
     response = test_client.post(
-        "/compare",
+        "/properties",
         data={"location_ids": [str(first_id), str(second_id)]},
     )
 
@@ -104,7 +104,7 @@ def test_compare_invalid_selection_is_announced(app):
     test_client = app.test_client()
     assert login(test_client, "test@example.com", "unused").status_code == 302
 
-    response = test_client.post("/compare", data={"location_ids": []})
+    response = test_client.post("/properties", data={"location_ids": []})
 
     assert response.status_code == 200
     assert b'class="compare-selection-error" role="alert"' in response.data
@@ -121,7 +121,7 @@ def test_compare_duplicate_id_does_not_create_duplicate_scenario_columns(app):
 
     test_client = app.test_client()
     assert login(test_client, "test@example.com", "unused").status_code == 302
-    response = test_client.get(f"/compare?ids={location_id},{location_id}")
+    response = test_client.get(f"/properties?ids={location_id},{location_id}#compare")
 
     assert response.status_code == 200
     assert b"Scenario comparison" not in response.data

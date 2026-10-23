@@ -66,22 +66,29 @@ def test_parse_maps_url_preserves_latitude_longitude_order():
     assert data["source"] == "maps_url"
 
 
-def test_reports_navigation_has_real_authenticated_page(client):
+def test_reports_route_redirects_to_properties(client):
     response = client.get("/reports")
 
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/properties"
+
+
+def test_saved_properties_page_has_combined_property_actions_and_compare(client):
+    response = client.get("/properties")
+
     assert response.status_code == 200
     body = response.get_data(as_text=True)
-    assert "All saved reports" in body
-    assert 'href="/reports"' in body
+    assert "My properties" in body
+    assert "Compare scenarios" in body
+    assert 'id="properties-nav-toggle"' in body
+    assert 'href="/properties#compare"' in body
 
 
-def test_saved_locations_navigation_has_distinct_authenticated_page(client):
+def test_saved_locations_route_redirects_to_properties(client):
     response = client.get("/saved-locations")
 
-    assert response.status_code == 200
-    body = response.get_data(as_text=True)
-    assert "Saved locations" in body
-    assert 'href="/saved-locations"' in body
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/properties"
 
 
 def test_dashboard_uses_persisted_summary_values(client):

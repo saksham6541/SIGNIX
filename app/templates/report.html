@@ -37,7 +37,7 @@
     </div>
   </div>
   <div class="report-header-actions">
-    <a class="report-back-link" href="{{ url_for('pages.reports') }}">← {{ _('All saved reports') }}</a>
+    <a class="report-back-link" href="{{ url_for('pages.properties') }}">← {{ _('My properties') }}</a>
     <div class="pdf-download-group" aria-label="{{ _('Report downloads') }}">
       <a class="btn btn-secondary" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='summary') }}">{{ _('Homeowner summary') }}</a>
       <a class="btn btn-secondary" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='full') }}">{{ _('Technical PDF') }}</a>
@@ -1022,7 +1022,7 @@
         return;
       }
       setCloneStatus('Scenario saved — opening compare…', 'success');
-      window.location.href = data.compare_url || data.redirect_url || '/compare';
+      window.location.href = data.compare_url || data.redirect_url || '/properties#compare';
     } catch (err) {
       setCloneStatus('The scenario service is unavailable. Try again.', 'error');
       btn.disabled = false;

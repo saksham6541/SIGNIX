@@ -1,4 +1,13 @@
-from flask import Blueprint, abort, jsonify, render_template, request, send_file
+from flask import (
+    Blueprint,
+    abort,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
@@ -91,25 +100,9 @@ def dashboard():
     )
 
 
-@pages_bp.route("/reports")
+@pages_bp.route("/properties", methods=["GET", "POST"])
 @login_required
-def reports():
-    """List every saved estimate with a direct route to its full report."""
-    locations = location_service.list_locations(current_user.id)
-    return render_template("reports.html", locations=locations)
-
-
-@pages_bp.route("/saved-locations")
-@login_required
-def saved_locations():
-    """Show the signed-in user's saved rooftop locations."""
-    locations = location_service.list_locations(current_user.id)
-    return render_template("saved_locations.html", locations=locations)
-
-
-@pages_bp.route("/compare", methods=["GET", "POST"])
-@login_required
-def compare():
+def properties():
     locations = location_service.list_locations(current_user.id)
     selected_locations = []
     selected_ids = []
@@ -122,7 +115,7 @@ def compare():
         except ValueError:
             selected_ids = []
     else:
-        # Deep-link from clone flow: /compare?ids=12,34,56
+        # Deep-link from clone flow: /properties?ids=12,34,56#compare
         raw = (request.args.get("ids") or "").strip()
         if raw:
             try:
@@ -152,11 +145,34 @@ def compare():
         comparison = _build_scenario_comparison(selected_locations)
 
     return render_template(
-        "compare.html",
+        "properties.html",
         locations=locations,
         selected_locations=selected_locations,
         comparison=comparison,
+        selection_error=(
+            len(selected_locations) < 2
+            and (request.method == "POST" or bool(request.args.get("ids")))
+        ),
     )
+
+
+@pages_bp.get("/reports")
+def reports():
+    return redirect(url_for("pages.properties"))
+
+
+@pages_bp.get("/saved-locations")
+def saved_locations():
+    return redirect(url_for("pages.properties"))
+
+
+@pages_bp.route("/compare", methods=["GET", "POST"])
+def compare():
+    target = url_for(
+        "pages.properties",
+        **request.args.to_dict(flat=True),
+    )
+    return redirect(f"{target}#compare")
 
 
 

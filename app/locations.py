@@ -106,6 +106,6 @@ def api_clone_scenario(location_id):
     response["parent_location_id"] = source.id
     response["roof_group_id"] = location.roof_group_id
     response["scenario_label"] = location.scenario_label
-    response["compare_url"] = f"/compare?ids={source.id},{location.id}"
+    response["compare_url"] = f"/properties?ids={source.id},{location.id}#compare"
     response["redirect_url"] = response["compare_url"]
     return jsonify(response)
