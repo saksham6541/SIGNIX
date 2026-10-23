@@ -85,9 +85,23 @@
   </section>
 
   <section class="subsidy-guide-section" aria-labelledby="subsidy-title">
-    <div class="subsidy-guide-container">
-      <div class="section-header-block"><p class="section-kicker">{{ _('RESIDENTIAL GUIDANCE') }}</p><h2 id="subsidy-title">{{ _('PM Surya Ghar is guidance, not a guarantee') }}</h2><p class="section-subtitle">{{ _('The residential estimator can apply the supported central-assistance assumptions, but actual eligibility depends on the current scheme, residential connection, approved vendors, DISCOM process, and installation details.') }}</p></div>
-      <aside class="subsidy-rules-card"><h4>{{ _('Before relying on a subsidy figure') }}</h4><ul class="subsidy-checklist"><li>{{ _('Confirm the current rules on the official portal.') }}</li><li>{{ _('Verify the consumer category and DISCOM process.') }}</li><li>{{ _('Treat SIGNIX values as indicative until approved.') }}</li><li>{{ _('Do not apply this residential assistance to business estimates.') }}</li></ul><a class="subsidy-official-link" href="https://pmsuryaghar.gov.in/" target="_blank" rel="noopener noreferrer">{{ _('Open the official PM Surya Ghar portal') }} ↗</a></aside>
+    <div class="subsidy-guide-container psg-landing-guide">
+      <div class="section-header-block">
+        <p class="section-kicker">{{ _('RESIDENTIAL GUIDANCE') }}</p>
+        <h2 id="subsidy-title">{{ _('How to apply for PM Surya Ghar') }}</h2>
+        <p class="section-subtitle">{{ _('The scheme is for eligible grid-connected residential rooftop systems. Check the current rules and process on the official portal; SIGNIX does not determine approval.') }}</p>
+        <ol class="psg-step-list">
+          {% for step in psg_guidance.steps %}
+          <li><strong>{{ step.title }}</strong><span>{{ step.detail }}</span></li>
+          {% endfor %}
+        </ol>
+      </div>
+      <aside class="subsidy-rules-card">
+        <h4>{{ _('Before you apply') }}</h4>
+        <p>{{ _('You apply directly through the official portal and coordinate with your DISCOM and chosen vendor.') }}</p>
+        <a class="subsidy-official-link" href="{{ psg_guidance.portal_url }}" target="_blank" rel="noopener noreferrer">{{ _('Open the official PM Surya Ghar portal') }} ↗</a>
+        <p class="psg-disclaimer">{{ _('SIGNIX is not affiliated with the government or this portal. You apply directly on the official portal.') }}</p>
+      </aside>
     </div>
   </section>
 

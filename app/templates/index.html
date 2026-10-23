@@ -15,7 +15,7 @@
       <p class="landing-lede">{{ _('Locate the property, trace the authoritative roof boundary, mark obstructions, and review the assumptions before estimating.') }}</p>
       <div class="track-guidance-card" id="track-guidance-card">
         <div class="guidance-status-tag {% if planning_track == 'business' %}guidance-status-biz{% endif %}" id="guidance-tag">{% if planning_track == 'home' %}{{ _('RESIDENTIAL EXPERIENCE ACTIVE') }}{% else %}{{ _('COMMERCIAL EXPERIENCE ACTIVE') }}{% endif %}</div>
-        <p id="guidance-text">{% if planning_track == 'home' %}{{ _('Residential sizing and caveated PM Surya Ghar guidance are active. Actual eligibility still requires official verification.') }}{% else %}{{ _('Commercial cost and load assumptions are active. PM Surya Ghar residential subsidy is set to zero.') }}{% endif %}</p>
+        <p id="guidance-text">{% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('Residential sizing is active. PM Surya Ghar guidance is indicative and requires official verification.') }}{% elif planning_track == 'home' %}{{ _('Residential planning assumptions are active.') }}{% else %}{{ _('Commercial cost and load assumptions are active for this estimate.') }}{% endif %}</p>
       </div>
       <a class="landing-jump" href="{{ url_for('pages.plan', planning_track=planning_track) }}">{{ _('Review this planning track') }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg></a>
     </div>
@@ -68,7 +68,7 @@
         <ul>
           <li>{{ _('User-drawn roof boundary & obstruction deduction') }}</li>
           <li>{{ _('Indicative solar generation & system sizing') }}</li>
-          <li>{{ _('Residential subsidy matrix or commercial cost baseline') }}</li>
+          {% if planning_track == 'home' %}<li>{{ _('Residential subsidy matrix') }}</li>{% else %}<li>{{ _('Commercial cost baseline') }}</li>{% endif %}
         </ul>
       </div>
     </section>
@@ -77,7 +77,7 @@
   <!-- Truth Note: Directness & Credibility -->
   <aside class="truth-note" aria-label="{{ _('Estimate notice') }}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
-    <p><strong>{{ _('Preliminary planning, not a site survey.') }}</strong> {{ _('Results depend on the roof boundary you draw and the location, roof, and irradiance data available. Verify final structural capacity, DISCOM net-metering approvals, and actual subsidy eligibility before procurement.') }}</p>
+    <p><strong>{{ _('Preliminary planning, not a site survey.') }}</strong> {{ _('Results depend on the roof boundary you draw and the location, roof, and irradiance data available. Verify final structural capacity and DISCOM approvals before procurement.') }}</p>
   </aside>
 
   {% if show_workspace_marketing %}
@@ -264,6 +264,7 @@
 </div>
 
 <!-- ==================== STEP 03: ESTIMATE CONFIGURATION PANEL ==================== -->
+<div class="psg-estimate-layout">
 <section class="system-options-panel" id="configuration-panel">
   <p class="console-index">{{ _('STEP 03 · ESTIMATE ASSUMPTIONS') }}</p>
   <h3>{{ _('Configure the planning estimate') }}</h3>
@@ -304,10 +305,14 @@
         <option value="residential" {% if default_property_type in (none, 'residential') %}selected{% endif %}>{{ _('Solar for Home — Residential (PM Surya Ghar eligible)') }}</option>
         <option value="remote" {% if default_property_type == 'remote' %}selected{% endif %}>{{ _('Remote / Unreliable Grid') }}</option>
         {% else %}
-        <option value="commercial" selected>{{ _('Solar for Business — Commercial / Office / Shop (No PM Surya Ghar)') }}</option>
+        <option value="commercial" selected>{{ _('Solar for Business — Commercial / Office / Shop') }}</option>
         {% endif %}
       </select>
-      <small id="property-type-hint">{% if planning_track == 'home' %}{{ _('Residential activates PM Surya Ghar guidance; Remote uses the supported unreliable-grid assumptions without residential subsidy.') }}{% else %}{{ _('Commercial EPC assumptions are active and residential subsidy is zero.') }}{% endif %}</small>
+      <small id="property-type-hint"
+        data-residential-label="{{ _('Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems.') }}"
+        data-general-label="{{ _('Remote and commercial planning use their respective load and cost assumptions.') }}">
+        {% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems.') }}{% else %}{{ _('Remote and commercial planning use their respective load and cost assumptions.') }}{% endif %}
+      </small>
     </div>
 
     <div class="option-card">
@@ -331,7 +336,11 @@
         <option value="bill_offset_100%">{{ _('Offset ~100%% of bill') }}</option>
         <option value="bill_offset_50%">{{ _('Offset ~50%% of bill') }}</option>
         <option value="roof_max">{{ _('Max fit on roof') }}</option>
-        <option value="fastest_payback">{{ _('Fastest payback (subsidy-aware)') }}</option>
+        <option id="fastest-payback-option" value="fastest_payback"
+          data-residential-label="{{ _('Fastest payback (subsidy-aware)') }}"
+          data-general-label="{{ _('Fastest payback') }}">
+          {% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('Fastest payback (subsidy-aware)') }}{% else %}{{ _('Fastest payback') }}{% endif %}
+        </option>
         <option value="max_25yr_savings">{{ _('Max 25-year savings') }}</option>
       </select>
       <small>{{ _('Recommended size is always capped by usable roof area.') }}</small>
@@ -359,7 +368,11 @@
         <option value="hybrid">{{ _('Hybrid (backup + battery)') }}</option>
         <option value="off-grid">{{ _('Off-Grid (full independence)') }}</option>
       </select>
-      <small>{{ _('On-Grid & Hybrid often subsidy-eligible; Off-Grid usually not.') }}</small>
+      <small id="inverter-eligibility-hint"
+        data-residential-label="{{ _('On-grid and hybrid systems may qualify; verify current eligibility on the official portal.') }}"
+        data-general-label="{{ _('Choose an inverter that fits the property’s grid connection and backup needs.') }}">
+        {% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('On-grid and hybrid systems may qualify; verify current eligibility on the official portal.') }}{% else %}{{ _('Choose an inverter that fits the property’s grid connection and backup needs.') }}{% endif %}
+      </small>
     </div>
 
     <div class="options-group-heading"><span>03</span><div><h4>{{ _('Storage and grid') }}</h4><p>{{ _('Set backup needs and how exported energy is valued.') }}</p></div></div>
@@ -418,6 +431,35 @@
     <p id="estimate-action-status" class="estimate-action-status" role="status" aria-live="polite">{{ _('Draw a roof boundary to enable the estimate.') }}</p>
   </div>
 </section>
+
+{% if planning_track == 'home' and psg_guidance %}
+<details class="psg-card" id="psg-estimate-guide" hidden>
+  <summary>{{ _('PM Surya Ghar guide') }}</summary>
+  <div class="psg-card-content">
+    <p>{{ _('PM Surya Ghar is a central assistance scheme for eligible residential rooftop solar systems.') }}</p>
+    <p>{{ _('Eligibility is limited to residential, grid-connected connections with no earlier central subsidy; confirm current rules on the official portal.') }}</p>
+    <p class="psg-rule">
+      <strong>{{ _('Indicative subsidy rule') }}</strong><br>
+      {{ _('₹%(first)s per kW for the first 2 kW, then ₹%(extra)s per kW for capacity from 2–3 kW, capped at ₹%(cap)s.', first='{:,}'.format(psg_rule.per_kw_first_2|int), extra='{:,}'.format(psg_rule.per_kw_extra_2_to_3|int), cap='{:,}'.format(psg_rule.cap|int)) }}
+      <small>{{ _('Indicative. Verify on the official portal.') }}</small>
+    </p>
+    <h3>{{ _('Application steps') }}</h3>
+    <ol class="psg-step-list">
+      {% for step in psg_guidance.steps %}
+      <li><strong>{{ step.title }}</strong><span>{{ step.detail }}</span></li>
+      {% endfor %}
+    </ol>
+    <h3>{{ _('Keep ready') }}</h3>
+    <ul class="psg-keep-ready">
+      {% for item in psg_guidance.keep_ready %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+    <p class="psg-discom">{{ _('Matched DISCOM') }}: <strong id="psg-discom-name">{{ _('No DISCOM selected yet') }}</strong></p>
+    <a class="psg-portal-button" href="https://pmsuryaghar.gov.in" target="_blank" rel="noopener noreferrer">{{ _('Open the official PM Surya Ghar portal') }}</a>
+    <p class="psg-disclaimer">{{ _('SIGNIX is not affiliated with the government or this portal. You apply directly on the official portal.') }}</p>
+  </div>
+</details>
+{% endif %}
+</div>
 
 <!-- ==================== STEP 04: ESTIMATION RESULTS ==================== -->
 <section id="estimate-result" class="estimate-result hidden" aria-live="polite">
@@ -510,15 +552,21 @@
     <h3>{{ _('Investment & Payback') }}</h3>
     <div class="investment-list">
       <div><span>{{ _('Estimated System Cost') }}</span><strong id="result-system-cost">—</strong></div>
-      <div><span>{{ _('PM Surya Ghar Subsidy') }}</span><strong id="result-subsidy" class="deduction">—</strong></div>
+      {% if planning_track == 'home' %}
+      <div id="result-psg-finance" class="psg-result-finance" hidden>
+        <div><span>{{ _('PM Surya Ghar subsidy estimate') }}</span><strong id="result-subsidy" class="deduction">—</strong></div>
+        <p class="subsidy-caveat" id="result-subsidy-caveat">{{ subsidy_caveat }}</p>
+        <p class="subsidy-eligibility-assumption" id="result-subsidy-eligibility">{{ subsidy_eligibility_assumption }}</p>
+      </div>
+      {% else %}
+      <span id="result-subsidy" class="hidden"></span>
+      {% endif %}
       <div class="investment-total"><span>{{ _('Your Net Investment') }}</span><strong id="result-net-investment">—</strong></div>
     </div>
-    <p class="subsidy-caveat" id="result-subsidy-caveat">{{ subsidy_caveat }}</p>
-    <p class="subsidy-eligibility-assumption" id="result-subsidy-eligibility">{{ subsidy_eligibility_assumption }}</p>
     <p class="monetary-disclaimer">{{ monetary_disclaimer }}</p>
   </div>
 
-  <div id="result-subsidy-note" class="subsidy-note"></div>
+  {% if planning_track == 'home' %}<div id="result-subsidy-note" class="subsidy-note" hidden></div>{% endif %}
   <p id="result-area-summary" class="estimate-area-summary"></p>
   <a id="view-full-report" class="btn-report" href="{{ url_for('pages.properties') }}" target="_blank" rel="noopener">{{ _('View Full Report') }} ↗</a>
 </section>
@@ -670,7 +718,7 @@
 
 {% block site_footer %}
 <footer class="site-footer">
-  <p>{{ _('SIGNIX rooftop survey workspace · Indicative estimates only · Verify structural, DISCOM, and subsidy requirements') }}</p>
+  <p>{{ _('SIGNIX rooftop survey workspace · Indicative estimates only · Verify structural and DISCOM requirements') }}</p>
 </footer>
 {% endblock %}
 
@@ -685,4 +733,91 @@
 </script>
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% if planning_track == 'home' and psg_guidance %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const guide = document.getElementById('psg-estimate-guide');
+  const propertyType = document.getElementById('property-type');
+  const inverter = document.getElementById('inverter-preference');
+  const subsidy = document.getElementById('result-subsidy');
+  const subsidyFinance = document.getElementById('result-psg-finance');
+  const subsidyNote = document.getElementById('result-subsidy-note');
+  const inverterHint = document.getElementById('inverter-eligibility-hint');
+  const propertyHint = document.getElementById('property-type-hint');
+  const guidanceText = document.getElementById('guidance-text');
+  const fastestPaybackOption = document.getElementById('fastest-payback-option');
+  const discom = document.getElementById('discom-readout');
+  const discomName = document.getElementById('psg-discom-name');
+  if (!guide || !propertyType || !inverter) return;
+
+  function syncVisibility() {
+    const subsidyApplies = Number((subsidy?.textContent || '').replace(/[^\d.]/g, '')) > 0;
+    const allowed = propertyType.value === 'residential'
+      && (inverter.value === 'on-grid' || inverter.value === 'hybrid' || subsidyApplies);
+    guide.hidden = !allowed;
+    if (subsidyFinance) subsidyFinance.hidden = !allowed;
+    if (subsidyNote) subsidyNote.hidden = !allowed;
+    if (!allowed) guide.open = false;
+    if (inverterHint) {
+      inverterHint.textContent = allowed
+        ? inverterHint.dataset.residentialLabel
+        : inverterHint.dataset.generalLabel;
+    }
+    if (propertyHint) {
+      propertyHint.textContent = propertyType.value === 'residential'
+        ? propertyHint.dataset.residentialLabel
+        : propertyHint.dataset.generalLabel;
+    }
+    if (guidanceText) {
+      guidanceText.textContent = allowed
+        ? {{ _('Residential sizing is active. PM Surya Ghar guidance is indicative and requires official verification.')|tojson }}
+        : propertyType.value === 'residential'
+          ? {{ _('Residential planning assumptions are active.')|tojson }}
+          : {{ _('Commercial cost and load assumptions are active for this estimate.')|tojson }};
+    }
+    if (fastestPaybackOption) {
+      fastestPaybackOption.textContent = allowed
+        ? fastestPaybackOption.dataset.residentialLabel
+        : fastestPaybackOption.dataset.generalLabel;
+    }
+  }
+
+  function syncDiscom() {
+    const matchedName = discom?.querySelector('strong')?.textContent?.trim();
+    if (matchedName && matchedName !== '—') {
+      discomName.textContent = matchedName;
+    }
+  }
+
+  propertyType.addEventListener('change', syncVisibility);
+  inverter.addEventListener('change', syncVisibility);
+  new MutationObserver(function () {
+    syncVisibility();
+    syncDiscom();
+  }).observe(document.getElementById('estimate-result'), {
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+  if (discom) new MutationObserver(syncDiscom).observe(discom, {
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+
+  const mobile = window.matchMedia('(max-width: 1100px)');
+  function applyResponsiveDisclosure() {
+    if (mobile.matches && !guide.dataset.userToggled) guide.open = false;
+    else if (!mobile.matches && !guide.dataset.userToggled) guide.open = true;
+  }
+  guide.addEventListener('toggle', function () {
+    guide.dataset.userToggled = 'true';
+  });
+  mobile.addEventListener('change', applyResponsiveDisclosure);
+  applyResponsiveDisclosure();
+  syncVisibility();
+  syncDiscom();
+});
+</script>
+{% endif %}
 {% endblock %}
