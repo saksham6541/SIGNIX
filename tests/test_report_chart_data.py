@@ -293,10 +293,14 @@ def test_report_renders_serialized_chart_contract(client, app):
     assert 'id="roofUtilizationChart"' in body
     assert 'id="financing-controls"' not in body
     assert 'js/vendor/chart.umd.min.js' in body
-    assert 'role="tablist"' in body
-    assert 'id="report-tab-overview"' in body
-    assert 'aria-selected="true"' in body
-    assert 'role="tabpanel" aria-labelledby="report-tab-generation"' in body
+    assert 'id="rpt-summary"' in body
+    assert 'id="rpt-suitability"' in body
+    assert 'id="rpt-rooftop"' in body
+    assert 'id="rpt-sizing"' in body
+    assert 'id="rpt-financing"' in body
+    assert 'id="rpt-environmental"' in body
+    assert 'id="rpt-assumptions"' in body
+    assert 'id="rpt-next-steps"' in body
     assert 'data-roof3d-view="3d" aria-pressed="true"' in body
     assert 'class="roof3d-compass-ring" role="slider"' in body
     assert 'data-source-sizing-mode=' in body

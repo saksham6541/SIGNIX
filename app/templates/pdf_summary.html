@@ -151,9 +151,9 @@
   <div class="section">
     <h2>{{ _('What it costs') }}</h2>
     <div class="row"><span>{{ _('System cost (mid)') }}</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
-    <div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>−₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
+    {% if psg_guidance_allowed %}<div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>−₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
     <div class="row"><span>{{ _('Net investment') }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
-    <p class="disclaimer">{{ subsidy_caveat }} · {{ subsidy_eligibility_assumption }}</p>
+    {% if psg_guidance_allowed %}<p class="disclaimer">{{ subsidy_caveat }} · {{ subsidy_eligibility_assumption }}</p>{% endif %}
   </div>
 
   <div class="section">
@@ -206,18 +206,18 @@
     {% if loc.battery_kwh and loc.battery_kwh > 0 %}
     <div class="row"><span>{{ _('Battery included') }}</span><span>{{ '%.1f'|format(loc.battery_kwh) }} kWh</span></div>
     {% endif %}
-    <div class="row"><span>{{ _('Subsidy (estimate)') }}</span><span>₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
+    {% if psg_guidance_allowed %}<div class="row"><span>{{ _('Subsidy (estimate)') }}</span><span>₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
   </div>
 
   <div class="section">
     <h2>{{ _('Suggested next steps') }}</h2>
     <p style="margin:0 0 8px;color:#333;">1. {{ _('Share this summary with your family or building society.') }}</p>
-    <p style="margin:0 0 8px;color:#333;">2. {{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</p>
-    <p style="margin:0 0 8px;color:#333;">3. {{ _('Ask installers for a site survey and a firm quote.') }}</p>
-    <p style="margin:0;color:#333;">4. {{ _('Download the full technical report if you need detailed assumptions.') }}</p>
+    {% if psg_guidance_allowed %}<p style="margin:0 0 8px;color:#333;">2. {{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</p>{% endif %}
+    <p style="margin:0 0 8px;color:#333;">{{ '3.' if psg_guidance_allowed else '2.' }} {{ _('Ask installers for a site survey and a firm quote.') }}</p>
+    <p style="margin:0;color:#333;">{{ '4.' if psg_guidance_allowed else '3.' }} {{ _('Download the full technical report if you need detailed assumptions.') }}</p>
   </div>
 
-  <p class="disclaimer">{{ monetary_disclaimer }}<br>{{ subsidy_caveat }}</p>
+  <p class="disclaimer">{{ monetary_disclaimer }}{% if psg_guidance_allowed %}<br>{{ subsidy_caveat }}{% endif %}</p>
   <p class="footer">SIGNIX · {{ _('Page') }} 2 · {{ _('Indicative planning aid only') }}</p>
 </body>
 </html>
