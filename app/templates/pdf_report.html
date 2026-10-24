@@ -174,9 +174,11 @@
   {% if loc.battery_cost and loc.battery_cost > 0 %}
   <div class="fin-row"><span>{{ _('Battery storage') }} ({{ loc.battery_kwh }} kWh)</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>
   {% endif %}
+  {% if psg_guidance_allowed %}
   <div class="fin-row"><span>{{ _('PM Surya Ghar subsidy') }}</span><span>-₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
   <p class="subsidy-caveat">{{ subsidy_caveat }}</p>
   <p class="subsidy-eligibility-assumption">{{ subsidy_eligibility_assumption }}</p>
+  {% endif %}
   <div class="fin-row total"><span>{{ _('Net investment') }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
   <div class="fin-row"><span>{{ _('Estimated monthly savings') }}</span><span>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
   {% if loc.lifecycle_projection %}
@@ -191,7 +193,7 @@
   {% if loc.inverter %}
   <h2>5. {{ _('Recommended inverter') }} — {{ loc.inverter.type }}</h2>
   <p class="muted"><strong>{{ _('Best for') }}:</strong> {{ loc.inverter.best_for }}</p>
-  <p class="muted"><strong>{{ _('Subsidy eligibility') }}:</strong> {% if loc.inverter.subsidy_eligible %}{{ _('Typically eligible (DISCOM conditions apply)') }}{% else %}{{ _('Usually not eligible') }}{% endif %}</p>
+  {% if psg_guidance_allowed %}<p class="muted"><strong>{{ _('Typical scheme eligibility') }}:</strong> {% if loc.inverter.subsidy_eligible %}{{ _('Eligible, subject to official verification') }}{% else %}{{ _('Not confirmed') }}{% endif %}</p>{% endif %}
   <ul class="notes">
     {% for a in loc.inverter.advantages %}
     <li>{{ a }}</li>
@@ -212,7 +214,7 @@
   <div class="box">
     <strong>{{ _('Key assumptions') }}</strong><br>
     {{ _('Bill path ≈ ₹10/unit · ~135 units/month/kW (~4–5.5 units/day/kWp). Energy check uses PSH × PR.') }}
-    {{ _('PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for 2–3 kW step · max ₹78,000.') }}
+    {% if psg_guidance_allowed %}{{ _('PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for 2–3 kW step · max ₹78,000.') }}{% endif %}
     {{ _('Residential cost band ~₹55k–85k/kW; commercial often ~₹35k–50k/kW. ~10 m² usable roof per kWp.') }}
     {{ _('0.5%%/yr degradation; retail tariff escalation, annual O&M and an 8%% nominal discount-rate planning assumption are explicit. Not a licensed design or DISCOM quote.') }}
   </div>
