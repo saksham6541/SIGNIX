@@ -3,114 +3,59 @@
 {% block title %}SIGNIX — Detailed Report{% endblock %}
 
 {% block content %}
-<section class="report-header">
-  <div class="report-header-main">
-    <p class="report-kicker">{{ _('SAVED ESTIMATE') }} · #{{ loc.id }}</p>
-    <h1>{{ loc.address }}</h1>
-    <p class="address">{{ _('Detailed solar planning report') }}</p>
-    {% set conf = loc.irradiance_confidence or (loc.suitability_rating.data_confidence.tier if loc.suitability_rating and loc.suitability_rating.data_confidence else none) %}
-    {% set conf_class = 'data-conf-high' if conf == 'high' else 'data-conf-medium' if conf == 'medium' else 'data-conf-low' if conf == 'low' else 'data-conf-unknown' %}
-    <div style="margin-top:10px;">
-      {% if loc.irradiance_source %}
-      <span class="data-source-badge {{ conf_class }}">
-        {% if loc.irradiance_source == 'nasa_power' %}Data: NASA POWER
-        {% elif loc.irradiance_source == 'pvgis' %}Data: PVGIS
-        {% elif loc.irradiance_source in ('mock', 'mock_fallback') %}Data: Mock
-        {% else %}Data: {{ loc.irradiance_source }}{% endif %}
-        {% if conf == 'high' %} · High confidence
-        {% elif conf == 'medium' %} · Medium confidence
-        {% elif conf == 'low' %} · Low confidence — verify locally
+<section class="rpt-header" aria-labelledby="rpt-title">
+  <a class="rpt-back-link" href="{{ url_for('pages.properties') }}">← {{ _('Saved Properties') }}</a>
+  <div class="rpt-header-row">
+    <div class="rpt-header-copy">
+      <p class="rpt-kicker">{{ _('SAVED ESTIMATE') }} · #{{ loc.id }}</p>
+      <h1 id="rpt-title">{{ loc.address }}</h1>
+      <p class="rpt-meta">
+        {% if loc.irradiance_source %}
+          {% set source_label = 'NASA POWER' if loc.irradiance_source == 'nasa_power' else 'PVGIS' if loc.irradiance_source == 'pvgis' else _('Mock data') if loc.irradiance_source in ('mock', 'mock_fallback') else loc.irradiance_source %}
+          {{ _('Data source: %(source)s', source=source_label) }}
         {% endif %}
-      </span>
-      {% endif %}
-      {% if loc.orientation_label %}
-      <span class="orientation-badge">{{ _('Orientation') }} · {{ loc.orientation_label }}
-        {% if loc.orientation_deg is not none %}({{ loc.orientation_deg }}°){% endif %}
-      </span>
-      {% endif %}
-      {% if loc.battery_kwh and loc.battery_kwh > 0 %}
-      <span class="battery-badge">{{ _('Battery') }} · {{ loc.battery_kwh }} kWh</span>
-      {% endif %}
-      {% if loc.inverter_type %}
-      <span class="orientation-badge">{{ _('Inverter') }} · {{ loc.inverter_type }}</span>
-      {% endif %}
+        {% if loc.orientation_label %} · {{ _('Orientation: %(orientation)s', orientation=loc.orientation_label) }}{% endif %}
+        {% if loc.inverter_type %} · {{ _('Inverter: %(inverter)s', inverter=loc.inverter_type) }}{% endif %}
+      </p>
     </div>
-  </div>
-  <div class="report-header-actions">
-    <a class="report-back-link" href="{{ url_for('pages.properties') }}">← {{ _('Saved Properties') }}</a>
-    <div class="pdf-download-group" aria-label="{{ _('Report downloads') }}">
-      <a class="btn btn-secondary" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='summary') }}">{{ _('Homeowner summary') }}</a>
-      <a class="btn btn-secondary" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='full') }}">{{ _('Technical PDF') }}</a>
-      <a class="btn btn-primary" href="{{ url_for('pages.download_installer_package', location_id=loc.id) }}">{{ _('Installer package') }}</a>
-    </div>
-  </div>
-  <p class="installer-export-note">
-    {{ _('Share this package with any installer of your choice — GeoJSON roof outline, key metrics, and PDF summary. SIGNIX stays vendor-neutral and does not send your details to partner installers.') }}
-  </p>
-
-  <div class="clone-scenario-panel" id="clone-scenario-panel" data-location-id="{{ loc.id }}" data-source-sizing-mode="{{ loc.sizing_mode or '' }}" data-source-backup="{{ 'true' if (loc.battery_kwh and loc.battery_kwh > 0) else 'false' }}">
-    <h3>{{ _('Duplicate estimate → change one variable') }}</h3>
-    <p class="clone-help">{{ _('Re-run this roof with a single change, then compare both scenarios side-by-side.') }}</p>
-    <div class="clone-controls">
-      <label>
-        {{ _('Change') }}
-        <select id="clone-change">
-          <option value="sizing_mode">{{ _('Sizing mode') }}</option>
-          <option value="bill_offset">{{ _('Bill offset %%') }}</option>
-          <option value="needs_backup">{{ _('Toggle backup / battery') }}</option>
-        </select>
-      </label>
-      <label id="clone-value-mode-wrap">
-        {{ _('New sizing mode') }}
-        <select id="clone-value-mode">
-          <option value="roof_max">{{ _('Roof max') }}</option>
-          <option value="bill_offset_80%">{{ _('Bill offset 80%%') }}</option>
-          <option value="bill_offset_100%">{{ _('Bill offset 100%%') }}</option>
-          <option value="fastest_payback">{{ _('Fastest payback') }}</option>
-          <option value="max_25yr_savings">{{ _('Max 25yr savings') }}</option>
-        </select>
-      </label>
-      <label id="clone-value-offset-wrap" class="hidden">
-        {{ _('Bill offset percent') }}
-        <input type="number" id="clone-value-offset" min="20" max="100" step="10" value="80">
-      </label>
-      <label id="clone-value-backup-wrap" class="hidden">
-        {{ _('Need backup') }}
-        <select id="clone-value-backup">
-          <option value="true">{{ _('Yes — auto-size battery') }}</option>
-          <option value="false">{{ _('No battery') }}</option>
-        </select>
-      </label>
-      <button type="button" class="btn-primary-lg" id="clone-run-btn">{{ _('Clone & compare') }}</button>
-    </div>
-    <p id="clone-status" class="clone-status hidden" role="status" aria-live="polite" tabindex="-1"></p>
+    <a class="rpt-primary-download" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='summary') }}">
+      {{ _('Download PDF') }} <span aria-hidden="true">↓</span>
+    </a>
   </div>
 </section>
 
-<section class="savings-banner">
-  <span class="label">Estimated Monthly Savings</span>
-  <span class="value" data-orientation-monthly-savings>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span>
-  <span class="sub">
-    {% if loc.payback_years %}Payback ~{{ loc.payback_years }} years{% else %}Indicative estimate{% endif %}
-    {% if loc.self_consumption_frac %} · {{ (loc.self_consumption_frac * 100)|int }}% self-consumed{% endif %}
-  </span>
-  <span class="monetary-disclaimer">{{ monetary_disclaimer }}</span>
-</section>
-
-<nav class="tabs" role="tablist" aria-label="{{ _('Report sections') }}">
-  <button id="report-tab-overview" class="tab-btn active" data-tab="overview" type="button" role="tab" aria-selected="true" aria-controls="tab-overview" tabindex="0">System Sizing</button>
-  <button id="report-tab-generation" class="tab-btn" data-tab="generation" type="button" role="tab" aria-selected="false" aria-controls="tab-generation" tabindex="-1">Energy Forecasting</button>
-  <button id="report-tab-financial" class="tab-btn" data-tab="financial" type="button" role="tab" aria-selected="false" aria-controls="tab-financial" tabindex="-1">Financing Options</button>
-  <button id="report-tab-capex-dpa" class="tab-btn" data-tab="capex-dpa" type="button" role="tab" aria-selected="false" aria-controls="tab-capex-dpa" tabindex="-1">CAPEX vs DPA</button>
-  <button id="report-tab-environmental" class="tab-btn" data-tab="environmental" type="button" role="tab" aria-selected="false" aria-controls="tab-environmental" tabindex="-1">Environmental</button>
-  <button id="report-tab-next-steps" class="tab-btn" data-tab="next-steps" type="button" role="tab" aria-selected="false" aria-controls="tab-next-steps" tabindex="-1">{{ _('Next steps') }}</button>
+<nav class="rpt-tabs" aria-label="{{ _('Report sections') }}" data-report-tabs>
+  <div class="rpt-tablist" role="tablist" aria-label="{{ _('Detailed report sections') }}" aria-orientation="horizontal">
+    <button type="button" id="rpt-tab-system" role="tab" aria-selected="true" aria-controls="rpt-panel-system" tabindex="0">{{ _('System Sizing') }}</button>
+    <button type="button" id="rpt-tab-energy" role="tab" aria-selected="false" aria-controls="rpt-panel-energy" tabindex="-1">{{ _('Energy Forecasting') }}</button>
+    <button type="button" id="rpt-tab-financing" role="tab" aria-selected="false" aria-controls="rpt-panel-financing" tabindex="-1">{{ _('Financing Options') }}</button>
+    <button type="button" id="rpt-tab-capex-dpa" role="tab" aria-selected="false" aria-controls="rpt-panel-capex-dpa" tabindex="-1">{{ _('CAPEX vs DPA') }}</button>
+    <button type="button" id="rpt-tab-environmental" role="tab" aria-selected="false" aria-controls="rpt-panel-environmental" tabindex="-1">{{ _('Environmental') }}</button>
+    <button type="button" id="rpt-tab-next" role="tab" aria-selected="false" aria-controls="rpt-panel-next" tabindex="-1">{{ _('Next Steps') }}</button>
+  </div>
 </nav>
 
+<div class="rpt-tab-panels">
+<section class="rpt-tab-panel" id="rpt-panel-system" role="tabpanel" aria-labelledby="rpt-tab-system" tabindex="0">
+<section class="rpt-section rpt-summary" id="rpt-summary" aria-labelledby="rpt-summary-title">
+  <h2 id="rpt-summary-title">{{ _('Estimate summary') }}</h2>
+  {% set nominal_payback = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}
+  <div class="rpt-summary-grid">
+    <article class="rpt-summary-card"><span>{{ _('System size') }}</span><strong>{{ '%.1f'|format(loc.system_size or 0) }} <small>kW</small></strong></article>
+    <article class="rpt-summary-card"><span>{{ _('Annual generation') }}</span><strong>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} <small>kWh</small></strong></article>
+    <article class="rpt-summary-card"><span>{{ _('Monthly savings') }}</span><strong>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</strong></article>
+    <article class="rpt-summary-card"><span>{{ _('Payback') }}</span><strong>{% if nominal_payback %}{{ '%.1f'|format(nominal_payback|float) }} <small>{{ _('years') }}</small>{% else %}—{% endif %}</strong></article>
+  </div>
+  <p class="rpt-indicative">{{ _('Indicative only — verify with your DISCOM and a qualified vendor.') }}</p>
+</section>
 
-<section id="tab-overview" class="tab-panel active" role="tabpanel" aria-labelledby="report-tab-overview" tabindex="0">
+<section class="rpt-section" id="rpt-suitability" aria-labelledby="rpt-suitability-title">
+  <div class="report-section-heading"><h2 id="rpt-suitability-title">{{ _('Suitability score') }}</h2></div>
   {{ rating_display(loc.suitability_rating, 'report') }}
+</section>
 
-  <!-- 3D rooftop preview + customization -->
+<section class="rpt-section" id="rpt-rooftop" aria-labelledby="rpt-rooftop-title">
+  <div class="report-section-heading"><h2 id="rpt-rooftop-title">{{ _('Rooftop designer') }}</h2></div>
   {% set pc = loc.panel_count or (loc.extras.panel_estimate.panel_count if loc.extras and loc.extras.panel_estimate else none) %}
   {% set module_wattage = (loc.extras.panel_estimate.module_wattage_w if loc.extras and loc.extras.panel_estimate else none) %}
   {% set roof_area = loc.roof_area_sqm or loc.usable_area_sqm or 0 %}
@@ -118,12 +63,9 @@
   <div class="viz-3d-card signix-roof-card" id="viz-3d-card">
     <div class="roof3d-toolbar">
       <div>
-        <div class="roof3d-kicker">ROOFTOP DESIGNER</div>
-        <h3>Your selected rooftop, reconstructed for solar planning</h3>
-        <p>Every surface is constrained to the boundary you drew. Provider and prototype geometry remains advisory.</p>
-      </div>
-      <div id="roof3d-provider-status" class="roof3d-provider-status loading" role="status" aria-live="polite">
-        <strong>Preparing rooftop model</strong><span>Checking the saved reconstruction state</span>
+        <div class="roof3d-kicker">{{ _('ROOFTOP DESIGNER') }}</div>
+        <h3>{{ _('Explore the saved rooftop for solar planning') }}</h3>
+        <p>{{ _('This interactive view is a planning aid, not a site survey or installation design.') }}</p>
       </div>
     </div>
 
@@ -198,9 +140,6 @@
             </div>
           </div>
           <div class="roof3d-orientation-pill"><strong id="roof3d-orientation">Panel orientation</strong><span id="roof3d-orientation-detail">Panels follow each reconstructed roof plane</span><small id="roof3d-orientation-factor"></small><small id="roof3d-orientation-delta"></small></div>
-          <div id="roof-3d-panel-status" class="roof3d-status-pill">Building physical panel layout…</div>
-          <div id="roof-ai-status" class="roof3d-ai-status">Loading rooftop reconstruction…</div>
-          <div id="roof3d-satellite-badge" class="roof3d-satellite-badge">Satellite reference · checking</div>
           <div id="roof3d-shade-badge" class="roof3d-shade-badge" aria-live="polite">Shade analysis · waiting</div>
           <div id="roof3d-layout-mode-badge" class="roof3d-layout-mode-badge is-preview" aria-live="polite">Planning preview — shade unverified</div>
           <div id="roof-3d-fallback" class="hidden roof3d-fallback">3D preview unavailable on this device. Your roof geometry and system metrics remain available.</div>
@@ -209,18 +148,12 @@
       </div>
     </div>
 
-    <div class="roof3d-classification-metrics" aria-label="Rooftop classification areas">
-      <span>Usable <strong id="roof3d-area-usable">—</strong></span>
-      <span>Shaded <strong id="roof3d-area-shaded">—</strong></span>
-      <span>Obstructions <strong id="roof3d-area-obstruction">—</strong></span>
-      <span>Setbacks <strong id="roof3d-area-setback">—</strong></span>
-      <span>Unknown <strong id="roof3d-area-unknown">—</strong></span>
-      <span>Preview panels <strong id="roof3d-preview-module-count">0</strong></span>
-      <span>Preview DC <strong id="roof3d-preview-capacity">0.00 kWp</strong></span>
-      <span>Confirmed panels <strong id="roof3d-confirmed-module-count">0</strong></span>
-      <span>Confirmed DC <strong id="roof3d-confirmed-capacity">0.00 kWp</strong></span>
-      <span>Accepted panels <strong id="roof3d-accepted-module-count">—</strong></span>
-      <span>Accepted DC <strong id="roof3d-accepted-capacity">—</strong></span>
+    <div class="roof3d-classification-metrics" aria-label="{{ _('Rooftop classification areas') }}">
+      <span>{{ _('Usable') }} <strong id="roof3d-area-usable">—</strong></span>
+      <span>{{ _('Shaded') }} <strong id="roof3d-area-shaded">—</strong></span>
+      <span>{{ _('Obstructions') }} <strong id="roof3d-area-obstruction">—</strong></span>
+      <span>{{ _('Setbacks') }} <strong id="roof3d-area-setback">—</strong></span>
+      <span>{{ _('Unknown') }} <strong id="roof3d-area-unknown">—</strong></span>
     </div>
     <p id="roof3d-shade-note" class="roof3d-shade-note">Shade classification is loading.</p>
 
@@ -235,14 +168,39 @@
       <div class="roof3d-metric roof3d-metric-accent"><span>Specific yield</span><strong>{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }} <small>kWh/kWp</small>{% else %}Unavailable{% endif %}</strong></div>
     </div>
 
-    <p class="roof3d-disclaimer">
-      Your drawn rooftop boundary remains authoritative. Reconstructed and AI-derived geometry is advisory and never silently changes saved financial inputs.
-      <span id="roof-ai-details">Prototype geometry is explicitly identified above.</span>
-    </p>
+    <p class="roof3d-disclaimer">{{ _('The rooftop view is an illustrative planning aid. Your saved estimate changes only when you explicitly accept a layout.') }}</p>
     <div class="roof3d-secondary-actions"><button type="button" class="btn btn-secondary roof3d-ai-button" id="roof-ai-btn">AI analyze structures</button><button type="button" class="btn btn-secondary roof3d-apply-button" id="roof-ai-apply-btn" disabled>Apply detected structures</button><button type="button" class="btn btn-secondary roof3d-site-button" id="roof-site-btn">Recompute roof classification</button><button type="button" class="btn btn-secondary roof3d-undo-button" id="roof-undo-btn">Reset exploration</button></div>
   </div>
+  <details class="rpt-accordion">
+    <summary>{{ _('Technical details') }}</summary>
+    <div class="rpt-accordion-content">
+      <div id="roof3d-provider-status" class="roof3d-provider-status loading" role="status" aria-live="polite">
+        <strong>{{ _('Preparing rooftop model') }}</strong><span>{{ _('Checking saved model details') }}</span>
+      </div>
+      <p id="roof3d-satellite-badge">{{ _('Satellite reference is being checked.') }}</p>
+      <p id="roof-3d-panel-status">{{ _('Building physical panel layout…') }}</p>
+      <p id="roof-ai-status">{{ _('Loading rooftop reconstruction…') }}</p>
+      <p id="roof-ai-details">{{ _('Reconstruction source and prototype details appear here when available.') }}</p>
+      <div class="roof3d-classification-metrics" aria-label="{{ _('Panel layout details') }}">
+        <span>{{ _('Preview panels') }} <strong id="roof3d-preview-module-count">0</strong></span>
+        <span>{{ _('Preview DC') }} <strong id="roof3d-preview-capacity">0.00 kWp</strong></span>
+        <span>{{ _('Confirmed panels') }} <strong id="roof3d-confirmed-module-count">0</strong></span>
+        <span>{{ _('Confirmed DC') }} <strong id="roof3d-confirmed-capacity">0.00 kWp</strong></span>
+        <span>{{ _('Accepted panels') }} <strong id="roof3d-accepted-module-count">—</strong></span>
+        <span>{{ _('Accepted DC') }} <strong id="roof3d-accepted-capacity">—</strong></span>
+      </div>
+      {% set rating = loc.suitability_rating or {} %}
+      {% if rating.get('rating_algorithm_version') %}
+      <p>{{ _('Rating algorithm version: %(version)s', version=rating.get('rating_algorithm_version')) }}</p>
+      {% endif %}
+      <p>{{ _('Prototype geometry is explicitly identified above.') }}</p>
+      <p>{{ _('Technical geometry and performance values are planning data and do not replace a site survey.') }}</p>
+    </div>
+  </details>
+</section>
 
-  <!-- Dial-style customization controls (PRD §3.2) -->
+<section class="rpt-section" id="rpt-sizing" aria-labelledby="rpt-sizing-title">
+  <div class="report-section-heading"><h2 id="rpt-sizing-title">{{ _('System sizing and energy') }}</h2></div>
   <div class="dial-panel" id="dial-panel">
     <h3 style="margin:0 0 12px;font-size:15px;color:var(--purple-dark);">Customize inputs</h3>
     <p class="emi-help" style="margin-top:0;">Adjust dials to explore impact on system size and indicative generation. Values scale from this saved estimate (indicative).</p>
@@ -372,19 +330,22 @@
   </div>
 
   {% if loc.inverter %}
-  <h3 style="margin:20px 0 10px;font-size:15px;color:var(--purple-dark);">Recommended Inverter — {{ loc.inverter.type }}</h3>
-  <div class="area-breakdown-card">
-    <div class="area-row"><span>Best for</span><span style="text-align:right;max-width:60%;">{{ loc.inverter.best_for }}</span></div>
-    <div class="area-row"><span>Subsidy eligibility</span><span>{% if loc.inverter.subsidy_eligible %}Eligible (typical){% else %}Usually not eligible{% endif %}</span></div>
-  </div>
-  <ul style="font-size:13px;color:var(--gray);margin:10px 0 0 18px;line-height:1.5;">
-    {% for a in loc.inverter.advantages %}
-    <li>{{ a }}</li>
-    {% endfor %}
-  </ul>
+  <details class="rpt-accordion">
+    <summary>{{ _('Inverter details') }}</summary>
+    <div class="rpt-accordion-content">
+      <h3>{{ _('Recommended inverter: %(type)s', type=loc.inverter.type) }}</h3>
+      <p><strong>{{ _('Best for') }}:</strong> {{ loc.inverter.best_for }}</p>
+      {% if psg_guidance_allowed %}
+      <p><strong>{{ _('Typical scheme eligibility') }}:</strong> {% if loc.inverter.subsidy_eligible %}{{ _('Eligible, subject to official verification') }}{% else %}{{ _('Not confirmed') }}{% endif %}</p>
+      {% endif %}
+      <ul>{% for a in loc.inverter.advantages %}<li>{{ a }}</li>{% endfor %}</ul>
+    </div>
+  </details>
   {% endif %}
 
-  <h3 style="margin:20px 0 10px;font-size:15px;color:var(--purple-dark);">Performance Indicators</h3>
+  <details class="rpt-accordion">
+  <summary>{{ _('Performance indicators') }}</summary>
+  <div class="rpt-accordion-content">
   <div class="kpi-row">
     <div class="kpi-card">
       <span class="kpi-value">{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }}{% else %}—{% endif %}</span>
@@ -415,6 +376,8 @@
     </div>
     {% endif %}
   </div>
+  </div>
+  </details>
 
   {% if loc.battery_kwh and loc.battery_kwh > 0 %}
   <div class="area-breakdown-card" style="margin-top:16px;">
@@ -424,34 +387,14 @@
   </div>
   {% endif %}
 
-  <div class="assumptions-box">
-    <strong>Key assumptions (India planning guide, Aug 2026)</strong><br>
-    • Bill path: ≈ ₹10/unit · ≈ 135 units/month per kW (~4–5.5 units/day/kWp on suitable days)<br>
-    {% if loc.extras and loc.extras.generation_provenance and not loc.extras.generation_provenance.performance_ratio_applied %}• Energy model: provider-modeled yield; SIGNIX PR is not applied again<br>{% else %}• Energy check: daily units ÷ (peak sun hours × PR); PR ≈ {{ loc.performance_ratio or 0.80 }} · PSH ≈ {{ loc.peak_sun_hours_assumed or 5 }} h<br>{% endif %}
-    • Final size = min(bill recommendation, roof capacity) when bill is entered · ≈ 10 m² usable roof per kWp<br>
-    • PM Surya Ghar: ₹30,000/kW for first 2 kW + ₹18,000 for the 2–3 kW step · max ₹78,000 · Off-grid / non-residential = 0<br>
-    • Installed cost band: residential ~₹55k–85k/kW (estimate uses mid); commercial EPC often ~₹35k–50k/kW<br>
-    {% if loc.system_cost_low and loc.system_cost_high %}• This system cost band: ₹{{ '{:,.0f}'.format(loc.system_cost_low) }} – ₹{{ '{:,.0f}'.format(loc.system_cost_high) }} (excl. unusual civil/structure)<br>{% endif %}
-    {% if loc.annual_om %}• Indicative annual O&amp;M reserve ≈ ₹{{ '{:,.0f}'.format(loc.annual_om) }} (~1.2% of system cost)<br>{% endif %}
-    {% if loc.orientation_factor is not none %}• Orientation factor applied{% else %}• No separate orientation factor applied to provider-modeled PV energy{% endif %} · recommended tilt ≈ latitude ({{ loc.recommended_tilt_deg or '—' }}°)<br>
-    {% if loc.battery_kwh and loc.battery_kwh > 0 %}• Battery ≈ ₹9,000/kWh (LFP); nominal size ≠ usable energy (DoD × efficiency)<br>{% endif %}
-    • 0.5%/yr degradation · tariff escalates ~{{ (loc.extras or {}).get('tariff_escalation_pct', 4) }}%/yr · O&amp;M is subtracted once · discount rate {{ (loc.extras or {}).get('discount_rate_pct', 8) }}%/yr · not a licensed design or DISCOM quote
-  </div>
-
-  {% if loc.planning_notes %}
-  <div class="assumptions-box" style="margin-top:12px;border-left-color:var(--orange);">
-    <strong>Important practical points</strong>
-    <ul style="margin:8px 0 0 16px;padding:0;">
-      {% for n in loc.planning_notes %}
-      <li style="margin-bottom:4px;">{{ n }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
 </section>
 
-<section id="tab-generation" class="tab-panel" role="tabpanel" aria-labelledby="report-tab-generation" tabindex="0" hidden>
-  <div class="report-section-heading"><span class="report-eyebrow">ENERGY FORECAST</span><h2>When the system produces energy</h2><p>Year-one monthly output and the persisted 25-year degradation forecast.</p></div>
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-energy" role="tabpanel" aria-labelledby="rpt-tab-energy" tabindex="0">
+
+<section class="rpt-section" id="rpt-energy" aria-labelledby="rpt-energy-title">
+  <div class="report-section-heading"><h2 id="rpt-energy-title">{{ _('Energy forecast') }}</h2><p>{{ _('Year-one monthly output and the saved 25-year generation forecast.') }}</p></div>
   <p style="font-size:13px;color:var(--gray);margin-top:0;">
     {% if loc.orientation_factor is not none %}Adjusted for roof orientation{% else %}Provider-modeled PV energy; no additional orientation derate applied{% endif %}
     {% if loc.orientation_label %}({{ loc.orientation_label }}){% endif %}
@@ -512,10 +455,13 @@
   </article>
 </section>
 
+</section>
 
 
-<section id="tab-financial" class="tab-panel" role="tabpanel" aria-labelledby="report-tab-financial" tabindex="0" hidden>
-  <div class="report-section-heading"><span class="report-eyebrow">PROJECT ECONOMICS</span><h2>Financial progression</h2><p>Cashflow and savings use the persisted SIGNIX financial model.</p></div>
+
+<section class="rpt-tab-panel" id="rpt-panel-financing" role="tabpanel" aria-labelledby="rpt-tab-financing" tabindex="0">
+<section class="rpt-section" id="rpt-financing" aria-labelledby="rpt-financing-title">
+  <div class="report-section-heading"><h2 id="rpt-financing-title">{{ _('Financing') }}</h2><p>{{ _('Cashflow and savings use the saved SIGNIX financial model.') }}</p></div>
   {% if loc.financial_status and loc.financial_status != 'current' %}
   <p class="status-banner status-banner-warning">Financial projection status: {{ loc.financial_status|replace('_', ' ') }}. Recalculate before using it for a decision.</p>
   {% endif %}
@@ -551,9 +497,11 @@
     {% if loc.battery_cost and loc.battery_cost > 0 %}
     <div class="fin-row"><span>Battery Storage Cost</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>
     {% endif %}
-    <div class="fin-row"><span>PM Surya Ghar Subsidy</span><span>-₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
+    {% if psg_guidance_allowed %}
+    <div class="fin-row"><span>{{ _('PM Surya Ghar subsidy estimate') }}</span><span>-₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
     <p class="subsidy-caveat">{{ subsidy_caveat }}</p>
     <p class="subsidy-eligibility-assumption">{{ subsidy_eligibility_assumption }}</p>
+    {% endif %}
     <div class="fin-row total"><span>Net Investment</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
     <div class="fin-row"><span>{{ _('Nominal payback') }} <small>(escalating tariff)</small></span><span>{% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}{% if nom %}{{ nom }} yrs{% else %}—{% endif %}</span></div>
     <div class="fin-row"><span>{{ _('Simple payback') }} <small>(year-one net savings)</small></span><span>{% set simp = (loc.extras or {}).get('simple_payback_years') %}{% if simp %}{{ simp }} yrs{% else %}—{% endif %}</span></div>
@@ -677,8 +625,11 @@
   <p class="chart-note">Cashflow includes {{ loc.chart_data.energy.degradation_pct }}% annual module degradation, {{ (loc.extras or {}).get('tariff_escalation_pct', 4) }}% retail-tariff escalation, and subtracts the annual O&amp;M reserve once. Fixed feed-in compensation is not escalated. Self-consumption is a planning assumption, not measured household demand.</p>
 </section>
 
-<section id="tab-capex-dpa" class="tab-panel" role="tabpanel" aria-labelledby="report-tab-capex-dpa" tabindex="0" hidden>
-  <h2>CAPEX vs DPA Comparison</h2>
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-capex-dpa" role="tabpanel" aria-labelledby="rpt-tab-capex-dpa" tabindex="0">
+<section class="rpt-section" aria-labelledby="rpt-capex-dpa-title">
+  <div class="report-section-heading"><h2 id="rpt-capex-dpa-title">{{ _('CAPEX vs DPA comparison') }}</h2></div>
   <p class="emi-help">
     Side-by-side cash purchase (CAPEX) versus Deferred Payment Agreement / loan (DPA).
     Adjust down-payment % and tenure below to see live updates (client-side).
@@ -835,8 +786,11 @@
   {% endif %}
 </section>
 
-<section id="tab-environmental" class="tab-panel" role="tabpanel" aria-labelledby="report-tab-environmental" tabindex="0" hidden>
-  <div class="report-section-heading"><span class="report-eyebrow">ENVIRONMENTAL OUTCOME</span><h2>Annual avoided emissions</h2><p>Planning estimate from modeled energy, not a measured reduction.</p></div>
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-environmental" role="tabpanel" aria-labelledby="rpt-tab-environmental" tabindex="0">
+<section class="rpt-section" id="rpt-environmental" aria-labelledby="rpt-environmental-title">
+  <div class="report-section-heading"><h2 id="rpt-environmental-title">{{ _('Environmental estimate') }}</h2><p>{{ _('Planning estimate from modeled energy, not a measured reduction.') }}</p></div>
   <div class="environment-hero">
     <span>Annual CO₂ avoided</span><strong>{{ loc.co2_reduction_tons }} <small>tonnes/year</small></strong>
     <div class="environment-rule"></div>
@@ -866,47 +820,170 @@
   </div>
   <div class="green-banner">Be a part of a cleaner &amp; greener India 🌱 — Every rooftop counts.</div>
 </section>
-{% endblock %}
 
-{% block scripts %}
+</section>
 
-<section id="tab-next-steps" class="tab-panel" role="tabpanel" aria-labelledby="report-tab-next-steps" tabindex="0" hidden>
-  <h2>{{ _('Application checklist') }}</h2>
-  {% set checklist = loc.application_checklist %}
-  {% if checklist and checklist.steps %}
-  <p class="checklist-intro">
-    {{ _('Guided steps for') }}
-    <strong>{{ checklist.state or _('your state') }}</strong>
-    · {{ '%.1f'|format(checklist.system_size_kw or loc.system_size or 0) }} kW
-    · {{ checklist.property_type or 'residential' }}.
-  </p>
-  <ol class="app-checklist">
-    {% for step in checklist.steps %}
-    <li class="app-checklist-item {% if step.required %}required{% else %}optional{% endif %}">
-      <div class="app-checklist-title">{{ step.title }}</div>
-      <p class="app-checklist-detail">{{ step.detail }}</p>
-      {% if step.link %}
-      <a class="app-checklist-link" href="{{ step.link.url }}" target="_blank" rel="noopener noreferrer">
-        {{ step.link.name }} ↗
-      </a>
-      {% endif %}
-    </li>
-    {% endfor %}
-  </ol>
-  {% if checklist.national_portal %}
-  <p class="checklist-portals">
-    <a href="{{ checklist.national_portal.url }}" target="_blank" rel="noopener noreferrer">{{ checklist.national_portal.name }}</a>
-    {% if checklist.state_portal %}
-    · <a href="{{ checklist.state_portal.url }}" target="_blank" rel="noopener noreferrer">{{ checklist.state_portal.name }}</a>
-    {% endif %}
-  </p>
-  {% endif %}
-  <p class="checklist-disclaimer">{{ checklist.disclaimer }}</p>
-  {% else %}
-  <p>{{ _('Checklist unavailable for this estimate.') }}</p>
+<section class="rpt-tab-panel" id="rpt-panel-next" role="tabpanel" aria-labelledby="rpt-tab-next" tabindex="0">
+<section class="rpt-section" id="rpt-assumptions" aria-labelledby="rpt-assumptions-title">
+  <div class="report-section-heading"><h2 id="rpt-assumptions-title">{{ _('Assumptions') }}</h2></div>
+  {% set tariff_used = loc.bill_sizing.tariff_per_kwh if loc.bill_sizing else (loc.extras or {}).get('tariff_per_kwh') %}
+  {% set units_per_kw_month = loc.rule_of_thumb_monthly_units or (((loc.rule_of_thumb_annual_units or 0)|float / 12) if loc.rule_of_thumb_annual_units else none) %}
+  {% set cost_per_kw_used = loc.cost_per_kw or ((loc.system_cost or 0)|float / (loc.system_size|float) if loc.system_size else none) %}
+  <details class="rpt-accordion" open>
+    <summary>{{ _('Key assumptions') }}</summary>
+    <div class="rpt-accordion-content">
+      <ul class="rpt-assumption-list">
+        <li>{{ _('Tariff used: %(tariff)s per unit.', tariff=('₹%.2f'|format(tariff_used|float)) if tariff_used is not none else _('Not available in this saved estimate')) }}</li>
+        <li>{{ _('Energy sizing reference: %(units)s units per kW per month.', units=('%.0f'|format(units_per_kw_month|float)) if units_per_kw_month is not none else _('Not available in this saved estimate')) }}</li>
+        <li>{{ _('Installed system cost used: %(cost)s per kW.', cost=('₹%s'|format('{:,.0f}'.format(cost_per_kw_used|float))) if cost_per_kw_used is not none else _('Not available in this saved estimate')) }}</li>
+        {% if loc.extras and loc.extras.generation_provenance and not loc.extras.generation_provenance.performance_ratio_applied %}
+        <li>{{ _('Energy uses provider-modeled yield; the SIGNIX performance ratio was not applied again.') }}</li>
+        {% else %}
+        <li>{{ _('Performance ratio: %(ratio)s; assumed peak sun hours: %(hours)s per day.', ratio=loc.performance_ratio or '0.80', hours=loc.peak_sun_hours_assumed or '5') }}</li>
+        {% endif %}
+        <li>{{ _('System size is capped by the usable roof area when a bill-based recommendation is available.') }}</li>
+        {% if loc.orientation_factor is not none %}
+        <li>{{ _('A roof orientation factor was applied; recommended tilt is %(tilt)s degrees.', tilt=loc.recommended_tilt_deg or '—') }}</li>
+        {% else %}
+        <li>{{ _('No separate orientation factor was applied to provider-modeled PV energy.') }}</li>
+        {% endif %}
+        <li>{{ _('The model includes annual degradation, tariff escalation, operations and maintenance, and discount-rate assumptions saved with this estimate.') }}</li>
+      </ul>
+      <p class="monetary-disclaimer">{{ monetary_disclaimer }}</p>
+    </div>
+  </details>
+  {% if loc.planning_notes %}
+  <details class="rpt-accordion" open>
+    <summary>{{ _('Important practical points') }}</summary>
+    <div class="rpt-accordion-content"><ul>{% for n in loc.planning_notes %}<li>{{ n }}</li>{% endfor %}</ul></div>
+  </details>
   {% endif %}
 </section>
 
+<section class="rpt-section rpt-next-steps" id="rpt-next-steps" aria-labelledby="rpt-next-steps-title">
+  <div class="report-section-heading">
+    <h2 id="rpt-next-steps-title">{{ _('Next steps') }}</h2>
+    <p>{{ _('Choose what you would like to review or do with this estimate.') }}</p>
+  </div>
+  <div class="rpt-next-grid">
+    <article class="rpt-next-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6zM15 2v6h5M9 13h8M9 17h8"/></svg>
+      <h3>{{ _('Technical PDF') }}</h3>
+      <p>{{ _('Download the detailed report with technical and planning assumptions.') }}</p>
+      <a class="rpt-action-button" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='full') }}">{{ _('Download Technical PDF') }}</a>
+    </article>
+
+    <article class="rpt-next-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h5"/></svg>
+      <h3>{{ _('Installer package') }}</h3>
+      <p>{{ _('Share this package with any installer of your choice — GeoJSON roof outline, key metrics, and PDF summary. SIGNIX stays vendor-neutral and does not send your details to partner installers.') }}</p>
+      <a class="rpt-action-button" href="{{ url_for('pages.download_installer_package', location_id=loc.id) }}">{{ _('Download installer package') }}</a>
+    </article>
+
+    <article class="rpt-next-card rpt-clone-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h12v13H8zM4 16H3V3h13v2M11 12h6M11 16h6"/></svg>
+      <h3>{{ _('Duplicate estimate → change one variable') }}</h3>
+      <p>{{ _('Re-run this roof with a single change, then compare both scenarios side-by-side.') }}</p>
+      <div class="clone-scenario-panel" id="clone-scenario-panel" data-location-id="{{ loc.id }}" data-source-sizing-mode="{{ loc.sizing_mode or '' }}" data-source-backup="{{ 'true' if (loc.battery_kwh and loc.battery_kwh > 0) else 'false' }}">
+        <div class="clone-controls">
+          <label>
+            {{ _('Change') }}
+            <select id="clone-change">
+              <option value="sizing_mode">{{ _('Sizing mode') }}</option>
+              <option value="bill_offset">{{ _('Bill offset %%') }}</option>
+              <option value="needs_backup">{{ _('Toggle backup / battery') }}</option>
+            </select>
+          </label>
+          <label id="clone-value-mode-wrap">
+            {{ _('New sizing mode') }}
+            <select id="clone-value-mode">
+              <option value="roof_max">{{ _('Roof max') }}</option>
+              <option value="bill_offset_80%">{{ _('Bill offset 80%%') }}</option>
+              <option value="bill_offset_100%">{{ _('Bill offset 100%%') }}</option>
+              <option value="fastest_payback">{{ _('Fastest payback') }}</option>
+              <option value="max_25yr_savings">{{ _('Max 25yr savings') }}</option>
+            </select>
+          </label>
+          <label id="clone-value-offset-wrap" class="hidden">
+            {{ _('Bill offset percent') }}
+            <input type="number" id="clone-value-offset" min="20" max="100" step="10" value="80">
+          </label>
+          <label id="clone-value-backup-wrap" class="hidden">
+            {{ _('Need backup') }}
+            <select id="clone-value-backup">
+              <option value="true">{{ _('Yes — auto-size battery') }}</option>
+              <option value="false">{{ _('No battery') }}</option>
+            </select>
+          </label>
+          <button type="button" class="rpt-action-button" id="clone-run-btn">{{ _('Clone & compare') }}</button>
+        </div>
+        <p id="clone-status" class="clone-status hidden" role="status" aria-live="polite" tabindex="-1"></p>
+      </div>
+    </article>
+
+    {% if psg_guidance_allowed and psg_guidance %}
+    <article class="rpt-next-card psg-report-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <h3>{{ _('PM Surya Ghar guide') }}</h3>
+      <p>{{ _('Residential guidance only. Verify eligibility and current requirements on the official portal.') }}</p>
+      <dl class="psg-report-facts">
+        <div><dt>{{ _('Estimated system size') }}</dt><dd>{{ '%.1f'|format(psg_guidance.system_size_kw or 0) }} kW</dd></div>
+        <div><dt>{{ _('Indicative subsidy estimate') }}</dt><dd>₹{{ '{:,.0f}'.format(psg_guidance.subsidy_amount or 0) }}</dd></div>
+        <div><dt>{{ _('Matched DISCOM') }}</dt><dd>{{ psg_guidance.discom_name or _('Not available in this estimate') }}</dd></div>
+      </dl>
+      <p class="psg-rule">{{ _('Rule: ₹%(first)s per kW for the first 2 kW, then ₹%(extra)s per kW from 2–3 kW, capped at ₹%(cap)s.', first='{:,}'.format(psg_rule.per_kw_first_2|int), extra='{:,}'.format(psg_rule.per_kw_extra_2_to_3|int), cap='{:,}'.format(psg_rule.cap|int)) }}<small>{{ _('Indicative. Verify on the official portal.') }}</small></p>
+      <h4>{{ _('Application steps') }}</h4>
+      <ol class="psg-step-list">{% for step in psg_guidance.steps %}<li><strong>{{ step.title }}</strong><span>{{ step.detail }}</span></li>{% endfor %}</ol>
+      <h4>{{ _('Keep ready') }}</h4>
+      <ul class="psg-keep-ready">{% for item in psg_guidance.keep_ready %}<li>{{ item }}</li>{% endfor %}</ul>
+      <a class="rpt-action-button" href="{{ psg_guidance.portal_url }}" target="_blank" rel="noopener noreferrer">{{ _('Open the official PM Surya Ghar portal') }}</a>
+      <p class="psg-disclaimer">{{ _('The price is agreed directly between you and a vendor registered with your DISCOM.') }} {{ _('SIGNIX is not affiliated with the government or this portal. You apply directly on the official portal.') }}</p>
+    </article>
+
+    <article class="rpt-next-card psg-tracker-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v17H5zM8 8h8M8 12h8M8 16h5"/></svg>
+      <h3>{{ _('Application tracker') }}</h3>
+      <p>{{ _('Keep a personal record of your application progress.') }}</p>
+      <p class="psg-status-chip">{{ tracker_status_labels.get(latest_tracker_event.status if latest_tracker_event else 'not_started', _('Not started')) }}</p>
+      {% if tracker_events %}
+      <ol class="psg-timeline">
+        {% for event in tracker_events %}
+        <li>
+          <strong>{{ tracker_status_labels.get(event.status, _('Not started')) }}</strong>
+          <time datetime="{{ event.changed_on.isoformat() }}">{{ event.changed_on.strftime('%d %b %Y') }}</time>
+          {% if event.application_reference %}<span>{{ _('Reference') }}: {{ event.application_reference }}</span>{% endif %}
+          {% if event.note %}<p>{{ event.note }}</p>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+      <form class="psg-tracker-form" method="post" action="{{ url_for('pages.update_application_tracker', location_id=loc.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="psg-tracker-status">{{ _('Application status') }}</label>
+        <select id="psg-tracker-status" name="status" required>
+          {% for status_code, status_label in tracker_status_labels.items() %}
+          <option value="{{ status_code }}" {% if latest_tracker_event and latest_tracker_event.status == status_code %}selected{% elif not latest_tracker_event and status_code == 'not_started' %}selected{% endif %}>{{ status_label }}</option>
+          {% endfor %}
+        </select>
+        <label for="psg-tracker-date">{{ _('Status-change date') }}</label>
+        <input id="psg-tracker-date" type="date" name="changed_on" value="{{ today_date }}" required>
+        <label for="psg-tracker-reference">{{ _('Application reference number (optional)') }}</label>
+        <input id="psg-tracker-reference" type="text" name="application_reference" maxlength="128" autocomplete="off">
+        <label for="psg-tracker-note">{{ _('Note (optional)') }}</label>
+        <textarea id="psg-tracker-note" name="note" maxlength="1000" rows="3"></textarea>
+        <button class="rpt-action-button" type="submit">{{ _('Save tracker update') }}</button>
+      </form>
+      <p class="psg-disclaimer">{{ _('This tracker is your own reminder. It does not connect to the government portal.') }}</p>
+    </article>
+    {% endif %}
+  </div>
+</section>
+
+</section>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/vendor/three.r128.min.js') }}"></script>
 <script>
@@ -917,6 +994,7 @@
   const NET_INVESTMENT = {{ loc.net_investment | tojson }};
   const MONTHLY_SAVINGS = {{ (loc.monthly_savings or 0) | tojson }};
   const SUBSIDY_AMOUNT = {{ (loc.subsidy_amount or 0) | tojson }};
+  const PSG_GUIDANCE_ALLOWED = {{ psg_guidance_allowed | tojson }};
   const BATTERY_COST = {{ (loc.battery_cost or 0) | tojson }};
   const ROOF_AREA_SQM = {{ (loc.usable_area_sqm or loc.roof_area_sqm or 50) | tojson }};
   const PANEL_COUNT = {{ (loc.panel_count or (loc.extras.panel_estimate.panel_count if loc.extras and loc.extras.panel_estimate else 0) or 0) | tojson }};
@@ -941,6 +1019,7 @@
 
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/report-tabs.js') }}"></script>
 <script src="{{ url_for('static', filename='js/report-charts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/roof3d.js') }}"></script>
 <script src="{{ url_for('static', filename='js/roof-ai.js') }}"></script>

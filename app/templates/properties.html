@@ -26,6 +26,12 @@
           <h2>{{ loc.scenario_label or loc.address }}</h2>
           {% if loc.scenario_label %}<p class="gt-property-address">{{ loc.address }}</p>{% endif %}
           <p class="gt-property-coordinates">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</p>
+          {% if loc.id in tracker_enabled_location_ids %}
+          {% set tracker_event = tracker_latest.get(loc.id) %}
+          <p class="psg-status-chip" aria-label="{{ _('Application tracker status') }}">
+            {{ tracker_status_labels.get(tracker_event.status if tracker_event else 'not_started', _('Not started')) }}
+          </p>
+          {% endif %}
         </div>
       </div>
       <dl class="gt-property-facts">

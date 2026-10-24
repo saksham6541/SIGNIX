@@ -57,3 +57,4 @@ node_modules/
 venv/
 env/
 .venv312/
+*.zip

@@ -293,15 +293,62 @@ def test_report_renders_serialized_chart_contract(client, app):
     assert 'id="roofUtilizationChart"' in body
     assert 'id="financing-controls"' not in body
     assert 'js/vendor/chart.umd.min.js' in body
-    assert 'role="tablist"' in body
-    assert 'id="report-tab-overview"' in body
-    assert 'aria-selected="true"' in body
-    assert 'role="tabpanel" aria-labelledby="report-tab-generation"' in body
+    assert 'id="rpt-summary"' in body
+    assert 'id="rpt-suitability"' in body
+    assert 'id="rpt-rooftop"' in body
+    assert 'id="rpt-sizing"' in body
+    assert 'id="rpt-financing"' in body
+    assert 'id="rpt-environmental"' in body
+    assert 'id="rpt-assumptions"' in body
+    assert 'id="rpt-next-steps"' in body
+    assert 'class="rpt-tablist" role="tablist"' in body
+    assert body.count('role="tab"') == 6
+    assert body.count('role="tabpanel"') == 6
+    assert 'id="rpt-tab-system" role="tab" aria-selected="true"' in body
+    assert 'id="rpt-panel-system" role="tabpanel" aria-labelledby="rpt-tab-system"' in body
+    assert body.index('js/report-tabs.js') < body.index('js/report-charts.js')
+    system_panel = body[body.index('id="rpt-panel-system"'):body.index('id="rpt-panel-energy"')]
+    assert all(f'id="{section_id}"' in system_panel for section_id in (
+        "rpt-summary", "rpt-suitability", "rpt-rooftop", "rpt-sizing",
+    ))
+    energy_panel = body[body.index('id="rpt-panel-energy"'):body.index('id="rpt-panel-financing"')]
+    assert 'id="rpt-energy"' in energy_panel
+    next_panel = body[body.index('id="rpt-panel-next"'):body.index("</main>")]
+    assert 'id="rpt-assumptions"' in next_panel
+    assert 'id="rpt-next-steps"' in next_panel
+    assert '<details class="rpt-accordion" open>' in next_panel
     assert 'data-roof3d-view="3d" aria-pressed="true"' in body
     assert 'class="roof3d-compass-ring" role="slider"' in body
     assert 'data-source-sizing-mode=' in body
     assert 'Choose a value different from this saved estimate before cloning.' in body
     assert 'Enter a bill offset from 20% to 100%.' in body
+
+    client.get("/language/hi")
+    hindi_body = client.get(f"/report/{location_id}").get_data(as_text=True)
+    assert "सिस्टम साइज़िंग" in hindi_body
+    assert "ऊर्जा पूर्वानुमान" in hindi_body
+    assert "अगले चरण" in hindi_body
+
+
+def test_report_template_keeps_targeted_tab_content_expanded():
+    template = (Path(__file__).resolve().parents[1] / "app/templates/report.html").read_text(
+        encoding="utf-8"
+    )
+    capex_panel = template[
+        template.index('id="rpt-panel-capex-dpa"'):
+        template.index('id="rpt-panel-environmental"')
+    ]
+    next_panel_start = template.index('id="rpt-panel-next"')
+    next_panel = template[
+        next_panel_start:
+        template.index("{% endblock %}", next_panel_start)
+    ]
+
+    assert '<h2 id="rpt-capex-dpa-title">' in capex_panel
+    assert "<details" not in capex_panel
+    assert next_panel.count('<details class="rpt-accordion" open>') == 2
+    assert "{{ _('Key assumptions') }}" in next_panel
+    assert "{{ _('Important practical points') }}" in next_panel
 
 
 def _financing_location(app):

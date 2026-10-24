@@ -559,6 +559,15 @@ def test_renderer_contract_keeps_geometry_and_generation_concerns_separate():
     assert "/orientation'" in source
 
 
+def test_report_rooftop_workspace_keeps_desktop_sidebar_layout():
+    root = Path(__file__).resolve().parents[1]
+    stylesheet = (root / "app/static/css/style.css").read_text(encoding="utf-8")
+
+    assert ".roof3d-workspace { display:grid; grid-template-columns:240px minmax(0,1fr);" in stylesheet
+    assert "@media (max-width:980px)" in stylesheet
+    assert ".rpt-section .roof3d-workspace" not in stylesheet
+
+
 def test_three_renderer_asset_is_served_locally(client):
     response = client.get("/static/js/vendor/three.r128.min.js")
 

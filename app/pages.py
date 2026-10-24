@@ -1,6 +1,9 @@
+from datetime import date
+
 from flask import (
     Blueprint,
     abort,
+    flash,
     jsonify,
     redirect,
     render_template,
@@ -11,6 +14,9 @@ from flask import (
 from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
+from app.application_checklist import build_pm_surya_ghar_guidance
+from app.config import Config
+from app.models import ApplicationTrackerEvent, UserLocation, db
 from app.report_generator import generate_pdf_report
 from app.installer_export import build_installer_package_zip
 from app.services import location_service
@@ -19,10 +25,82 @@ from app.forms import INDIAN_STATES
 
 pages_bp = Blueprint("pages", __name__)
 
+APPLICATION_TRACKER_STATUS_CODES = frozenset(
+    {
+        "not_started",
+        "applied",
+        "feasibility_approved",
+        "installed",
+        "net_meter_inspection",
+        "subsidy_received",
+    }
+)
+
+
+def _tracker_status_labels():
+    return {
+        "not_started": _("Not started"),
+        "applied": _("Applied"),
+        "feasibility_approved": _("Feasibility approved"),
+        "installed": _("Installed"),
+        "net_meter_inspection": _("Net meter and inspection"),
+        "subsidy_received": _("Subsidy received"),
+    }
+
+
+
+
+def _psg_guidance_allowed(location):
+    if (location.get("property_type") or "").strip().lower() != "residential":
+        return False
+    inverter_type = (location.get("inverter_type") or "").strip().lower().replace(" ", "-")
+    return inverter_type in ("on-grid", "hybrid") or float(
+        location.get("subsidy_amount") or 0
+    ) > 0
+
+
+def _saved_location_psg_allowed(location):
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    saved_values = {
+        "property_type": extras.get("property_type"),
+        "inverter_type": extras.get("inverter_type"),
+        "subsidy_amount": location.subsidy_amount,
+    }
+    return _psg_guidance_allowed(saved_values)
+
+
+def _latest_tracker_events(location_ids):
+    if not location_ids:
+        return {}
+    events = (
+        ApplicationTrackerEvent.query.filter(
+            ApplicationTrackerEvent.location_id.in_(location_ids)
+        )
+        .order_by(
+            ApplicationTrackerEvent.created_at.desc(),
+            ApplicationTrackerEvent.id.desc(),
+        )
+        .all()
+    )
+    latest = {}
+    for event in events:
+        latest.setdefault(event.location_id, event)
+    return latest
+
+
+def _psg_rule_context():
+    return {
+        "per_kw_first_2": Config.SUBSIDY_PER_KW_FIRST_2,
+        "per_kw_extra_2_to_3": Config.SUBSIDY_EXTRA_2_TO_3,
+        "cap": Config.SUBSIDY_CAP,
+    }
+
 
 @pages_bp.route("/")
 def index():
-    return render_template("landing.html")
+    return render_template(
+        "landing.html", psg_guidance=build_pm_surya_ghar_guidance()
+    )
 
 
 @pages_bp.get("/consultation")
@@ -80,6 +158,10 @@ def survey(planning_track):
         # into a commercial one (or vice versa).
         default_property_type=default_property_type,
         state_choices=INDIAN_STATES,
+        psg_guidance=build_pm_surya_ghar_guidance()
+        if planning_track == "home"
+        else None,
+        psg_rule=_psg_rule_context(),
     )
 
 
@@ -104,7 +186,18 @@ def dashboard():
 @login_required
 def properties():
     locations = location_service.list_locations(current_user.id)
-    return render_template("properties.html", locations=locations)
+    tracker_latest = _latest_tracker_events([location.id for location in locations])
+    return render_template(
+        "properties.html",
+        locations=locations,
+        tracker_latest=tracker_latest,
+        tracker_status_labels=_tracker_status_labels(),
+        tracker_enabled_location_ids={
+            location.id
+            for location in locations
+            if _saved_location_psg_allowed(location)
+        },
+    )
 
 
 @pages_bp.get("/reports")
@@ -205,7 +298,89 @@ def report(location_id):
     if report_data is None:
         abort(404)
     _, loc_dict = report_data
-    return render_template("report.html", loc=loc_dict)
+    extras = loc_dict.get("extras") or {}
+    location_context = extras.get("location_context") or {}
+    discom_name = (
+        location_context.get("discom_name")
+        if isinstance(location_context, dict)
+        else None
+    )
+    psg_allowed = _psg_guidance_allowed(loc_dict)
+    tracker_events = []
+    latest_tracker_event = None
+    psg_guidance = None
+    if psg_allowed:
+        tracker_events = (
+            ApplicationTrackerEvent.query.filter_by(location_id=location_id)
+            .order_by(
+                ApplicationTrackerEvent.created_at.desc(),
+                ApplicationTrackerEvent.id.desc(),
+            )
+            .all()
+        )
+        latest_tracker_event = tracker_events[0] if tracker_events else None
+        psg_guidance = build_pm_surya_ghar_guidance(
+            system_size_kw=loc_dict.get("system_size"),
+            subsidy_amount=loc_dict.get("subsidy_amount"),
+            discom_name=discom_name,
+        )
+    return render_template(
+        "report.html",
+        loc=loc_dict,
+        psg_guidance_allowed=psg_allowed,
+        psg_guidance=psg_guidance,
+        tracker_events=tracker_events,
+        latest_tracker_event=latest_tracker_event,
+        tracker_status_labels=_tracker_status_labels(),
+        today_date=date.today().isoformat(),
+        psg_rule=_psg_rule_context(),
+    )
+
+
+@pages_bp.post("/report/<int:location_id>/tracker")
+@login_required
+def update_application_tracker(location_id):
+    location = UserLocation.query.filter_by(
+        id=location_id, user_id=current_user.id
+    ).first()
+    if location is None:
+        abort(404)
+    report_data = location_service.get_report_context(location_id, current_user.id)
+    if report_data is None or not _psg_guidance_allowed(report_data[1]):
+        abort(404)
+
+    status = (request.form.get("status") or "").strip()
+    application_reference = (request.form.get("application_reference") or "").strip()
+    note = (request.form.get("note") or "").strip()
+    changed_on_raw = (request.form.get("changed_on") or "").strip()
+
+    if status not in APPLICATION_TRACKER_STATUS_CODES:
+        flash(_("Choose a valid application status."), "error")
+        return redirect(url_for("pages.report", location_id=location_id))
+    if len(application_reference) > 128:
+        flash(_("The application reference must be 128 characters or fewer."), "error")
+        return redirect(url_for("pages.report", location_id=location_id))
+    if len(note) > 1000:
+        flash(_("The note must be 1,000 characters or fewer."), "error")
+        return redirect(url_for("pages.report", location_id=location_id))
+    try:
+        changed_on = date.fromisoformat(changed_on_raw)
+    except ValueError:
+        flash(_("Enter a valid status-change date."), "error")
+        return redirect(url_for("pages.report", location_id=location_id))
+
+    db.session.add(
+        ApplicationTrackerEvent(
+            location_id=location_id,
+            status=status,
+            application_reference=application_reference or None,
+            changed_on=changed_on,
+            note=note or None,
+        )
+    )
+    db.session.commit()
+    flash(_("Your tracker reminder was updated."), "success")
+    return redirect(url_for("pages.report", location_id=location_id))
 
 
 @pages_bp.route("/report/<int:location_id>/pdf")

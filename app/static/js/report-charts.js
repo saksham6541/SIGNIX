@@ -308,8 +308,12 @@
       }),
     });
 
-    const donutValues = [Number(typeof NET_INVESTMENT !== 'undefined' ? NET_INVESTMENT : 0), Number(typeof SUBSIDY_AMOUNT !== 'undefined' ? SUBSIDY_AMOUNT : 0)];
-    const donutLabels = ['Net investment', 'Subsidy'];
+    const donutValues = [Number(typeof NET_INVESTMENT !== 'undefined' ? NET_INVESTMENT : 0)];
+    const donutLabels = ['Net investment'];
+    if (typeof PSG_GUIDANCE_ALLOWED !== 'undefined' && PSG_GUIDANCE_ALLOWED) {
+      donutValues.push(Number(typeof SUBSIDY_AMOUNT !== 'undefined' ? SUBSIDY_AMOUNT : 0));
+      donutLabels.push('Subsidy');
+    }
     if (typeof BATTERY_COST !== 'undefined' && BATTERY_COST > 0) {
       donutLabels.push('Battery');
       donutValues.push(BATTERY_COST);

@@ -1,11 +1,12 @@
 from sqlalchemy import inspect, text
 
-from app.models import db
+from app.models import ApplicationTrackerEvent, db
 
 
 def initialize_database():
     """Create the schema and wipe legacy unowned locations once."""
     db.create_all()
+    ApplicationTrackerEvent.__table__.create(bind=db.engine, checkfirst=True)
     inspector = inspect(db.engine)
 
     user_columns = {column["name"] for column in inspector.get_columns("users")}

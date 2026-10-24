@@ -33,7 +33,7 @@
       </div>
       {% endif %}
       {% set alg = rating.get('rating_algorithm_version') or '1.0' %}
-      <span class="rating-algo-version">Rated with algorithm v{{ alg }}</span>
+      {% if id_prefix != 'report' %}<span class="rating-algo-version">Rated with algorithm v{{ alg }}</span>{% endif %}
     </div>
   </div>
   <details class="suitability-details">

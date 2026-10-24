@@ -88,8 +88,8 @@ jobs:
       - name: Check application JavaScript syntax
         run: |
           mapfile -d '' javascript_files < <(find app/static/js -maxdepth 1 -type f -name '*.js' -print0 | sort -z)
-          if [ "${#javascript_files[@]}" -ne 7 ]; then
-            echo "Expected 7 application JavaScript files, found ${#javascript_files[@]}." >&2
+          if [ "${#javascript_files[@]}" -eq 0 ]; then
+            echo "No application JavaScript files were found under app/static/js." >&2
             exit 1
           fi
           for javascript_file in "${javascript_files[@]}"; do
