@@ -3869,6 +3869,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   transform: rotate(180deg);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .public-nav-solutions-trigger svg {
+    transition: none;
+  }
+}
+
 .public-nav-solutions-trigger:focus-visible,
 .public-nav-link:focus-visible,
 .public-nav-consultation:focus-visible,
@@ -3884,14 +3890,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .public-nav-solutions-panel {
   position: absolute;
   z-index: 40;
-  top: calc(100% + 12px);
-  left: -12px;
-  width: min(380px, calc(100vw - 32px));
-  padding: 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  top: calc(100% + 10px);
+  left: 0;
+  width: min(508px, calc(100vw - 32px));
+  padding: 4px 22px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, white);
+  border-radius: 18px;
   background: var(--card);
-  box-shadow: 0 16px 36px rgba(42, 23, 51, .14);
+  box-shadow: 0 16px 36px rgba(42, 23, 51, .12);
 }
 
 .public-nav-solutions-panel[hidden] {
@@ -3899,39 +3905,61 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 
 .public-nav-solution {
-  display: grid;
-  gap: 8px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 17px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, white);
 }
 
 .public-nav-solution:last-child {
   border-bottom: 0;
 }
 
+.public-nav-solution-icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+  place-items: center;
+  border-radius: 14px;
+  background: #f8efdf;
+  color: var(--accent-orange);
+}
+
+.public-nav-solution-icon svg {
+  width: 29px;
+  height: 29px;
+}
+
+.public-nav-solution-copy {
+  min-width: 0;
+}
+
 .public-nav-solution h2 {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 4px;
+  gap: 9px;
+  margin: 0 0 5px;
   color: var(--indigo);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .public-nav-solution p {
-  margin: 0;
+  margin: 0 0 6px;
   color: var(--gray);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .public-nav-solution a {
   width: fit-content;
-  color: var(--indigo);
-  font-size: 12px;
-  font-weight: 700;
+  color: var(--accent-orange);
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -3953,7 +3981,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 
 .public-nav-solution-unavailable h2 {
-  color: var(--gray);
+  color: var(--indigo);
+}
+
+.public-nav-solution-unavailable p {
+  margin-bottom: 0;
 }
 
 .public-nav-consultation {
@@ -4171,8 +4203,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     position: static;
     width: 100%;
     margin: 4px 0 8px;
-    padding-inline: 12px;
-    box-shadow: none;
+    padding-inline: 16px;
+    box-shadow: 0 8px 20px rgba(42, 23, 51, .08);
   }
 
   .public-nav-actions {
@@ -6003,6 +6035,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 /* ---------- Public landing hero ---------- */
 .landing-body .top-bar {
+  position: relative;
+  z-index: 10;
   height: 74px;
   min-height: 74px;
   padding: 0;

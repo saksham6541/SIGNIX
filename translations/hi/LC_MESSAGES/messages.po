@@ -3562,39 +3562,39 @@ msgstr "नेविगेशन मेनू खोलें"
 msgid "Solutions"
 msgstr "समाधान"
 
-#: app/templates/_public_nav.html:38
+#: app/templates/_public_nav.html:43
 msgid "Residential Solar"
 msgstr "आवासीय सोलर"
 
-#: app/templates/_public_nav.html:39
-msgid "Plan an indicative home rooftop system with residential assumptions."
-msgstr "आवासीय मान्यताओं के आधार पर घर की छत पर सोलर प्रणाली की सांकेतिक योजना बनाएं।"
+#: app/templates/_public_nav.html:44
+msgid "Estimate your home's solar savings and payback period."
+msgstr "अपने घर की सोलर बचत और लागत-वसूली अवधि का अनुमान लगाएं।"
 
-#: app/templates/_public_nav.html:41
+#: app/templates/_public_nav.html:45
 msgid "Explore Residential"
 msgstr "आवासीय योजना देखें"
 
-#: app/templates/_public_nav.html:44
+#: app/templates/_public_nav.html:55
 msgid "Commercial Solar"
 msgstr "व्यावसायिक सोलर"
 
-#: app/templates/_public_nav.html:45
-msgid "Explore business rooftop planning with separate commercial assumptions."
-msgstr "अलग व्यावसायिक मान्यताओं के साथ व्यवसाय की छत पर सोलर योजना देखें।"
+#: app/templates/_public_nav.html:56
+msgid "Calculate potential ROI and system sizing for your business."
+msgstr "अपने व्यवसाय के लिए संभावित ROI और सिस्टम आकार का आकलन करें।"
 
-#: app/templates/_public_nav.html:47
+#: app/templates/_public_nav.html:57
 msgid "Explore Commercial"
 msgstr "व्यावसायिक योजना देखें"
 
-#: app/templates/_public_nav.html:50
+#: app/templates/_public_nav.html:67
 msgid "Industrial Solar"
 msgstr "औद्योगिक सोलर"
 
-#: app/templates/_public_nav.html:50
+#: app/templates/_public_nav.html:67
 msgid "Coming Soon"
 msgstr "जल्द आ रहा है"
 
-#: app/templates/_public_nav.html:51
+#: app/templates/_public_nav.html:68
 msgid "Industrial planning is not available yet."
 msgstr "औद्योगिक योजना अभी उपलब्ध नहीं है।"
 

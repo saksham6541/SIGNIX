@@ -123,8 +123,18 @@ def test_public_landing_shows_marketing_nav_without_sidebar(app):
     body = response.get_data(as_text=True)
     assert 'id="public-top-nav"' in body
     assert 'id="primary-sidebar"' not in body
+    assert 'aria-controls="public-nav-solutions-panel"' in body
+    assert 'id="public-nav-solutions-panel" hidden' in body
+    assert "Estimate your home's solar savings and payback period." in body
+    assert "Calculate potential ROI and system sizing for your business." in body
+    assert body.count('class="public-nav-solution-icon"') == 3
+    assert 'class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true"' in body
     assert 'href="/plan/home"' in body
     assert 'href="/plan/business"' in body
+    industrial_item = body.split(
+        'class="public-nav-solution public-nav-solution-unavailable"', 1
+    )[1].split("</section>", 1)[0]
+    assert "<a " not in industrial_item
     assert 'id="address-search"' not in body
     assert 'id="draw-btn"' not in body
     assert "leaflet.js" not in body
