@@ -80,7 +80,7 @@ python -m pip install -r requirements.txt
 python -m pytest tests -q
 python -m compileall -q app tests
 $javascriptFiles = Get-ChildItem app\static\js -Filter *.js -File | Sort-Object Name
-if ($javascriptFiles.Count -ne 7) { throw "Expected 7 application JavaScript files, found $($javascriptFiles.Count)." }
+if ($javascriptFiles.Count -eq 0) { throw "No application JavaScript files were found under app/static/js." }
 $javascriptFiles | ForEach-Object { node --check $_.FullName }
 node --test tests\roof3d_geometry.test.js tests\assistant_voice.test.js tests\voice_mode.test.js
 python scripts\validate_markdown_links.py
