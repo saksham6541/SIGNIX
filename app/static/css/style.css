@@ -7544,6 +7544,89 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   border-bottom: 1px solid var(--border);
 }
 
+.rpt-tabs {
+  display: none;
+}
+
+.rpt-tabs.is-ready {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--warm-paper, #f7f3ea) 94%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.rpt-tablist {
+  display: flex;
+  gap: clamp(18px, 3vw, 40px);
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
+
+.rpt-tablist [role="tab"] {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 12px 0 11px;
+  border: 0;
+  background: transparent;
+  color: #716b73;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rpt-tablist [role="tab"]::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: transparent;
+}
+
+.rpt-tablist [role="tab"]:hover {
+  color: var(--indigo);
+}
+
+.rpt-tablist [role="tab"][aria-selected="true"] {
+  color: var(--indigo-deep);
+}
+
+.rpt-tablist [role="tab"][aria-selected="true"]::after {
+  background: var(--indigo-deep);
+}
+
+.rpt-tablist [role="tab"]:focus-visible {
+  z-index: 1;
+  outline: 3px solid var(--accent-amber);
+  outline-offset: -3px;
+}
+
+.rpt-tab-panel {
+  min-width: 0;
+  scroll-margin-top: 58px;
+}
+
+.rpt-tab-panel[hidden] {
+  display: none;
+}
+
+.rpt-tab-panel:focus-visible {
+  outline: 3px solid var(--accent-amber);
+  outline-offset: 3px;
+}
+
 .rpt-back-link {
   display: inline-flex;
   margin-bottom: 20px;
@@ -7736,14 +7819,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .rpt-section .viz-3d-card {
   width: 100%;
   max-width: none;
-}
-
-.rpt-section .roof3d-workspace {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.rpt-section .roof3d-inspector {
-  order: -1;
 }
 
 .rpt-section .roof3d-classification-metrics {
@@ -8071,16 +8146,19 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
     order: 2;
   }
 
-  .rpt-section .roof3d-workspace {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .rpt-section .roof3d-inspector {
-    order: -1;
-  }
 }
 
 @media (max-width: 760px) {
+  .rpt-tablist {
+    gap: 24px;
+    padding-inline: 2px;
+  }
+
+  .rpt-tablist [role="tab"] {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
   .rpt-header-row {
     align-items: stretch;
     flex-direction: column;
@@ -8137,5 +8215,23 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
   .rpt-summary-card {
     min-height: 100px;
+  }
+}
+
+@media print {
+  .rpt-tabs {
+    display: none !important;
+  }
+
+  .rpt-tab-panel[hidden] {
+    display: block !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rpt-tabs,
+  .rpt-tabs * {
+    scroll-behavior: auto;
+    transition: none;
   }
 }

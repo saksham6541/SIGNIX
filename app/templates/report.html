@@ -24,6 +24,19 @@
   </div>
 </section>
 
+<nav class="rpt-tabs" aria-label="{{ _('Report sections') }}" data-report-tabs>
+  <div class="rpt-tablist" role="tablist" aria-label="{{ _('Detailed report sections') }}" aria-orientation="horizontal">
+    <button type="button" id="rpt-tab-system" role="tab" aria-selected="true" aria-controls="rpt-panel-system" tabindex="0">{{ _('System Sizing') }}</button>
+    <button type="button" id="rpt-tab-energy" role="tab" aria-selected="false" aria-controls="rpt-panel-energy" tabindex="-1">{{ _('Energy Forecasting') }}</button>
+    <button type="button" id="rpt-tab-financing" role="tab" aria-selected="false" aria-controls="rpt-panel-financing" tabindex="-1">{{ _('Financing Options') }}</button>
+    <button type="button" id="rpt-tab-capex-dpa" role="tab" aria-selected="false" aria-controls="rpt-panel-capex-dpa" tabindex="-1">{{ _('CAPEX vs DPA') }}</button>
+    <button type="button" id="rpt-tab-environmental" role="tab" aria-selected="false" aria-controls="rpt-panel-environmental" tabindex="-1">{{ _('Environmental') }}</button>
+    <button type="button" id="rpt-tab-next" role="tab" aria-selected="false" aria-controls="rpt-panel-next" tabindex="-1">{{ _('Next Steps') }}</button>
+  </div>
+</nav>
+
+<div class="rpt-tab-panels">
+<section class="rpt-tab-panel" id="rpt-panel-system" role="tabpanel" aria-labelledby="rpt-tab-system" tabindex="0">
 <section class="rpt-section rpt-summary" id="rpt-summary" aria-labelledby="rpt-summary-title">
   <h2 id="rpt-summary-title">{{ _('Estimate summary') }}</h2>
   {% set nominal_payback = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}
@@ -376,6 +389,10 @@
 
 </section>
 
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-energy" role="tabpanel" aria-labelledby="rpt-tab-energy" tabindex="0">
+
 <section class="rpt-section" id="rpt-energy" aria-labelledby="rpt-energy-title">
   <div class="report-section-heading"><h2 id="rpt-energy-title">{{ _('Energy forecast') }}</h2><p>{{ _('Year-one monthly output and the saved 25-year generation forecast.') }}</p></div>
   <p style="font-size:13px;color:var(--gray);margin-top:0;">
@@ -438,8 +455,11 @@
   </article>
 </section>
 
+</section>
 
 
+
+<section class="rpt-tab-panel" id="rpt-panel-financing" role="tabpanel" aria-labelledby="rpt-tab-financing" tabindex="0">
 <section class="rpt-section" id="rpt-financing" aria-labelledby="rpt-financing-title">
   <div class="report-section-heading"><h2 id="rpt-financing-title">{{ _('Financing') }}</h2><p>{{ _('Cashflow and savings use the saved SIGNIX financial model.') }}</p></div>
   {% if loc.financial_status and loc.financial_status != 'current' %}
@@ -605,9 +625,11 @@
   <p class="chart-note">Cashflow includes {{ loc.chart_data.energy.degradation_pct }}% annual module degradation, {{ (loc.extras or {}).get('tariff_escalation_pct', 4) }}% retail-tariff escalation, and subtracts the annual O&amp;M reserve once. Fixed feed-in compensation is not escalated. Self-consumption is a planning assumption, not measured household demand.</p>
 </section>
 
-<details class="rpt-accordion">
-  <summary>{{ _('CAPEX vs DPA comparison') }}</summary>
-  <div class="rpt-accordion-content">
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-capex-dpa" role="tabpanel" aria-labelledby="rpt-tab-capex-dpa" tabindex="0">
+<section class="rpt-section" aria-labelledby="rpt-capex-dpa-title">
+  <div class="report-section-heading"><h2 id="rpt-capex-dpa-title">{{ _('CAPEX vs DPA comparison') }}</h2></div>
   <p class="emi-help">
     Side-by-side cash purchase (CAPEX) versus Deferred Payment Agreement / loan (DPA).
     Adjust down-payment % and tenure below to see live updates (client-side).
@@ -762,9 +784,11 @@
   {% else %}
   <p>Financing comparison data is not available for this estimate. Re-run the estimate to generate it.</p>
   {% endif %}
-</div>
-</details>
+</section>
 
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-environmental" role="tabpanel" aria-labelledby="rpt-tab-environmental" tabindex="0">
 <section class="rpt-section" id="rpt-environmental" aria-labelledby="rpt-environmental-title">
   <div class="report-section-heading"><h2 id="rpt-environmental-title">{{ _('Environmental estimate') }}</h2><p>{{ _('Planning estimate from modeled energy, not a measured reduction.') }}</p></div>
   <div class="environment-hero">
@@ -797,12 +821,15 @@
   <div class="green-banner">Be a part of a cleaner &amp; greener India 🌱 — Every rooftop counts.</div>
 </section>
 
+</section>
+
+<section class="rpt-tab-panel" id="rpt-panel-next" role="tabpanel" aria-labelledby="rpt-tab-next" tabindex="0">
 <section class="rpt-section" id="rpt-assumptions" aria-labelledby="rpt-assumptions-title">
   <div class="report-section-heading"><h2 id="rpt-assumptions-title">{{ _('Assumptions') }}</h2></div>
   {% set tariff_used = loc.bill_sizing.tariff_per_kwh if loc.bill_sizing else (loc.extras or {}).get('tariff_per_kwh') %}
   {% set units_per_kw_month = loc.rule_of_thumb_monthly_units or (((loc.rule_of_thumb_annual_units or 0)|float / 12) if loc.rule_of_thumb_annual_units else none) %}
   {% set cost_per_kw_used = loc.cost_per_kw or ((loc.system_cost or 0)|float / (loc.system_size|float) if loc.system_size else none) %}
-  <details class="rpt-accordion">
+  <details class="rpt-accordion" open>
     <summary>{{ _('Key assumptions') }}</summary>
     <div class="rpt-accordion-content">
       <ul class="rpt-assumption-list">
@@ -826,7 +853,7 @@
     </div>
   </details>
   {% if loc.planning_notes %}
-  <details class="rpt-accordion">
+  <details class="rpt-accordion" open>
     <summary>{{ _('Important practical points') }}</summary>
     <div class="rpt-accordion-content"><ul>{% for n in loc.planning_notes %}<li>{{ n }}</li>{% endfor %}</ul></div>
   </details>
@@ -951,6 +978,9 @@
     {% endif %}
   </div>
 </section>
+
+</section>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -989,6 +1019,7 @@
 
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/report-tabs.js') }}"></script>
 <script src="{{ url_for('static', filename='js/report-charts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/roof3d.js') }}"></script>
 <script src="{{ url_for('static', filename='js/roof-ai.js') }}"></script>

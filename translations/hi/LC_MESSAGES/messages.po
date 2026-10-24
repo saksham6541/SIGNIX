@@ -3144,10 +3144,37 @@ msgstr "बैटरी"
 msgid "Clone & compare"
 msgstr "तुलना"
 
-#: app/templates/report.html:100
-#, fuzzy
+#: app/templates/report.html:27
 msgid "Report sections"
-msgstr "रिपोर्ट"
+msgstr "रिपोर्ट अनुभाग"
+
+#: app/templates/report.html:28
+msgid "Detailed report sections"
+msgstr "विस्तृत रिपोर्ट अनुभाग"
+
+#: app/templates/report.html:29
+msgid "System Sizing"
+msgstr "सिस्टम साइज़िंग"
+
+#: app/templates/report.html:30
+msgid "Energy Forecasting"
+msgstr "ऊर्जा पूर्वानुमान"
+
+#: app/templates/report.html:31
+msgid "Financing Options"
+msgstr "वित्तपोषण विकल्प"
+
+#: app/templates/report.html:32
+msgid "CAPEX vs DPA"
+msgstr "CAPEX बनाम DPA"
+
+#: app/templates/report.html:33
+msgid "Environmental"
+msgstr "पर्यावरण"
+
+#: app/templates/report.html:34
+msgid "Next Steps"
+msgstr "अगले चरण"
 
 #: app/templates/report.html:572
 #, fuzzy

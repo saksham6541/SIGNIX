@@ -2961,8 +2961,36 @@ msgstr ""
 msgid "Clone & compare"
 msgstr ""
 
-#: app/templates/report.html:100
+#: app/templates/report.html:27
 msgid "Report sections"
+msgstr ""
+
+#: app/templates/report.html:28
+msgid "Detailed report sections"
+msgstr ""
+
+#: app/templates/report.html:29
+msgid "System Sizing"
+msgstr ""
+
+#: app/templates/report.html:30
+msgid "Energy Forecasting"
+msgstr ""
+
+#: app/templates/report.html:31
+msgid "Financing Options"
+msgstr ""
+
+#: app/templates/report.html:32
+msgid "CAPEX vs DPA"
+msgstr ""
+
+#: app/templates/report.html:33
+msgid "Environmental"
+msgstr ""
+
+#: app/templates/report.html:34
+msgid "Next Steps"
 msgstr ""
 
 #: app/templates/report.html:572
