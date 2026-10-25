@@ -4,6 +4,7 @@ from wtforms import (
     FloatField,
     HiddenField,
     PasswordField,
+    RadioField,
     SelectField,
     StringField,
     SubmitField,
@@ -38,8 +39,19 @@ PROPERTY_TYPES = [
     ("remote", "Remote / unreliable grid"),
 ]
 
+PLANNING_TRACK_CHOICES = [
+    ("home", _("Home")),
+    ("business", _("Business")),
+]
+
 
 class LoginForm(FlaskForm):
+    planning_track = RadioField(
+        _("Which solar planning experience do you need?"),
+        choices=PLANNING_TRACK_CHOICES,
+        validators=[DataRequired(REQUIRED_MESSAGE)],
+        default="home",
+    )
     email = StringField(
         _("Email"), validators=[DataRequired(REQUIRED_MESSAGE), Email(EMAIL_MESSAGE)]
     )
@@ -48,6 +60,12 @@ class LoginForm(FlaskForm):
 
 
 class SignupForm(FlaskForm):
+    planning_track = RadioField(
+        _("Which solar planning experience do you need?"),
+        choices=PLANNING_TRACK_CHOICES,
+        validators=[DataRequired(REQUIRED_MESSAGE)],
+        default="home",
+    )
     display_name = StringField(
         _("Display name"), validators=[DataRequired(REQUIRED_MESSAGE), Length(max=128)]
     )

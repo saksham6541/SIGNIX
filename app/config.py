@@ -53,10 +53,20 @@ class Config:
     SYSTEM_COST_PER_KW_HIGH = 85000
     # Commercial EPC often ~₹35k–50k/kW at larger scale
     COMMERCIAL_COST_PER_KW = 42000
+    COMMERCIAL_COST_PER_KW_LOW = 35000
+    COMMERCIAL_COST_PER_KW_HIGH = 50000
     BATTERY_COST_PER_KWH = 9000  # residential LFP planning figure
 
     # Energy: ~4–5.5 units/day per kWp on suitable days; PR 0.75–0.85
     DEFAULT_TARIFF = 10.0
+    # Separate configurable fallbacks. They intentionally begin at the legacy
+    # value; users must confirm the applicable residential/commercial rate.
+    DEFAULT_RESIDENTIAL_TARIFF = float(
+        os.environ.get("DEFAULT_RESIDENTIAL_TARIFF", DEFAULT_TARIFF)
+    )
+    DEFAULT_COMMERCIAL_TARIFF = float(
+        os.environ.get("DEFAULT_COMMERCIAL_TARIFF", DEFAULT_TARIFF)
+    )
     DEFAULT_FEED_IN_TARIFF = 3.0  # ₹/kWh indicative export / FIT rate
     DAILY_UNITS_PER_KW_LOW = 4.0
     DAILY_UNITS_PER_KW_HIGH = 5.5

@@ -78,6 +78,23 @@
         <form method="post" class="auth-form login-form" novalidate>
           {{ form.hidden_tag() }}
 
+          <fieldset class="planning-track-fieldset">
+            <legend>{{ form.planning_track.label.text }}</legend>
+            <div class="planning-track-options">
+              {% for option in form.planning_track %}
+              <label class="planning-track-option planning-track-{{ option.data }}" for="{{ option.id }}">
+                {{ option(class_="planning-track-radio") }}
+                <span class="planning-track-mark" aria-hidden="true"></span>
+                <span class="planning-track-copy">
+                  <strong>SIGNIX {{ _('Home') if option.data == 'home' else _('Business') }}</strong>
+                  <small>{% if option.data == 'home' %}{{ _('Plan residential rooftop solar, reduce your electricity bill, and explore applicable government subsidy guidance.') }}{% else %}{{ _('Evaluate commercial rooftop solar, annual operating savings, investment returns, and system sizing.') }}{% endif %}</small>
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+            {% for error in form.planning_track.errors %}<span class="form-error" role="alert">{{ error }}</span>{% endfor %}
+          </fieldset>
+
           <div class="form-field-group login-field-group">
             <label for="email" class="form-label login-label">{{ form.email.label.text }}</label>
             <div class="login-input-wrap">

@@ -43,7 +43,11 @@
   <div class="rpt-summary-grid">
     <article class="rpt-summary-card"><span>{{ _('System size') }}</span><strong>{{ '%.1f'|format(loc.system_size or 0) }} <small>kW</small></strong></article>
     <article class="rpt-summary-card"><span>{{ _('Annual generation') }}</span><strong>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} <small>kWh</small></strong></article>
+    {% if loc.planning_track == 'business' %}
+    <article class="rpt-summary-card"><span>{{ _('Annual net benefit') }}</span><strong>₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</strong></article>
+    {% else %}
     <article class="rpt-summary-card"><span>{{ _('Monthly savings') }}</span><strong>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</strong></article>
+    {% endif %}
     <article class="rpt-summary-card"><span>{{ _('Payback') }}</span><strong>{% if nominal_payback %}{{ '%.1f'|format(nominal_payback|float) }} <small>{{ _('years') }}</small>{% else %}—{% endif %}</strong></article>
   </div>
   <p class="rpt-indicative">{{ _('Indicative only — verify with your DISCOM and a qualified vendor.') }}</p>
@@ -503,6 +507,15 @@
     <p class="subsidy-eligibility-assumption">{{ subsidy_eligibility_assumption }}</p>
     {% endif %}
     <div class="fin-row total"><span>Net Investment</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
+    {% if loc.planning_track == 'business' %}
+    <div class="fin-row"><span>Year-one net operating benefit</span><span>₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</span></div>
+    <div class="fin-row"><span>Year-one ROI</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>25-year net benefit</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
+    <p class="monetary-disclaimer">Demand-charge savings are not modelled.</p>
+    {% else %}
+    <div class="fin-row"><span>Payback without subsidy</span><span>{% if loc.payback_without_subsidy_years %}{{ loc.payback_without_subsidy_years }} yrs{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>Subsidy-adjusted payback</span><span>{% if loc.subsidy_adjusted_payback_years %}{{ loc.subsidy_adjusted_payback_years }} yrs{% else %}—{% endif %}</span></div>
+    {% endif %}
     <div class="fin-row"><span>{{ _('Nominal payback') }} <small>(escalating tariff)</small></span><span>{% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}{% if nom %}{{ nom }} yrs{% else %}—{% endif %}</span></div>
     <div class="fin-row"><span>{{ _('Simple payback') }} <small>(year-one net savings)</small></span><span>{% set simp = (loc.extras or {}).get('simple_payback_years') %}{% if simp %}{{ simp }} yrs{% else %}—{% endif %}</span></div>
     <div class="fin-row"><span>{{ _('Discounted payback') }} <small>({{ (loc.extras or {}).get('discount_rate_pct', 8) }}% nominal discount rate)</small></span><span>{% set disc = (loc.extras or {}).get('discounted_payback_years') %}{% if disc %}{{ disc }} yrs{% else %}No break-even in 25 yrs{% endif %}</span></div>

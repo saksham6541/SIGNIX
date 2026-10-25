@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Dashboard') }} · SIGNIX{% endblock %}
+{% block title %}{{ _('SIGNIX Business') if planning_track == 'business' else _('SIGNIX Home') }} · {{ _('Dashboard') }}{% endblock %}
+{% block body_class %}product-{{ planning_track }}{% endblock %}
 
 {% block content %}
 <section class="dashboard-hero dashboard-hero-split gt-dashboard-hero">
   <div>
-    <p class="console-index">{{ _('PORTFOLIO OVERVIEW') }}</p>
-    <h1>{{ _('Your solar planning workspace') }}</h1>
-    <p class="tagline">{{ _('Review saved estimates, reopen reports, or begin another rooftop assessment.') }}</p>
+    <p class="console-index">{{ _('BUSINESS SOLAR PORTFOLIO') if planning_track == 'business' else _('MY SOLAR') }}</p>
+    <h1>{{ _('Commercial solar decisions, in one workspace') if planning_track == 'business' else _('Your home solar plan, kept simple') }}</h1>
+    <p class="tagline">{% if planning_track == 'business' %}{{ _('Review site investment, annual operating benefit, payback, ROI, and saved scenarios.') }}{% else %}{{ _('Review household generation, monthly bill savings, installation cost, subsidy guidance, and next steps.') }}{% endif %}</p>
   </div>
-  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
   <svg class="gt-dashboard-pattern" viewBox="0 0 420 220" aria-hidden="true">
     <path d="M10 180 105 85l63 63 57-57 165 165M130 220l90-90 100 90M286 220l55-55 55 55" fill="none" stroke="currentColor" stroke-width="2"/>
     <circle cx="316" cy="55" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -20,15 +21,15 @@
   <article class="gt-card">
     <div class="gt-stat-label">
       <svg class="gt-stat-icon gt-icon-roof" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7M5 10v10h14V10M9 20v-6h6v6"/></svg>
-      <span>{{ _('Saved rooftops') }}</span>
+      <span>{{ _('Business sites') if planning_track == 'business' else _('Saved homes') }}</span>
     </div>
     <strong>{{ summary.saved_locations }}</strong>
-    <small>{{ _('owned by this account') }}</small>
+    <small>{{ _('in this business workspace') if planning_track == 'business' else _('in My Solar') }}</small>
   </article>
   <article class="gt-card">
     <div class="gt-stat-label">
       <svg class="gt-stat-icon gt-icon-bolt" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-13h-7z"/></svg>
-      <span>{{ _('Planned capacity') }}</span>
+      <span>{{ _('Proposed capacity') if planning_track == 'business' else _('Planned capacity') }}</span>
     </div>
     <strong>{{ '{:,.1f}'.format(summary.total_capacity_kw) }} <small>kW</small></strong>
     <small>{{ _('across saved estimates') }}</small>
@@ -44,21 +45,39 @@
   <article class="gt-card">
     <div class="gt-stat-label">
       <svg class="gt-stat-icon gt-icon-rupee" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14M5 8h14M8 4c5 0 7 2 7 5s-2 5-7 5l8 6"/></svg>
-      <span>{{ _('Monthly savings') }}</span>
+      <span>{{ _('Annual net benefit') if planning_track == 'business' else _('Monthly bill savings') }}</span>
     </div>
-    <strong class="gt-savings">₹{{ '{:,.0f}'.format(summary.monthly_savings) }}</strong>
-    <small>{{ _('persisted estimate total') }}</small>
+    <strong class="gt-savings">₹{{ '{:,.0f}'.format(summary.annual_net_benefit if planning_track == 'business' else summary.monthly_savings) }}</strong>
+    <small>{% if planning_track == 'business' %}{% if summary.simple_payback_years is not none %}{{ _('%(roi)s%% portfolio year-one ROI · %(payback)s yr simple payback', roi=summary.annual_roi_pct, payback=summary.simple_payback_years) }}{% else %}{{ _('Payback unavailable until annual net benefit is positive') }}{% endif %}{% else %}{{ _('persisted estimate total') }}{% endif %}</small>
   </article>
+  {% if planning_track == 'home' %}
+  <article class="gt-card">
+    <div class="gt-stat-label"><span>{{ _('Estimated installation cost') }}</span></div>
+    <strong>₹{{ '{:,.0f}'.format(summary.system_cost) }}</strong>
+    <small>{{ _('before any conditional residential subsidy') }}</small>
+  </article>
+  <article class="gt-card">
+    <div class="gt-stat-label"><span>{{ _('Indicative subsidy') }}</span></div>
+    <strong>₹{{ '{:,.0f}'.format(summary.subsidy_amount) }}</strong>
+    <small>{{ _('subject to eligibility and approval; not approved funding') }}</small>
+  </article>
+  {% elif planning_track == 'business' %}
+  <article class="gt-card">
+    <div class="gt-stat-label"><span>{{ _('Project investment') }}</span></div>
+    <strong>₹{{ '{:,.0f}'.format(summary.total_investment) }}</strong>
+    <small>{{ _('persisted site CAPEX total') }}</small>
+  </article>
+  {% endif %}
 </section>
 
 <section class="dashboard-section" aria-labelledby="recent-reports-title">
   <div class="dashboard-section-heading">
     <div>
-      <p class="console-index">{{ _('RECENT WORK') }}</p>
-      <h2 id="recent-reports-title">{{ _('Latest saved estimates') }}</h2>
+      <p class="console-index">{{ _('RECENT SITE WORK') if planning_track == 'business' else _('RECENT HOME PLANS') }}</p>
+      <h2 id="recent-reports-title">{{ _('Latest business sites') if planning_track == 'business' else _('Latest home estimates') }}</h2>
     </div>
     {% if locations %}
-    <a class="table-action-link" href="{{ url_for('pages.properties') }}">{{ _('View all properties') }} <span aria-hidden="true">→</span></a>
+    <a class="table-action-link" href="{{ url_for('pages.properties') }}">{{ _('View all business sites') if planning_track == 'business' else _('View My Solar') }} <span aria-hidden="true">→</span></a>
     {% endif %}
   </div>
 
@@ -70,7 +89,7 @@
           <th scope="col">{{ _('Property') }}</th>
           <th scope="col">{{ _('System') }}</th>
           <th scope="col">{{ _('Annual output') }}</th>
-          <th scope="col">{{ _('Saved') }}</th>
+          <th scope="col">{{ _('Annual net benefit') if planning_track == 'business' else _('Monthly savings') }}</th>
           <th scope="col"><span class="sr-only">{{ _('Action') }}</span></th>
         </tr>
       </thead>
@@ -83,7 +102,7 @@
           </td>
           <td>{{ '{:,.1f}'.format(loc.system_size or 0) }} kW</td>
           <td>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh</td>
-          <td>{{ loc.created_at.strftime('%d %b %Y') if loc.created_at else _('Unknown') }}</td>
+          <td>₹{{ '{:,.0f}'.format((loc.extras or {}).get('annual_net_benefit') or 0) if planning_track == 'business' else '{:,.0f}'.format(loc.monthly_savings or 0) }}</td>
           <td><a class="table-action-link" href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open') }} <span aria-hidden="true">→</span></a></td>
         </tr>
         {% endfor %}
@@ -97,9 +116,9 @@
       <path d="M40 88V58h40v30M50 42h20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="89" cy="22" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
     </svg>
-    <h3>{{ _('Your first rooftop starts here') }}</h3>
-    <p>{{ _('Select a property, trace its roof, and SIGNIX will keep the resulting estimate in this workspace.') }}</p>
-    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
+    <h3>{{ _('Add your first business site') if planning_track == 'business' else _('Your first home rooftop starts here') }}</h3>
+    <p>{% if planning_track == 'business' %}{{ _('Trace the site roof, add operating assumptions, and save an investment-ready planning report.') }}{% else %}{{ _('Select your home, trace its roof, and save a clear bill-savings and installation plan.') }}{% endif %}</p>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('Start Business Estimate') if planning_track == 'business' else _('Start Home Estimate') }}</a>
   </div>
   {% endif %}
 </section>

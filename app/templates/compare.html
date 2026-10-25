@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Compare') }} · SIGNIX{% endblock %}
+{% block title %}{{ _('Business scenario comparison') if planning_track == 'business' else _('Home system comparison') }} · SIGNIX{% endblock %}
+{% block body_class %}product-{{ planning_track }}{% endblock %}
 {% block content %}
 <section class="compare-page">
   <div class="compare-header">
     <div>
       <p class="console-index">{{ _('SCENARIO ANALYSIS') }}</p>
-      <h1>{{ _('Compare estimates') }}</h1>
-      <p class="tagline">{{ _('Hold 2–3 configurations side-by-side — same roof, different sizing or battery choices.') }}</p>
+      <h1>{{ _('Compare business investment scenarios') if planning_track == 'business' else _('Compare home system options') }}</h1>
+      <p class="tagline">{{ _('Compare 2–3 site configurations by investment, annual benefit, generation, and payback.') if planning_track == 'business' else _('Compare 2–3 configurations for the same home roof, including size, battery, cost, and savings.') }}</p>
     </div>
   </div>
 
@@ -15,7 +16,7 @@
     <span class="empty-index" aria-hidden="true">01</span>
     <h3>{{ _('No saved estimates yet') }}</h3>
     <p>{{ _('Run an estimate, then use “Duplicate scenario” on the report to compare options.') }}</p>
-    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('Start Business Estimate') if planning_track == 'business' else _('Start Home Estimate') }}</a>
   </div>
   {% else %}
   <form method="post" class="compare-picker">
@@ -106,7 +107,7 @@
             {% endfor %}
           </tr>
           <tr>
-            <th>{{ _('25-year savings') }} <span class="metric-hint">({{ _('indicative') }})</span></th>
+            <th>{{ _('25-year net financial position') if planning_track == 'business' else _('25-year savings') }} <span class="metric-hint">({{ _('indicative') }})</span></th>
             {% for location in selected_locations %}
             {% set row = (comparison.rows|selectattr('id','equalto',location.id)|list|first) if comparison else none %}
             {% if row %}
@@ -114,9 +115,13 @@
             {% else %}
               {% set s25 = (location.monthly_savings or 0) * 12 * 25 %}
             {% endif %}
-            <td class="{% if location.id in winners.get('savings_25yr', []) %}metric-best{% endif %}">
-              &#8377;{{ "{:,.0f}".format(s25) }}
-              {% if location.id in winners.get('savings_25yr', []) %}<span class="best-tag">{{ _('Highest') }}</span>{% endif %}
+            <td class="{% if planning_track == 'home' and location.id in winners.get('savings_25yr', []) %}metric-best{% endif %}">
+              {% if planning_track == 'business' %}
+                {% if (location.extras or {}).get('lifetime_net_benefit') is not none %}&#8377;{{ "{:,.0f}".format((location.extras or {}).get('lifetime_net_benefit')) }}{% else %}—{% endif %}
+              {% else %}
+                &#8377;{{ "{:,.0f}".format(s25) }}
+                {% if location.id in winners.get('savings_25yr', []) %}<span class="best-tag">{{ _('Highest') }}</span>{% endif %}
+              {% endif %}
             </td>
             {% endfor %}
           </tr>
@@ -154,17 +159,26 @@
             {% endfor %}
           </tr>
           <tr>
-            <th>{{ _('Monthly savings') }}</th>
+            <th>{{ _('Annual net benefit') if planning_track == 'business' else _('Monthly savings') }}</th>
             {% for location in selected_locations %}
-            <td>&#8377;{{ "{:,.0f}".format(location.monthly_savings or 0) }}</td>
+            <td>&#8377;{{ "{:,.0f}".format((location.extras or {}).get('annual_net_benefit') or 0) if planning_track == 'business' else "{:,.0f}".format(location.monthly_savings or 0) }}</td>
             {% endfor %}
           </tr>
+          {% if planning_track == 'business' %}
+          <tr>
+            <th>{{ _('Year-one ROI') }}</th>
+            {% for location in selected_locations %}
+            <td>{% if (location.extras or {}).get('annual_roi_pct') is not none %}{{ '%.2f'|format((location.extras or {}).get('annual_roi_pct')) }}%{% else %}—{% endif %}</td>
+            {% endfor %}
+          </tr>
+          {% else %}
           <tr>
             <th>{{ _('Subsidy') }}</th>
             {% for location in selected_locations %}
             <td>&#8377;{{ "{:,.0f}".format(location.subsidy_amount or 0) }}</td>
             {% endfor %}
           </tr>
+          {% endif %}
           <tr>
             <th>{{ _('Battery') }}</th>
             {% for location in selected_locations %}

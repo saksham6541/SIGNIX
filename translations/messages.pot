@@ -3355,39 +3355,39 @@ msgstr ""
 msgid "Solutions"
 msgstr ""
 
-#: app/templates/_public_nav.html:38
+#: app/templates/_public_nav.html:43
 msgid "Residential Solar"
 msgstr ""
 
-#: app/templates/_public_nav.html:39
-msgid "Plan an indicative home rooftop system with residential assumptions."
-msgstr ""
-
-#: app/templates/_public_nav.html:41
-msgid "Explore Residential"
-msgstr ""
-
 #: app/templates/_public_nav.html:44
-msgid "Commercial Solar"
+msgid "Estimate your home's solar savings and payback period."
 msgstr ""
 
 #: app/templates/_public_nav.html:45
-msgid "Explore business rooftop planning with separate commercial assumptions."
+msgid "Explore Residential"
 msgstr ""
 
-#: app/templates/_public_nav.html:47
+#: app/templates/_public_nav.html:55
+msgid "Commercial Solar"
+msgstr ""
+
+#: app/templates/_public_nav.html:56
+msgid "Calculate potential ROI and system sizing for your business."
+msgstr ""
+
+#: app/templates/_public_nav.html:57
 msgid "Explore Commercial"
 msgstr ""
 
-#: app/templates/_public_nav.html:50
+#: app/templates/_public_nav.html:67
 msgid "Industrial Solar"
 msgstr ""
 
-#: app/templates/_public_nav.html:50
+#: app/templates/_public_nav.html:67
 msgid "Coming Soon"
 msgstr ""
 
-#: app/templates/_public_nav.html:51
+#: app/templates/_public_nav.html:68
 msgid "Industrial planning is not available yet."
 msgstr ""
 

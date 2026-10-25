@@ -13,6 +13,10 @@ from app.geo import (
     validate_leaflet_ring,
 )
 from app.models import db, TariffTable, UserLocation
+from app.services import (
+    commercial_calculation_service,
+    residential_calculation_service,
+)
 from app.solar_logic import (
     calculation_assumptions,
     current_assumption_fingerprint,
@@ -56,23 +60,46 @@ class InvalidEstimateInputError(Exception):
     pass
 
 
-def lookup_tariff(state):
+def _planning_policy(planning_track, property_type=None, load_profile=None):
+    if planning_track == "business":
+        return commercial_calculation_service.resolve_policy(load_profile)
+    return residential_calculation_service.resolve_policy(property_type, load_profile)
+
+
+def _legacy_planning_track(property_type):
+    return (
+        "business"
+        if str(property_type or "").strip().lower()
+        in {"commercial", "industrial", "msme", "factory"}
+        else "home"
+    )
+
+
+def lookup_tariff(state, planning_track="home"):
     """Return rate_per_kwh for state, or config default."""
-    info = lookup_tariff_defaults(state)
+    info = lookup_tariff_defaults(state, planning_track=planning_track)
     return info["rate_per_kwh"]
 
 
-def lookup_tariff_defaults(state):
-    """Full state tariff + net-metering defaults for UI / estimate prep."""
+def lookup_tariff_defaults(state, planning_track="home"):
+    """Track-aware tariff defaults for UI and estimate preparation."""
+    policy = _planning_policy(planning_track)
     defaults = {
         "state": state,
-        "rate_per_kwh": Config.DEFAULT_TARIFF,
+        "planning_track": policy["planning_track"],
+        "rate_per_kwh": policy["default_tariff_per_kwh"],
         "net_metering_mode": "full_offset",
         "export_credit_rate": getattr(Config, "DEFAULT_FEED_IN_TARIFF", 3.0),
         "utility_name": None,
         "notes": None,
         "found": False,
+        "basis": policy["tariff_basis"],
     }
+    # TariffTable currently stores residential/state defaults. Never silently
+    # relabel those rows as a verified commercial tariff.
+    if policy["planning_track"] == "business":
+        defaults["notes"] = "Commercial tariff is an unverified configurable default; confirm the applicable bill rate."
+        return defaults
     if not state:
         return defaults
     row = TariffTable.query.filter_by(state=state).first()
@@ -131,7 +158,7 @@ def _validate_estimate_geometry(polygon, obstructions=None):
     return polygon, validated_obstructions
 
 
-def prepare_estimate_inputs(payload):
+def prepare_estimate_inputs(payload, planning_track="home"):
     if not isinstance(payload, dict):
         raise InvalidEstimateInputError("Request body must be a JSON object")
     latitude = _finite_float(
@@ -157,7 +184,13 @@ def prepare_estimate_inputs(payload):
         payload.get("monthly_bill"), "monthly_bill", minimum=0
     )
 
-    state_defaults = lookup_tariff_defaults(payload.get("state"))
+    planning_track = "business" if planning_track == "business" else "home"
+    policy = _planning_policy(
+        planning_track, payload.get("property_type"), payload.get("load_profile")
+    )
+    state_defaults = lookup_tariff_defaults(
+        payload.get("state"), planning_track=planning_track
+    )
     tariff = state_defaults["rate_per_kwh"]
     if payload.get("tariff_per_kwh") not in (None, ""):
         tariff = _finite_float(
@@ -192,7 +225,8 @@ def prepare_estimate_inputs(payload):
         "orientation": orientation,
         "battery_kwh": battery_kwh,
         "monthly_bill": monthly_bill,
-        "property_type": payload.get("property_type") or "residential",
+        "planning_track": planning_track,
+        "property_type": policy["property_type"],
         "user_priority": payload.get("user_priority") or "no_preference",
         "needs_backup": needs_backup,
         "inverter_preference": payload.get("inverter_preference") or "auto",
@@ -204,7 +238,7 @@ def prepare_estimate_inputs(payload):
         "backup_hours": _finite_float(
             payload.get("backup_hours"), "backup_hours", minimum=0
         ),
-        "load_profile": payload.get("load_profile") or "flat",
+        "load_profile": payload.get("load_profile") or policy["default_load_profile"],
         "net_metering_mode": net_mode or "full_offset",
         "feed_in_tariff": feed_in,
         "state": payload.get("state"),
@@ -223,6 +257,7 @@ def create_estimate(
     battery_kwh=0.0,
     monthly_bill=None,
     property_type="residential",
+    planning_track=None,
     user_priority="no_preference",
     needs_backup=False,
     inverter_preference="auto",
@@ -242,6 +277,7 @@ def create_estimate(
     polygon, obstructions = _validate_estimate_geometry(polygon, obstructions)
     total_start = time.perf_counter()
     try:
+        planning_track = planning_track or _legacy_planning_track(property_type)
         result = run_full_estimation(
             latitude=latitude,
             longitude=longitude,
@@ -252,6 +288,7 @@ def create_estimate(
             battery_kwh=battery_kwh,
             monthly_bill=monthly_bill,
             property_type=property_type,
+            planning_track=planning_track,
             user_priority=user_priority,
             needs_backup=needs_backup,
             inverter_preference=inverter_preference,
@@ -355,6 +392,14 @@ def create_estimate(
                 ),
                 "rule_of_thumb_annual_units": result.get("rule_of_thumb_annual_units"),
                 "property_type": result.get("property_type"),
+                "planning_track": result.get("planning_track"),
+                "calculation_policy": result.get("calculation_policy"),
+                "payback_without_subsidy_years": result.get("payback_without_subsidy_years"),
+                "subsidy_adjusted_payback_years": result.get("subsidy_adjusted_payback_years"),
+                "annual_net_benefit": result.get("annual_net_benefit"),
+                "annual_roi_pct": result.get("annual_roi_pct"),
+                "lifetime_net_benefit": result.get("lifetime_net_benefit"),
+                "demand_charge_savings": result.get("demand_charge_savings"),
                 "needs_backup": result.get("needs_backup"),
                 "planning_notes": result.get("planning_notes"),
                 "system_cost_low": result.get("system_cost_low"),
@@ -421,6 +466,10 @@ def _estimate_inputs_from_location(location):
         raise InvalidEstimateInputError("Saved estimate has no rooftop polygon")
     obstructions = _obstructions_from_location(location)
     polygon, obstructions = _validate_estimate_geometry(polygon, obstructions)
+    property_type = extras.get("property_type") or "residential"
+    planning_track = extras.get("planning_track")
+    if planning_track not in {"home", "business"}:
+        planning_track = _legacy_planning_track(property_type)
     inputs = {
         "latitude": location.latitude,
         "longitude": location.longitude,
@@ -429,7 +478,8 @@ def _estimate_inputs_from_location(location):
         "tariff_per_kwh": extras.get("tariff_per_kwh") or Config.DEFAULT_TARIFF,
         "battery_kwh": float(location.battery_kwh or 0),
         "monthly_bill": extras.get("monthly_bill"),
-        "property_type": extras.get("property_type") or "residential",
+        "property_type": property_type,
+        "planning_track": planning_track,
         "user_priority": location.user_priority or "no_preference",
         "needs_backup": bool(extras.get("needs_backup")),
         "inverter_preference": extras.get("inverter_preference") or "auto",
@@ -509,11 +559,20 @@ def _apply_result_to_location(location, result, extra_updates=None):
     location.suitability_rating = result.get("suitability_rating")
 
     extras.update({
+        "planning_track": result.get("planning_track"),
+        "property_type": result.get("property_type"),
+        "calculation_policy": result.get("calculation_policy"),
         "orientation_input": result.get("orientation_deg"),
         "orientation_source": result.get("orientation_source"),
         "irradiance_confidence": result.get("irradiance_confidence"),
         "cashflow_25yr": result.get("cashflow_25yr"),
         "annual_savings": result.get("annual_savings"),
+        "payback_without_subsidy_years": result.get("payback_without_subsidy_years"),
+        "subsidy_adjusted_payback_years": result.get("subsidy_adjusted_payback_years"),
+        "annual_net_benefit": result.get("annual_net_benefit"),
+        "annual_roi_pct": result.get("annual_roi_pct"),
+        "lifetime_net_benefit": result.get("lifetime_net_benefit"),
+        "demand_charge_savings": result.get("demand_charge_savings"),
         "year_one_net_savings": result.get("year_one_net_savings"),
         "self_consumed_kwh": result.get("self_consumed_kwh"),
         "exported_kwh": result.get("exported_kwh"),
@@ -654,6 +713,9 @@ def clone_estimate_with_change(user_id, source_location_id, change, value, scena
     tariff = extras.get("tariff_per_kwh") or Config.DEFAULT_TARIFF
     orientation = extras.get("orientation_input") or "auto"
     property_type = extras.get("property_type") or "residential"
+    planning_track = extras.get("planning_track")
+    if planning_track not in {"home", "business"}:
+        planning_track = _legacy_planning_track(property_type)
     inverter_preference = extras.get("inverter_preference") or "auto"
     critical_load_kw = extras.get("critical_load_kw")
     backup_hours = extras.get("backup_hours")
@@ -717,6 +779,7 @@ def clone_estimate_with_change(user_id, source_location_id, change, value, scena
             battery_kwh=battery_kwh,
             monthly_bill=monthly_bill,
             property_type=property_type,
+            planning_track=planning_track,
             user_priority=source.user_priority or "no_preference",
             needs_backup=needs_backup,
             inverter_preference=inverter_preference,

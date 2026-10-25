@@ -87,7 +87,11 @@
     <tr>
       <td><span class="label">{{ _('System size') }}</span><span class="value">{{ loc.system_size }} kW</span></td>
       <td><span class="label">{{ _('Annual generation') }}</span><span class="value">{{ loc.annual_generation }} kWh</span></td>
+      {% if loc.planning_track == 'business' %}
+      <td><span class="label">{{ _('Annual net benefit') }}</span><span class="value">₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</span></td>
+      {% else %}
       <td><span class="label">{{ _('Monthly savings') }}</span><span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></td>
+      {% endif %}
       <td><span class="label">{{ _('Payback') }}</span><span class="value">{% if loc.payback_years %}{{ loc.payback_years }} {{ _('yrs') }}{% else %}—{% endif %}</span></td>
     </tr>
   </table>
@@ -180,7 +184,16 @@
   <p class="subsidy-eligibility-assumption">{{ subsidy_eligibility_assumption }}</p>
   {% endif %}
   <div class="fin-row total"><span>{{ _('Net investment') }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
+  {% if loc.planning_track == 'business' %}
+  <div class="fin-row"><span>{{ _('Year-one net operating benefit') }}</span><span>₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</span></div>
+  <div class="fin-row"><span>{{ _('Year-one ROI') }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
+  <div class="fin-row"><span>{{ _('25-year net benefit') }}</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
+  <p class="muted">{{ _('Demand-charge savings are not modelled.') }}</p>
+  {% else %}
   <div class="fin-row"><span>{{ _('Estimated monthly savings') }}</span><span>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
+  <div class="fin-row"><span>{{ _('Payback without subsidy') }}</span><span>{% if loc.payback_without_subsidy_years %}{{ loc.payback_without_subsidy_years }} years{% else %}—{% endif %}</span></div>
+  <div class="fin-row"><span>{{ _('Subsidy-adjusted payback') }}</span><span>{% if loc.subsidy_adjusted_payback_years %}{{ loc.subsidy_adjusted_payback_years }} years{% else %}—{% endif %}</span></div>
+  {% endif %}
   {% if loc.lifecycle_projection %}
   <div class="fin-row"><span>{{ _('25-year net operating savings') }}</span><span>₹{{ '{:,.0f}'.format(loc.lifecycle_projection.lifetime_net_savings_before_upfront or 0) }}</span></div>
   <div class="fin-row"><span>{{ _('Discounted payback') }}</span><span>{% if loc.discounted_payback_years %}{{ loc.discounted_payback_years }} years{% else %}{{ _('No break-even in 25 years') }}{% endif %}</span></div>

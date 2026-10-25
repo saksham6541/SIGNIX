@@ -1,3 +1,5 @@
+import re
+
 from werkzeug.security import generate_password_hash
 
 from app.models import User, UserLocation, db
@@ -20,11 +22,14 @@ def test_signup_with_valid_data_succeeds(app):
             "email": "new@example.com",
             "password": "correct horse battery staple",
             "confirm_password": "correct horse battery staple",
+            "planning_track": "home",
         },
     )
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/dashboard")
+    assert response.headers["Location"].endswith("/survey/home")
+    with test_client.session_transaction() as session:
+        assert session["planning_track"] == "home"
     with app.app_context():
         user = User.query.filter_by(email="new@example.com").one()
         assert user.display_name == "New User"
@@ -54,7 +59,7 @@ def test_login_with_correct_password_succeeds(app):
     response = login(app.test_client(), "test@example.com", "unused")
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/dashboard")
+    assert response.headers["Location"].endswith("/survey/home")
 
 
 def test_language_switch_changes_active_locale_for_anonymous_request(app):
@@ -259,7 +264,59 @@ def test_login_rejects_external_next_target(app):
     )
 
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/dashboard")
+    assert response.headers["Location"].endswith("/survey/home")
+
+
+def test_login_business_selection_sets_product_and_opens_business_survey(app):
+    test_client = app.test_client()
+
+    response = test_client.post(
+        "/login",
+        data={
+            "email": "test@example.com",
+            "password": "unused",
+            "planning_track": "business",
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/survey/business")
+    with test_client.session_transaction() as session:
+        assert session["planning_track"] == "business"
+
+
+def test_selected_track_overrides_mismatched_survey_next(app):
+    test_client = app.test_client()
+
+    response = test_client.post(
+        "/login?next=/survey/business",
+        data={
+            "email": "test@example.com",
+            "password": "unused",
+            "planning_track": "home",
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/survey/home")
+
+
+def test_login_validation_preserves_selected_business_track(app):
+    response = app.test_client().post(
+        "/login",
+        data={
+            "email": "not-an-email",
+            "password": "unused",
+            "planning_track": "business",
+        },
+    )
+
+    assert response.status_code == 200
+    assert b'id="planning_track-1"' in response.data
+    assert re.search(
+        rb'<input(?=[^>]*id="planning_track-1")(?=[^>]*value="business")(?=[^>]*checked)[^>]*>',
+        response.data,
+    )
 
 
 def test_signup_returns_to_requested_local_survey(app):

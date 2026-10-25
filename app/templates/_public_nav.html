@@ -34,21 +34,36 @@
         </button>
         <div class="public-nav-solutions-panel" id="public-nav-solutions-panel" hidden>
           <section class="public-nav-solution">
-            <div>
+            <span class="public-nav-solution-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 10 9-7 9 7"/><path d="M5 9v12h14V9"/><path d="M9 21v-7h6v7"/>
+              </svg>
+            </span>
+            <div class="public-nav-solution-copy">
               <h2>{{ _('Residential Solar') }}</h2>
-              <p>{{ _('Plan an indicative home rooftop system with residential assumptions.') }}</p>
+              <p>{{ _("Estimate your home's solar savings and payback period.") }}</p>
+              <a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
             </div>
-            <a href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
           </section>
           <section class="public-nav-solution">
-            <div>
+            <span class="public-nav-solution-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 21V4h11v17M15 9h5v12M2 21h20"/><path d="M8 8h3M8 12h3M8 16h3M18 13h.01M18 17h.01"/>
+              </svg>
+            </span>
+            <div class="public-nav-solution-copy">
               <h2>{{ _('Commercial Solar') }}</h2>
-              <p>{{ _('Explore business rooftop planning with separate commercial assumptions.') }}</p>
+              <p>{{ _('Calculate potential ROI and system sizing for your business.') }}</p>
+              <a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
             </div>
-            <a href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
           </section>
           <section class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true">
-            <div>
+            <span class="public-nav-solution-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21V10l6 4V9l6 5V6l6 3v12H3Z"/><path d="M6 18h.01M10 18h.01M14 18h.01M18 18h.01"/>
+              </svg>
+            </span>
+            <div class="public-nav-solution-copy">
               <h2>{{ _('Industrial Solar') }} <span class="public-nav-coming-soon">{{ _('Coming Soon') }}</span></h2>
               <p>{{ _('Industrial planning is not available yet.') }}</p>
             </div>

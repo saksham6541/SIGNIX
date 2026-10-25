@@ -331,8 +331,32 @@ def build_report_chart_data(data):
         )
     environment["provenance"] = emissions or None
 
+    planning_track = pick("planning_track")
+    if planning_track not in {"home", "business"}:
+        planning_track = (
+            "business"
+            if str(pick("property_type") or "").lower()
+            in {"commercial", "industrial", "msme", "factory"}
+            else "home"
+        )
+    financial_overview = {
+        "planning_track": planning_track,
+        "annual_net_benefit": _number(pick("annual_net_benefit")),
+        "annual_roi_pct": _number(pick("annual_roi_pct")),
+        "lifetime_net_benefit": _number(pick("lifetime_net_benefit")),
+        "demand_charge_savings": _number(pick("demand_charge_savings")),
+        "payback_without_subsidy_years": _number(
+            pick("payback_without_subsidy_years")
+        ),
+        "subsidy_adjusted_payback_years": _number(
+            pick("subsidy_adjusted_payback_years")
+        ),
+    }
+
     return {
         "schema_version": "1.0",
+        "planning_track": planning_track,
+        "financial_overview": financial_overview,
         "energy": {
             "monthly_generation": monthly,
             "annual_generation": round(annual_generation, 2),

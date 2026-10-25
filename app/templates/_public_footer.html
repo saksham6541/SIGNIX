@@ -23,8 +23,8 @@
     <div class="footer-nav-col">
       <h4>{{ _('SOLUTIONS') }}</h4>
       <ul>
-        <li><a href="{{ url_for('pages.plan', planning_track='home') }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Home') }}{% else %}{{ _('Residential') }}{% endif %}</a></li>
-        <li><a href="{{ url_for('pages.plan', planning_track='business') }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Business') }}{% else %}{{ _('Commercial') }}{% endif %}</a></li>
+        <li><a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Home') }}{% else %}{{ _('Residential') }}{% endif %}</a></li>
+        <li><a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Business') }}{% else %}{{ _('Commercial') }}{% endif %}</a></li>
         <li><span class="landing-footer-unavailable" aria-disabled="true">{{ _('Industrial (Coming Soon)') }}</span></li>
       </ul>
     </div>

@@ -25,7 +25,7 @@ def _json_safe(obj):
         return str(obj)
 
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 import math
 from datetime import date, datetime
 from flask_login import current_user, login_required
@@ -46,7 +46,9 @@ def api_estimate():
     payload = request.get_json(silent=True) or {}
 
     try:
-        estimate_inputs = estimation_service.prepare_estimate_inputs(payload)
+        estimate_inputs = estimation_service.prepare_estimate_inputs(
+            payload, planning_track=session.get("planning_track", "home")
+        )
     except estimation_service.InvalidEstimateInputError as exc:
         return jsonify({"error": str(exc)}), 400
 
@@ -260,9 +262,11 @@ def api_financing_preview(location_id):
 @estimate_bp.route("/api/tariff", methods=["GET"])
 @login_required
 def api_tariff_defaults():
-    """Return seeded residential tariff + net-metering defaults for a state."""
+    """Return tariff defaults for the active server-side planning track."""
     state = (request.args.get("state") or "").strip()
-    info = estimation_service.lookup_tariff_defaults(state or None)
+    info = estimation_service.lookup_tariff_defaults(
+        state or None, planning_track=session.get("planning_track", "home")
+    )
     return jsonify(info)
 
 
@@ -288,5 +292,6 @@ def api_location_context():
         pincode=(request.args.get("pincode") or "").strip() or None,
         latitude=_f("lat"),
         longitude=_f("lng"),
+        planning_track=session.get("planning_track", "home"),
     )
     return jsonify(ctx)

@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Savings') }} · SIGNIX{% endblock %}
+{% block title %}{{ _('Business financial overview') if planning_track == 'business' else _('Home savings') }} · SIGNIX{% endblock %}
+{% block body_class %}product-{{ planning_track }}{% endblock %}
 {% block content %}
 <section class="savings-page">
   <div class="savings-page-header">
     <div>
-      <p class="console-index">{{ _('PORTFOLIO IMPACT') }}</p>
-      <h1>{{ _('Savings overview') }}</h1>
-      <p class="tagline">{{ _('See the combined financial and environmental value of your saved estimates.') }}</p>
+      <p class="console-index">{{ _('BUSINESS FINANCIAL OVERVIEW') if planning_track == 'business' else _('HOUSEHOLD SAVINGS OVERVIEW') }}</p>
+      <h1>{{ _('Portfolio operating benefit') if planning_track == 'business' else _('Home savings overview') }}</h1>
+      <p class="tagline">{{ _('Review combined annual benefit and environmental impact across saved business sites.') if planning_track == 'business' else _('See the combined bill-saving and environmental value of your saved home estimates.') }}</p>
     </div>
     {% if locations %}
-    <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('New estimate') }} <span aria-hidden="true">→</span></a>
+    <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
     {% endif %}
   </div>
 
@@ -18,15 +19,15 @@
     <span class="empty-index" aria-hidden="true">01</span>
     <h3>{{ _('Your savings story starts with an estimate') }}</h3>
     <p>{{ _('Run and save your first rooftop estimate to see your potential savings here.') }}</p>
-    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Start an estimate') }}</a>
+    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('Start Business Estimate') if planning_track == 'business' else _('Start Home Estimate') }}</a>
   </div>
   {% else %}
   <div class="savings-overview-grid">
     <div class="savings-card savings-total-card">
       <div class="savings-card-copy">
-        <span class="savings-label">{{ _('Total potential monthly savings') }}</span>
-        <strong>&#8377;{{ "%.0f"|format(monthly_savings) }}</strong>
-        <span class="savings-subtitle">&#8377;{{ "%.0f"|format(annual_savings) }} {{ _('potential savings per year') }}</span>
+        <span class="savings-label">{{ _('Total annual operating benefit') if planning_track == 'business' else _('Total potential monthly savings') }}</span>
+        <strong>&#8377;{{ "%.0f"|format(annual_savings if planning_track == 'business' else monthly_savings) }}</strong>
+        <span class="savings-subtitle">{% if planning_track == 'business' %}{{ _('Based on persisted site estimates; demand-charge savings are excluded') }}{% else %}&#8377;{{ "%.0f"|format(annual_savings) }} {{ _('potential savings per year') }}{% endif %}</span>
       </div>
       <svg class="savings-trend" viewBox="0 0 260 120" aria-hidden="true">
         <path d="M4 110 C48 104 55 72 91 80 S128 50 157 58 S201 18 256 8" />
@@ -89,14 +90,14 @@
   {% if best_opportunity %}
   <section class="savings-opportunity" aria-labelledby="best-opp-title">
     <div class="savings-opportunity-copy">
-      <p class="console-index">{{ _('TOP SAVER') }}</p>
+      <p class="console-index">{{ _('STRONGEST OPERATING BENEFIT') if planning_track == 'business' else _('TOP SAVER') }}</p>
       <h2 id="best-opp-title">{{ best_opportunity.address }}</h2>
-      <p class="tagline">{{ _('The saved location with the highest potential monthly savings.') }}</p>
+      <p class="tagline">{{ _('The saved site with the highest modeled annual net operating benefit.') if planning_track == 'business' else _('The saved location with the highest potential monthly savings.') }}</p>
     </div>
     <div class="opportunity-metrics">
       <div class="opp-metric">
-        <small>{{ _('Monthly savings') }}</small>
-        <strong>&#8377;{{ "%.0f"|format(best_opportunity.monthly_savings or 0) }}</strong>
+        <small>{{ _('Annual net benefit') if planning_track == 'business' else _('Monthly savings') }}</small>
+        <strong>&#8377;{{ "%.0f"|format((best_opportunity.extras or {}).get('annual_net_benefit') or 0) if planning_track == 'business' else "%.0f"|format(best_opportunity.monthly_savings or 0) }}</strong>
       </div>
       <div class="opp-metric">
         <small>{{ _('Payback period') }}</small>
