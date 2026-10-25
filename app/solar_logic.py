@@ -30,6 +30,10 @@ from app.assumptions import (
 )
 from app.config import Config
 from app.services.cache import get_cached_irradiance, set_cached_irradiance
+from app.services import (
+    commercial_calculation_service,
+    residential_calculation_service,
+)
 
 MONTH_NAMES = [
     "Jan",
@@ -80,6 +84,10 @@ def calculation_assumptions():
                 "day_heavy": 0.70,
                 "flat": 0.55,
                 "evening_heavy": 0.40,
+            },
+            "track_policies": {
+                "home": residential_calculation_service.policy_snapshot(),
+                "business": commercial_calculation_service.policy_snapshot(),
             },
         },
         "assumptions": assumptions_snapshot(),
@@ -963,6 +971,8 @@ def compute_system_sizing(
     sizing_mode=None,
     budget_inr=None,
     min_system_kw=0.5,
+    planning_track="home",
+    property_type="residential",
 ):
     """Multi-mode system sizing with structured rationale and constraints.
 
@@ -1017,7 +1027,11 @@ def compute_system_sizing(
     min_kw = round(float(min_system_kw), 2)
     constraints.append("Roof area")
 
-    cost_per_kw = float(getattr(Config, "SYSTEM_COST_PER_KW", 65000))
+    if planning_track == "business":
+        sizing_policy = commercial_calculation_service.resolve_policy()
+    else:
+        sizing_policy = residential_calculation_service.resolve_policy(property_type)
+    cost_per_kw = float(sizing_policy["cost_per_kw"])
     budget_cap_kw = None
     if budget_inr is not None and float(budget_inr or 0) > 0 and cost_per_kw > 0:
         budget_cap_kw = float(budget_inr) / cost_per_kw
@@ -1078,26 +1092,42 @@ def compute_system_sizing(
             mode = "roof_max"
 
     elif mode == "fastest_payback":
-        # Bias toward subsidy-efficient sizes (≤3 kW CFA ceiling) while
-        # respecting bill need and roof limit.
-        subsidy_sweet_spot = 3.0
-        if bill_sizing and bill_sizing.get("recommended_kw", 0) > 0:
-            target = min(float(bill_sizing["recommended_kw"]), subsidy_sweet_spot)
-            rationale.append(
-                "Prefer size near PM Surya Ghar subsidy ceiling (3 kW) for faster payback"
-            )
-            rationale.append(
-                f"Bill-derived need ~{bill_sizing['recommended_kw']:.2f} kW"
-            )
+        # Residential sizing may use the subsidy ceiling. Commercial sizing
+        # has no such incentive and follows bill need (or roof capacity).
+        if planning_track == "business":
+            if bill_sizing and bill_sizing.get("recommended_kw", 0) > 0:
+                target = float(bill_sizing["recommended_kw"])
+                rationale.append(
+                    f"Commercial fastest-payback preview follows bill-derived need (~{target:.2f} kW)"
+                )
+            else:
+                target = roof_capacity_kw
+                rationale.append(
+                    "No bill supplied; commercial fastest-payback preview falls back to roof capacity"
+                )
+            recommended = round(min(target, max_kw), 2)
+            recommended = max(recommended, min_kw) if max_kw >= min_kw else max_kw
         else:
-            target = min(roof_capacity_kw, subsidy_sweet_spot)
-            rationale.append(
-                "Prefer size near PM Surya Ghar subsidy ceiling (3 kW) for faster payback"
-            )
-        recommended = round(min(target, max_kw), 2)
-        recommended = max(recommended, min_kw) if max_kw >= min_kw else max_kw
-        if roof_capacity_kw > subsidy_sweet_spot and recommended <= subsidy_sweet_spot:
-            constraints.append("Subsidy efficiency (3 kW CFA ceiling)")
+            # Bias toward subsidy-efficient sizes (≤3 kW CFA ceiling) while
+            # respecting bill need and roof limit.
+            subsidy_sweet_spot = 3.0
+            if bill_sizing and bill_sizing.get("recommended_kw", 0) > 0:
+                target = min(float(bill_sizing["recommended_kw"]), subsidy_sweet_spot)
+                rationale.append(
+                    "Prefer size near PM Surya Ghar subsidy ceiling (3 kW) for faster payback"
+                )
+                rationale.append(
+                    f"Bill-derived need ~{bill_sizing['recommended_kw']:.2f} kW"
+                )
+            else:
+                target = min(roof_capacity_kw, subsidy_sweet_spot)
+                rationale.append(
+                    "Prefer size near PM Surya Ghar subsidy ceiling (3 kW) for faster payback"
+                )
+            recommended = round(min(target, max_kw), 2)
+            recommended = max(recommended, min_kw) if max_kw >= min_kw else max_kw
+            if roof_capacity_kw > subsidy_sweet_spot and recommended <= subsidy_sweet_spot:
+                constraints.append("Subsidy efficiency (3 kW CFA ceiling)")
 
     elif mode == "max_25yr_savings":
         # Under flat-tariff / unlimited export assumption, larger system → more savings.
@@ -2286,29 +2316,35 @@ def calculate_financials(
     net_metering_mode="full_offset",
     feed_in_tariff=None,
     annual_consumption_kwh=None,
+    planning_track=None,
 ):
-    prop = (property_type or "residential").lower()
-    if prop in ("commercial", "industrial", "msme", "factory"):
-        unit_cost = getattr(Config, "COMMERCIAL_COST_PER_KW", 42000)
-        cost_band = (
-            getattr(Config, "COMMERCIAL_COST_PER_KW", 35000),
-            getattr(Config, "COMMERCIAL_COST_PER_KW", 50000),
+    if planning_track is None:
+        planning_track = (
+            "business"
+            if str(property_type or "").lower()
+            in ("commercial", "industrial", "msme", "factory")
+            else "home"
         )
-        # commercial guide band 35–50k; use midpoint already
-        cost_low = round(system_size_kw * 35000, 2)
-        cost_high = round(system_size_kw * 50000, 2)
+    if planning_track == "business":
+        policy = commercial_calculation_service.resolve_policy(load_profile)
     else:
-        unit_cost = Config.SYSTEM_COST_PER_KW
-        cost_low = round(
-            system_size_kw * getattr(Config, "SYSTEM_COST_PER_KW_LOW", 55000), 2
+        planning_track = "home"
+        policy = residential_calculation_service.resolve_policy(
+            property_type, load_profile
         )
-        cost_high = round(
-            system_size_kw * getattr(Config, "SYSTEM_COST_PER_KW_HIGH", 85000), 2
-        )
+    property_type = policy["property_type"]
+    load_profile = policy["default_load_profile"]
+    unit_cost = policy["cost_per_kw"]
+    cost_low = round(system_size_kw * policy["cost_per_kw_low"], 2)
+    cost_high = round(system_size_kw * policy["cost_per_kw_high"], 2)
 
     system_cost = round(system_size_kw * unit_cost, 2)
-    subsidy = calculate_subsidy(
-        system_size_kw, inverter_type=inverter_type, property_type=property_type
+    subsidy = (
+        calculate_subsidy(
+            system_size_kw, inverter_type=inverter_type, property_type=property_type
+        )
+        if policy["residential_subsidy_may_apply"]
+        else 0.0
     )
 
     battery_cost = 0.0
@@ -2371,6 +2407,8 @@ def calculate_financials(
         "system_cost": system_cost,
         "battery_cost": battery_cost,
         "subsidy_amount": subsidy,
+        "planning_track": planning_track,
+        "property_type": property_type,
     }
     financial_input_fingerprint = hashlib.sha256(
         json.dumps(financial_inputs, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -2381,6 +2419,9 @@ def calculate_financials(
     year_one_net_savings = round(annual_savings - annual_om, 2)
     simple_payback_years = _simple_payback(
         net_investment, annual_savings, annual_om
+    )
+    payback_without_subsidy_years = _simple_payback(
+        system_cost + battery_cost, annual_savings, annual_om
     )
     # Primary payback shown in summaries = nominal (escalating tariff).
     payback_years = (
@@ -2444,6 +2485,9 @@ def calculate_financials(
     )
 
     return {
+        "planning_track": planning_track,
+        "property_type": property_type,
+        "calculation_policy": policy,
         "system_cost": system_cost,
         "system_cost_low": cost_low,
         "system_cost_high": cost_high,
@@ -2454,6 +2498,18 @@ def calculate_financials(
         "net_investment": net_investment,
         "annual_savings": annual_savings,
         "year_one_net_savings": year_one_net_savings,
+        "annual_net_benefit": year_one_net_savings,
+        "annual_roi_pct": (
+            round((year_one_net_savings / net_investment) * 100, 2)
+            if net_investment > 0 else None
+        ),
+        "lifetime_net_benefit": (
+            lifecycle["years"][-1]["cumulative_cash_flow"]
+            if lifecycle.get("years") else None
+        ),
+        "demand_charge_savings": None,
+        "payback_without_subsidy_years": payback_without_subsidy_years,
+        "subsidy_adjusted_payback_years": simple_payback_years,
         "monthly_savings": monthly_savings,
         "annual_om": annual_om,
         "co2_reduction_tons": co2_reduction_tons,
@@ -2712,6 +2768,7 @@ def run_full_estimation(
     battery_kwh=0.0,
     monthly_bill=None,
     property_type="residential",
+    planning_track=None,
     user_priority="no_preference",
     needs_backup=False,
     inverter_preference="auto",
@@ -2744,6 +2801,23 @@ def run_full_estimation(
 
     total_start = time.perf_counter()
 
+    if planning_track is None:
+        planning_track = (
+            "business"
+            if str(property_type or "").lower()
+            in ("commercial", "industrial", "msme", "factory")
+            else "home"
+        )
+    if planning_track == "business":
+        policy = commercial_calculation_service.resolve_policy(load_profile)
+    else:
+        planning_track = "home"
+        policy = residential_calculation_service.resolve_policy(
+            property_type, load_profile
+        )
+    property_type = policy["property_type"]
+    load_profile = policy["default_load_profile"]
+
     roof_area_start = time.perf_counter()
     roof_area_sqm = calculate_polygon_area_sqm(coordinates)
     usable_area_sqm, obstructed_area_sqm = calculate_usable_area(
@@ -2760,6 +2834,8 @@ def run_full_estimation(
         tariff_per_kwh=tariff_per_kwh,
         sizing_mode=sizing_mode,
         budget_inr=budget_inr,
+        planning_track=planning_track,
+        property_type=property_type,
     )
     roof_capacity_kw = sizing["roof_capacity_kw"]
     system_size_kw = sizing["recommended_kw"]
@@ -2902,6 +2978,7 @@ def run_full_estimation(
             if bill_sizing and bill_sizing.get("monthly_units") is not None
             else None
         ),
+        planning_track=planning_track,
     )
     financial_elapsed = (time.perf_counter() - financial_start) * 1000
     print(
@@ -2949,6 +3026,7 @@ def run_full_estimation(
         "inverter": inverter,
         "inverter_type": inverter["type"],
         "property_type": property_type,
+        "planning_track": planning_track,
         "needs_backup": bool(needs_backup) or float(battery_kwh or 0) > 0,
         "performance_ratio": get_value(
             "performance_ratio", PERFORMANCE_RATIO.value

@@ -42,7 +42,7 @@
             <div class="public-nav-solution-copy">
               <h2>{{ _('Residential Solar') }}</h2>
               <p>{{ _("Estimate your home's solar savings and payback period.") }}</p>
-              <a href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
+              <a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
             </div>
           </section>
           <section class="public-nav-solution">
@@ -54,7 +54,7 @@
             <div class="public-nav-solution-copy">
               <h2>{{ _('Commercial Solar') }}</h2>
               <p>{{ _('Calculate potential ROI and system sizing for your business.') }}</p>
-              <a href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
+              <a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
             </div>
           </section>
           <section class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true">

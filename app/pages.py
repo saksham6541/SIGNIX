@@ -9,6 +9,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    session,
     url_for,
 )
 from flask_babel import get_locale, gettext as _
@@ -51,6 +52,8 @@ def _tracker_status_labels():
 
 
 def _psg_guidance_allowed(location):
+    if location.get("planning_track") == "business":
+        return False
     if (location.get("property_type") or "").strip().lower() != "residential":
         return False
     inverter_type = (location.get("inverter_type") or "").strip().lower().replace(" ", "-")
@@ -127,13 +130,39 @@ def _planning_track_or_404(planning_track):
     return track
 
 
+def _active_planning_track():
+    return "business" if session.get("planning_track") == "business" else "home"
+
+
+def _location_planning_track(location):
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    saved_track = extras.get("planning_track")
+    if saved_track in PLANNING_TRACKS:
+        return saved_track
+    return (
+        "business"
+        if str(extras.get("property_type") or "").strip().lower()
+        in {"commercial", "industrial", "msme", "factory"}
+        else "home"
+    )
+
+
+def _locations_for_track(user_id, planning_track):
+    return [
+        location
+        for location in location_service.list_locations(user_id)
+        if _location_planning_track(location) == planning_track
+    ]
+
+
 @pages_bp.route("/plan/<planning_track>")
 def plan(planning_track):
-    track = _planning_track_or_404(planning_track)
-    return render_template(
-        "plan.html",
-        planning_track=planning_track,
-        track=track,
+    _planning_track_or_404(planning_track)
+    return redirect(
+        url_for(
+            "auth.login",
+            next=url_for("pages.survey", planning_track=planning_track),
+        )
     )
 
 
@@ -141,6 +170,10 @@ def plan(planning_track):
 @login_required
 def survey(planning_track):
     track = _planning_track_or_404(planning_track)
+    # The authenticated survey route is the authoritative track selector.
+    # Estimation APIs use this server-side value rather than trusting a
+    # client-controlled property-type field.
+    session["planning_track"] = planning_track
     default_property_type = track["property_type"]
     if (
         planning_track == "home"
@@ -168,7 +201,13 @@ def survey(planning_track):
 @pages_bp.route("/dashboard")
 @login_required
 def dashboard():
-    locations = location_service.list_locations(current_user.id)
+    planning_track = _active_planning_track()
+    locations = _locations_for_track(current_user.id, planning_track)
+    annual_net_benefit = sum(
+        float((location.extras or {}).get("annual_net_benefit") or 0)
+        for location in locations
+    )
+    total_investment = sum(float(location.net_investment or 0) for location in locations)
     summary = {
         "saved_locations": len(locations),
         "total_capacity_kw": sum(location.system_size or 0 for location in locations),
@@ -176,22 +215,41 @@ def dashboard():
             location.annual_generation or 0 for location in locations
         ),
         "monthly_savings": sum(location.monthly_savings or 0 for location in locations),
+        "system_cost": sum(location.system_cost or 0 for location in locations),
+        "total_investment": total_investment,
+        "annual_net_benefit": annual_net_benefit,
+        "annual_roi_pct": (
+            round(annual_net_benefit / total_investment * 100, 1)
+            if total_investment > 0
+            else None
+        ),
+        "simple_payback_years": (
+            round(total_investment / annual_net_benefit, 1)
+            if annual_net_benefit > 0
+            else None
+        ),
+        "subsidy_amount": sum(location.subsidy_amount or 0 for location in locations),
     }
     return render_template(
-        "dashboard.html", locations=locations[:6], summary=summary
+        "dashboard.html",
+        locations=locations[:6],
+        summary=summary,
+        planning_track=planning_track,
     )
 
 
 @pages_bp.get("/properties")
 @login_required
 def properties():
-    locations = location_service.list_locations(current_user.id)
+    planning_track = _active_planning_track()
+    locations = _locations_for_track(current_user.id, planning_track)
     tracker_latest = _latest_tracker_events([location.id for location in locations])
     return render_template(
         "properties.html",
         locations=locations,
         tracker_latest=tracker_latest,
         tracker_status_labels=_tracker_status_labels(),
+        planning_track=planning_track,
         tracker_enabled_location_ids={
             location.id
             for location in locations
@@ -213,7 +271,8 @@ def saved_locations():
 @pages_bp.route("/compare", methods=["GET", "POST"])
 @login_required
 def compare():
-    locations = location_service.list_locations(current_user.id)
+    planning_track = _active_planning_track()
+    locations = _locations_for_track(current_user.id, planning_track)
     selected_locations = []
     selected_ids = []
 
@@ -248,6 +307,11 @@ def compare():
         selected_locations = location_service.list_locations_by_ids(
             current_user.id, selected_ids
         )
+        selected_locations = [
+            location
+            for location in selected_locations
+            if _location_planning_track(location) == planning_track
+        ]
 
     comparison = None
     if len(selected_locations) >= 2:
@@ -258,6 +322,7 @@ def compare():
         locations=locations,
         selected_locations=selected_locations,
         comparison=comparison,
+        planning_track=planning_track,
     )
 
 
@@ -266,15 +331,27 @@ def compare():
 @pages_bp.route("/savings")
 @login_required
 def savings():
-    locations = location_service.list_locations(current_user.id)
+    planning_track = _active_planning_track()
+    locations = _locations_for_track(current_user.id, planning_track)
     monthly_savings = sum(location.monthly_savings or 0 for location in locations)
-    annual_savings = monthly_savings * 12
+    annual_savings = (
+        sum(
+            float((location.extras or {}).get("annual_net_benefit") or 0)
+            for location in locations
+        )
+        if planning_track == "business"
+        else monthly_savings * 12
+    )
     co2_reduction_tons = sum(location.co2_reduction_tons or 0 for location in locations)
     environmental_equivalents = calculate_environmental_equivalents(co2_reduction_tons)
     best_opportunity = max(
         locations,
         key=lambda location: (
-            location.monthly_savings or 0,
+            (
+                float((location.extras or {}).get("annual_net_benefit") or 0)
+                if planning_track == "business"
+                else location.monthly_savings or 0
+            ),
             -(location.payback_years or float("inf")),
         ),
         default=None,
@@ -288,6 +365,7 @@ def savings():
         co2_reduction_tons=co2_reduction_tons,
         environmental_equivalents=environmental_equivalents,
         best_opportunity=best_opportunity,
+        planning_track=planning_track,
     )
 
 
@@ -298,6 +376,7 @@ def report(location_id):
     if report_data is None:
         abort(404)
     _, loc_dict = report_data
+    session["planning_track"] = loc_dict.get("planning_track") or "home"
     extras = loc_dict.get("extras") or {}
     location_context = extras.get("location_context") or {}
     discom_name = (

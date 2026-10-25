@@ -18,7 +18,7 @@
       <h1 id="landing-title">{{ _('Your Roof.') }}<br><span>{{ _('Your Solar Potential.') }}</span></h1>
       <p class="landing-hero-description">{{ _('Plan your rooftop solar system, explore your savings, and make a more informed move towards clean energy.') }}</p>
       <div class="landing-hero-actions">
-        <a class="landing-hero-primary" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Solar Solutions') }}</a>
+        <a class="landing-hero-primary" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">{{ _('Explore Solar Solutions') }}</a>
         <a class="landing-hero-secondary" href="{{ url_for('pages.consultation') }}">{{ _('Book a Free Consultation') }}</a>
       </div>
     </div>
@@ -67,7 +67,7 @@
           <p class="solution-card-audience">{{ _('Homeowners and residential property owners') }}</p>
           <h3>{{ _('Residential Solar') }}</h3>
           <p class="solution-card-description">{{ _('Explore rooftop solar options tailored to your home.') }}</p>
-          <a class="solution-card-link" href="{{ url_for('pages.plan', planning_track='home') }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
+          <a class="solution-card-link" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">{{ _('Explore Residential') }} <span aria-hidden="true">→</span></a>
         </div>
       </article>
       <article class="solution-card solution-card-biz">
@@ -83,7 +83,7 @@
           <p class="solution-card-audience">{{ _('Business owners, offices, shops, and institutions') }}</p>
           <h3>{{ _('Commercial Solar') }}</h3>
           <p class="solution-card-description">{{ _('Discover rooftop solar planning for commercial properties.') }}</p>
-          <a class="solution-card-link" href="{{ url_for('pages.plan', planning_track='business') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
+          <a class="solution-card-link" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
         </div>
       </article>
       <article class="solution-card solution-card-industrial">
@@ -330,10 +330,10 @@
       {% endif %}
       <p>{{ _('Start with the solution that fits your property.') }}</p>
       <div class="landing-cta-actions">
-        <a class="landing-cta-button landing-cta-primary" href="{{ url_for('pages.plan', planning_track='home') }}">
+        <a class="landing-cta-button landing-cta-primary" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">
           {{ _('Explore Residential Solar') }} <span aria-hidden="true">→</span>
         </a>
-        <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('pages.plan', planning_track='business') }}">
+        <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">
           {{ _('Explore Commercial Solar') }} <span aria-hidden="true">→</span>
         </a>
         <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('pages.consultation') }}">

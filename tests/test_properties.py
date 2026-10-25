@@ -91,5 +91,5 @@ def test_sidebar_has_accessible_my_properties_dropdown(client):
     assert 'aria-controls="properties-nav-panel"' in body
     assert 'href="/properties"' in body
     assert 'href="/compare"' in body
-    assert "Saved Properties" in body
+    assert "Saved Homes" in body
     assert "Compare Scenarios" in body

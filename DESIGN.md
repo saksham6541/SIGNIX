@@ -1,4 +1,5 @@
 ---
+version: alpha
 name: SIGNIX
 description: A precise, map-first climate-tech workspace for rooftop solar planning.
 colors:
@@ -9,8 +10,10 @@ colors:
   white: "#FFFFFF"
   sage: "#2F6B53"
 typography:
-  display: "Inter, Segoe UI, system-ui, sans-serif"
-  body: "Inter, Segoe UI, system-ui, sans-serif"
+  display:
+    fontFamily: "Inter, Segoe UI, system-ui, sans-serif"
+  body:
+    fontFamily: "Inter, Segoe UI, system-ui, sans-serif"
 rounded:
   small: "8px"
   medium: "14px"
@@ -42,6 +45,8 @@ components:
 SIGNIX should feel like a well-made field instrument translated into software: editorial enough to establish trust, compact enough to support real work, and warm enough to remain approachable to a homeowner. The map is the working surface, not background decoration. Solar amber is used like a surveyor's mark—sparingly, where attention or energy is relevant.
 
 The system avoids generic dashboard spectacle. Structure comes from typography, rules, and aligned surfaces rather than a collection of floating cards. Data confidence and workflow status are written in plain language.
+
+SIGNIX has two named product variants inside this identity. **SIGNIX Home** uses approachable household language and leads with monthly bill savings, upfront cost, and conditional subsidy guidance. **SIGNIX Business** uses a denser analytical hierarchy and leads with annual net operating benefit, project investment, ROI, payback, and explicit unmodeled assumptions. They share one geometry workspace and component system; track differences encode real workflow and financial-policy differences rather than decorative themes.
 
 **Key Characteristics:**
 - Map-first composition with compact editorial guidance.
@@ -93,6 +98,8 @@ The palette pairs a warm paper field with deep technical ink and one deliberate 
 
 The landing experience uses an asymmetric editorial grid: a compact value-and-workflow column beside the location console. The map follows immediately as the primary work surface. Desktop widths preserve information density; tablet and mobile collapse to one column without hiding location actions or map controls.
 
+Authentication presents Home and Business as mutually exclusive product cards. Once authenticated, the sidebar carries a persistent product switch and every dashboard, saved-site list, comparison, survey, and report reflects the active or saved track. Home lists are named “My Solar”; Business lists are named “Business Sites.”
+
 ## Elevation & Depth
 
 Surfaces are flat by default. Fine borders and tonal shifts define groups; a low ambient shadow is reserved for the location console and elevated interactive results.
@@ -126,6 +133,7 @@ Corners are gently technical rather than pill-heavy. Inputs and buttons use medi
 
 ### Navigation
 - **Style:** Quiet vertical navigation with authored line icons. The active item uses weight, a left survey mark, and a tonal ground.
+- **Product context:** A compact two-option Home/Business switch sits beneath the SIGNIX identity. Solar amber marks the current Home context; measured sage marks Business analytical emphasis in content, without changing primary action semantics.
 
 ### Location Console
 

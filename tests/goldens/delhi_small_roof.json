@@ -71,7 +71,9 @@
   },
   "output": {
     "annual_generation": 1631.8,
+    "annual_net_benefit": 8062.3,
     "annual_om": 912.6,
+    "annual_roi_pct": 19.69,
     "annual_savings": 8974.9,
     "avoided_retail_value": 8974.9,
     "battery_cost": 0.0,
@@ -90,6 +92,20 @@
       "recommended_min_kw": 1.0,
       "sizing_note": "Preliminary only. Final design must check monthly production, roof layout, inverter limits, shade, export/net-metering and DISCOM rules.",
       "tariff_per_kwh": 10.0
+    },
+    "calculation_policy": {
+      "assumption_source": "SIGNIX configurable planning assumptions; user/DISCOM verification required",
+      "cost_per_kw": 65000.0,
+      "cost_per_kw_high": 85000.0,
+      "cost_per_kw_low": 55000.0,
+      "default_load_profile": "flat",
+      "default_tariff_per_kwh": 10.0,
+      "demand_charge_savings_supported": false,
+      "planning_track": "home",
+      "policy_version": "2026-10-25",
+      "property_type": "residential",
+      "residential_subsidy_may_apply": true,
+      "tariff_basis": "state_residential_default_or_user_confirmed_rate"
     },
     "capacity_factor": 15.9,
     "cashflow_25yr": [
@@ -120,12 +136,13 @@
       284877.57
     ],
     "co2_reduction_tons": 1.16,
-    "cost_per_kw": 65000,
+    "cost_per_kw": 65000.0,
     "daily_units_per_kw_range": [
       4.0,
       5.5
     ],
     "dc_note": "System size is DC kWp. AC output depends on PR, irradiance and grid availability.",
+    "demand_charge_savings": null,
     "discount_rate_pct": 8.0,
     "discounted_payback_years": 6.0,
     "emi": {
@@ -160,14 +177,16 @@
       "export_compensation_basis": "no_export_value_assumed",
       "feed_in_tariff_per_kwh": 3.0,
       "generation_input_kwh": 1631.8,
-      "input_fingerprint": "0c0f4d7b6c03e3e361b3c539bcf757bac2740977234d0abc53448c1722e098ca",
+      "input_fingerprint": "c6d1d618d840c92a529e03a31968b4c1c91634585c65ad0b3b45d1e7168282aa",
       "inputs": {
         "annual_consumption_kwh": 1800.0,
-        "assumption_fingerprint": "f4687175f9eb521c573df7e9a83e0493f3a5a8648f8828006ee7ae1d0f88887d",
+        "assumption_fingerprint": "04e4aad82cb9dc1326dfef0c72fa6469e6a4a77bf2ac08c6cf9cc6970b165acd",
         "battery_cost": 0.0,
         "feed_in_tariff_per_kwh": 3.0,
         "generation_kwh": 1631.8,
         "net_metering_mode": "full_offset",
+        "planning_track": "home",
+        "property_type": "residential",
         "self_consumption_fraction": 0.55,
         "subsidy_amount": 35100.0,
         "system_cost": 76050.0,
@@ -688,6 +707,7 @@
       ]
     },
     "lifetime_kwh": 38439.0,
+    "lifetime_net_benefit": 284877.57,
     "load_profile": "flat",
     "load_profile_label": "Flat / mixed",
     "load_profile_note": "Mixed residential profile \u2014 historical SIGNIX default (~55% self-consumption without storage).",
@@ -723,6 +743,7 @@
       "note": "Based on 545 W modules \u2014 indicative count only, not a layout.",
       "panel_count": 3
     },
+    "payback_without_subsidy_years": 9.4,
     "payback_years": 4.7,
     "peak_sun_hours_assumed": 5.0,
     "performance_ratio": 0.8,
@@ -736,6 +757,7 @@
       "O&M and module cleaning are subtracted as a constant nominal annual reserve; panel degradation ~0.5%/year is applied to energy value.",
       "Electricity tariff is assumed to escalate ~4%/year; fixed feed-in compensation does not escalate. Simple payback uses year-one net savings."
     ],
+    "planning_track": "home",
     "property_type": "residential",
     "recommended_tilt_deg": 28.6,
     "roof_area_sqm": 244.22,
@@ -835,6 +857,7 @@
     },
     "sizing_method": "bill_offset_100%",
     "specific_yield": 1395.0,
+    "subsidy_adjusted_payback_years": 5.1,
     "subsidy_amount": 35100.0,
     "suitability_rating": {
       "data_confidence": {

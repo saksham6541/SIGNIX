@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}{{ _('My properties') }} · SIGNIX{% endblock %}
+{% block title %}{{ _('Business Sites') if planning_track == 'business' else _('My Solar') }} · SIGNIX{% endblock %}
+{% block body_class %}product-{{ planning_track }}{% endblock %}
 
 {% block content %}
 <section class="dashboard-hero dashboard-hero-split gt-dashboard-hero">
   <div>
-    <p class="console-index">{{ _('PROPERTY LIBRARY') }}</p>
-    <h1>{{ _('My properties') }}</h1>
-    <p class="tagline">{{ _('Review saved properties and reopen their solar reports.') }}</p>
+    <p class="console-index">{{ _('COMMERCIAL SITE LIBRARY') if planning_track == 'business' else _('HOME SOLAR LIBRARY') }}</p>
+    <h1>{{ _('Business Sites') if planning_track == 'business' else _('My Solar') }}</h1>
+    <p class="tagline">{{ _('Review saved commercial sites, financial scenarios, and proposal-ready reports.') if planning_track == 'business' else _('Review saved home rooftops, bill savings, subsidy guidance, and reports.') }}</p>
   </div>
-  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Create an estimate') }} <span aria-hidden="true">→</span></a>
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
   <svg class="gt-dashboard-pattern" viewBox="0 0 420 220" aria-hidden="true">
     <path d="M10 180 105 85l63 63 57-57 165 165M130 220l90-90 100 90M286 220l55-55 55 55" fill="none" stroke="currentColor" stroke-width="2"/>
     <circle cx="316" cy="55" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -17,12 +18,12 @@
 </section>
 
 {% if locations %}
-  <section class="gt-property-list" aria-label="{{ _('Saved properties') }}">
+  <section class="gt-property-list" aria-label="{{ _('Saved business sites') if planning_track == 'business' else _('Saved home properties') }}">
     {% for loc in locations %}
     <article class="gt-property-card gt-card">
       <div class="gt-property-card-top">
         <div class="gt-property-copy">
-          <p class="console-index">{{ _('PROPERTY %(number)02d', number=loop.index) }}</p>
+          <p class="console-index">{{ _('SITE %(number)02d', number=loop.index) if planning_track == 'business' else _('HOME %(number)02d', number=loop.index) }}</p>
           <h2>{{ loc.scenario_label or loc.address }}</h2>
           {% if loc.scenario_label %}<p class="gt-property-address">{{ loc.address }}</p>{% endif %}
           <p class="gt-property-coordinates">{{ '%.5f'|format(loc.latitude) }}, {{ '%.5f'|format(loc.longitude) }}</p>
@@ -44,6 +45,10 @@
           <dd>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh</dd>
         </div>
         <div>
+          <dt>{{ _('Year-one ROI') if planning_track == 'business' else _('Monthly savings') }}</dt>
+          <dd>{% if planning_track == 'business' %}{% if (loc.extras or {}).get('annual_roi_pct') is not none %}{{ '%.1f'|format((loc.extras or {}).get('annual_roi_pct')) }}%{% else %}—{% endif %}{% else %}₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}{% endif %}</dd>
+        </div>
+        <div>
           <dt>{{ _('Saved') }}</dt>
           <dd>{{ loc.created_at.strftime('%d %b %Y') if loc.created_at else _('Unknown') }}</dd>
         </div>
@@ -62,9 +67,9 @@
     <path d="M40 88V58h40v30M50 42h20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="89" cy="22" r="9" fill="none" stroke="currentColor" stroke-width="3"/>
   </svg>
-  <h2 id="properties-empty-title">{{ _('Your properties will appear here') }}</h2>
-  <p>{{ _('Create an estimate to save a rooftop property and revisit its report.') }}</p>
-  <a class="btn-grad" href="{{ url_for('pages.survey', planning_track='home') }}">{{ _('Create an estimate') }}</a>
+  <h2 id="properties-empty-title">{{ _('Your business sites will appear here') if planning_track == 'business' else _('Your home solar plans will appear here') }}</h2>
+  <p>{{ _('Create a commercial estimate to save site assumptions and revisit its financial report.') if planning_track == 'business' else _('Create a home estimate to save the rooftop plan and revisit subsidy and savings guidance.') }}</p>
+  <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }}</a>
 </section>
 {% endif %}
 {% endblock %}

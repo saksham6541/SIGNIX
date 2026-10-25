@@ -78,8 +78,8 @@ def test_saved_properties_page_has_combined_property_actions(client):
 
     assert response.status_code == 200
     body = response.get_data(as_text=True)
-    assert "My properties" in body
-    assert "Saved Properties" in body
+    assert "My Solar" in body
+    assert "HOME SOLAR LIBRARY" in body
     assert 'id="compare"' not in body
     assert 'id="properties-nav-toggle"' in body
     assert 'href="/compare"' in body
@@ -97,8 +97,8 @@ def test_dashboard_uses_persisted_summary_values(client):
 
     assert response.status_code == 200
     body = response.get_data(as_text=True)
-    assert "Your solar planning workspace" in body
-    assert "Saved rooftops" in body
+    assert "Your home solar plan, kept simple" in body
+    assert "Saved homes" in body
     assert "Planned capacity" in body
     assert 'href="/survey/home"' in body
 
@@ -129,8 +129,11 @@ def test_public_landing_shows_marketing_nav_without_sidebar(app):
     assert "Calculate potential ROI and system sizing for your business." in body
     assert body.count('class="public-nav-solution-icon"') == 3
     assert 'class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true"' in body
-    assert 'href="/plan/home"' in body
-    assert 'href="/plan/business"' in body
+    assert 'class="landing-hero-primary" href="/login?next=/survey/home"' in body
+    assert 'href="/login?next=/survey/home"' in body
+    assert 'href="/login?next=/survey/business"' in body
+    assert 'href="/plan/home"' not in body
+    assert 'href="/plan/business"' not in body
     industrial_item = body.split(
         'class="public-nav-solution public-nav-solution-unavailable"', 1
     )[1].split("</section>", 1)[0]
@@ -180,24 +183,24 @@ def test_authenticated_survey_uses_app_shell_and_shared_workspace(client):
     assert 'href="/survey/home"' in body
 
 
-def test_plan_pages_keep_home_and_business_rules_distinct(app):
+def test_obsolete_plan_pages_redirect_to_login_with_track(app):
     test_client = app.test_client()
     home = test_client.get("/plan/home")
     business = test_client.get("/plan/business")
 
-    assert home.status_code == 200
-    assert business.status_code == 200
-    assert b"RESIDENTIAL PLANNING" in home.data
-    assert b"PM Surya Ghar guidance" in home.data
-    assert b"COMMERCIAL PLANNING" in business.data
-    assert b"PM Surya Ghar residential subsidy is not applied" in business.data
-    assert b"tax benefits" in business.data
-    assert b'href="/login?next=/survey/home"' in home.data
-    assert b'href="/login?next=/survey/business"' in business.data
-    assert home.data.count(b'class="truth-note plan-truth-note"') == 1
-    assert business.data.count(b'class="truth-note plan-truth-note"') == 1
-    assert b'<svg viewBox="0 0 24 24" aria-hidden="true">' in home.data
-    assert b'<div class="footer-nav-col">' in home.data
+    assert home.status_code == 302
+    assert business.status_code == 302
+    assert home.headers["Location"] == "/login?next=/survey/home"
+    assert business.headers["Location"] == "/login?next=/survey/business"
+
+
+def test_authenticated_obsolete_plan_redirect_reaches_selected_survey(client):
+    plan_response = client.get("/plan/business")
+    assert plan_response.headers["Location"] == "/login?next=/survey/business"
+
+    login_response = client.get(plan_response.headers["Location"])
+    assert login_response.status_code == 302
+    assert login_response.headers["Location"] == "/survey/business"
 
 
 def test_survey_requires_login_and_preserves_track_in_redirect(app):

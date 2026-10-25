@@ -12,6 +12,7 @@
   {% block head %}{% endblock %}
 </head>
 <body class="ignix-body {% block body_class %}{% endblock %}">
+  {% set active_planning_track = 'business' if session.get('planning_track') == 'business' else 'home' %}
   <div class="app-shell {% if not current_user.is_authenticated or hide_sidebar %}no-sidebar{% endif %} {% block shell_class %}{% endblock %}">
     {% block app_sidebar %}
     {% if current_user.is_authenticated and not hide_sidebar %}
@@ -30,9 +31,14 @@
         </span>
         <span class="logo-text">
           <span class="logo-name">SIGNIX</span>
-          <span class="logo-tagline">{{ _('The Solar Survey Sheet') }}</span>
+          <span class="logo-tagline">{{ _('Business Solar') if active_planning_track == 'business' else _('Home Solar') }}</span>
         </span>
       </a>
+
+      <div class="product-switch" aria-label="{{ _('Solar planning experience') }}">
+        <a href="{{ url_for('pages.survey', planning_track='home') }}" {% if active_planning_track == 'home' %}aria-current="page"{% endif %}>{{ _('Home') }}</a>
+        <a href="{{ url_for('pages.survey', planning_track='business') }}" {% if active_planning_track == 'business' %}aria-current="page"{% endif %}>{{ _('Business') }}</a>
+      </div>
 
       <nav class="side-nav">
         <!-- 1. Home -->
@@ -44,16 +50,16 @@
           </a>
           <a href="{{ url_for('pages.savings') }}" class="nav-item {% if request.endpoint == 'pages.savings' %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 5h10M7 9h10M10 5c4 0 4 6 0 6H7l8 8"/></svg></span>
-            <span>{{ _('Savings Overview') }}</span>
+            <span>{{ _('Financial Overview') if active_planning_track == 'business' else _('Savings Overview') }}</span>
           </a>
         </div>
 
         <!-- 2. New Estimate -->
         <div class="nav-group">
           <span class="nav-group-title">{{ _('New Estimate') }}</span>
-          <a href="{{ url_for('pages.survey', planning_track='home') }}" class="nav-item {% if request.endpoint in ('pages.plan', 'pages.survey') %}active{% endif %}">
+          <a href="{{ url_for('pages.survey', planning_track=active_planning_track) }}" class="nav-item {% if request.endpoint in ('pages.plan', 'pages.survey') %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></span>
-            <span>{{ _('Create Estimate') }}</span>
+            <span>{{ _('New Business Estimate') if active_planning_track == 'business' else _('New Home Estimate') }}</span>
           </a>
         </div>
 
@@ -62,7 +68,7 @@
           <button class="nav-group-title gt-properties-nav-toggle" id="properties-nav-toggle"
             type="button" data-default-open="true" aria-expanded="true"
             aria-controls="properties-nav-panel">
-            <span>{{ _('My properties') }}</span>
+            <span>{{ _('Business Sites') if active_planning_track == 'business' else _('My Solar') }}</span>
             <svg class="gt-properties-nav-chevron" viewBox="0 0 16 16" aria-hidden="true">
               <path d="m4 6 4 4 4-4"/>
             </svg>
@@ -72,7 +78,7 @@
               <a class="nav-item gt-properties-nav-link{% if request.endpoint in ('pages.properties', 'pages.report') %} active{% endif %}"
                 href="{{ url_for('pages.properties') }}" {% if request.endpoint in ('pages.properties', 'pages.report') %}aria-current="page"{% endif %}>
                 <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10 12 3l9 7v10H3z"/><path d="M8 20v-6h8v6"/></svg></span>
-                <span>{{ _('Saved Properties') }}</span>
+                <span>{{ _('Saved Business Sites') if active_planning_track == 'business' else _('Saved Homes') }}</span>
               </a>
               <a class="nav-item gt-properties-nav-link{% if request.endpoint == 'pages.compare' %} active{% endif %}"
                 href="{{ url_for('pages.compare') }}" {% if request.endpoint == 'pages.compare' %}aria-current="page"{% endif %}>

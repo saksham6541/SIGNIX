@@ -54,6 +54,8 @@ def get_report_context(location_id, user_id):
         "rule_of_thumb_monthly_units",
         "rule_of_thumb_annual_units",
         "property_type",
+        "planning_track",
+        "calculation_policy",
         "user_priority",
         "needs_backup",
         "planning_notes",
@@ -89,6 +91,12 @@ def get_report_context(location_id, user_id):
         "export_value",
         "net_metering_mode",
         "feed_in_tariff",
+        "payback_without_subsidy_years",
+        "subsidy_adjusted_payback_years",
+        "annual_net_benefit",
+        "annual_roi_pct",
+        "lifetime_net_benefit",
+        "demand_charge_savings",
     ):
         if key in extras and extras[key] is not None:
             loc_dict[key] = extras[key]

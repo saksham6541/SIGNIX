@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{% if planning_track == 'home' %}{{ _('Home rooftop survey') }}{% else %}{{ _('Business rooftop survey') }}{% endif %} · SIGNIX{% endblock %}
-{% block body_class %}landing-body survey-workspace-body{% endblock %}
+{% block body_class %}landing-body survey-workspace-body survey-track-{{ planning_track }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
@@ -12,12 +12,12 @@
     <div class="landing-copy">
       <p class="landing-kicker"><span aria-hidden="true"></span>{% if planning_track == 'home' %}{{ _('RESIDENTIAL SURVEY WORKSPACE') }}{% else %}{{ _('COMMERCIAL SURVEY WORKSPACE') }}{% endif %}</p>
       <h1 id="landing-title">{% if planning_track == 'home' %}{{ _('Survey a home rooftop.') }}{% else %}{{ _('Survey a business rooftop.') }}{% endif %}</h1>
-      <p class="landing-lede">{{ _('Locate the property, trace the authoritative roof boundary, mark obstructions, and review the assumptions before estimating.') }}</p>
+      <p class="landing-lede">{% if planning_track == 'home' %}{{ _('Trace your home rooftop, add your household bill and usage pattern, then review installation cost, conditional subsidy guidance, and bill savings.') }}{% else %}{{ _('Trace the business site, add its tariff and operating profile, then review project investment, annual operating benefit, ROI, and payback.') }}{% endif %}</p>
       <div class="track-guidance-card" id="track-guidance-card">
         <div class="guidance-status-tag {% if planning_track == 'business' %}guidance-status-biz{% endif %}" id="guidance-tag">{% if planning_track == 'home' %}{{ _('RESIDENTIAL EXPERIENCE ACTIVE') }}{% else %}{{ _('COMMERCIAL EXPERIENCE ACTIVE') }}{% endif %}</div>
         <p id="guidance-text">{% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('Residential sizing is active. PM Surya Ghar guidance is indicative and requires official verification.') }}{% elif planning_track == 'home' %}{{ _('Residential planning assumptions are active.') }}{% else %}{{ _('Commercial cost and load assumptions are active for this estimate.') }}{% endif %}</p>
       </div>
-      <a class="landing-jump" href="{{ url_for('pages.plan', planning_track=planning_track) }}">{{ _('Review this planning track') }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg></a>
+      <a class="landing-jump" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('Review this planning track') }}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M10 7l-5 5 5 5"/></svg></a>
     </div>
 
     <!-- Location Console (Preserves all working IDs) -->
@@ -267,20 +267,20 @@
 <div class="psg-estimate-layout">
 <section class="system-options-panel" id="configuration-panel">
   <p class="console-index">{{ _('STEP 03 · ESTIMATE ASSUMPTIONS') }}</p>
-  <h3>{{ _('Configure the planning estimate') }}</h3>
-  <p class="options-hint">{{ _('Size from your electricity bill (₹10/unit · 135 units/kW/month), then fine-tune orientation, inverter & storage.') }}</p>
+  <h3>{{ _('Configure your home estimate') if planning_track == 'home' else _('Configure the business investment case') }}</h3>
+  <p class="options-hint">{% if planning_track == 'home' %}{{ _('Use your household bill or confirmed residential tariff, then choose roof, backup, and consumption assumptions.') }}{% else %}{{ _('Use the site bill or confirmed commercial tariff, then set operating profile, system sizing, and export assumptions. Demand charges and time-of-use savings are not modelled.') }}{% endif %}</p>
 
   <div class="options-grid">
     <div class="options-group-heading"><span>01</span><div><h4>{{ _('Energy and property') }}</h4><p>{{ _('Tell us how the property uses electricity.') }}</p></div></div>
 
     <div class="option-card">
-      <label for="monthly-bill">{{ _('Average monthly electricity bill (₹)') }}</label>
+      <label for="monthly-bill">{{ _('Average monthly business electricity bill (₹)') if planning_track == 'business' else _('Average monthly household electricity bill (₹)') }}</label>
       <input type="number" id="monthly-bill" min="0" step="100" placeholder="{{ _('e.g. 5000') }}">
       <small>{{ _('Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW.') }}</small>
     </div>
 
     <div class="option-card">
-      <label for="tariff-per-kwh">{{ _('Tariff per kWh (₹)') }}</label>
+      <label for="tariff-per-kwh">{{ _('Confirmed commercial tariff per kWh (₹)') if planning_track == 'business' else _('Residential tariff per kWh (₹)') }}</label>
       <input type="number" id="tariff-per-kwh" min="0" step="0.01" placeholder="{{ _('e.g. 10') }}"
              value="{% if default_tariff_per_kwh is not none %}{{ default_tariff_per_kwh }}{% endif %}">
       <small>{{ _('Used for savings calculations when set.') }}</small>
@@ -299,29 +299,29 @@
     </div>
 
     <div class="option-card">
-      <label for="property-type">{{ _('Property type & experience') }}</label>
+      <label for="property-type">{{ _('Grid context') if planning_track == 'home' else _('Planning product') }}</label>
       <select id="property-type">
         {% if planning_track == 'home' %}
         <option value="residential" {% if default_property_type in (none, 'residential') %}selected{% endif %}>{{ _('Solar for Home — Residential (PM Surya Ghar eligible)') }}</option>
         <option value="remote" {% if default_property_type == 'remote' %}selected{% endif %}>{{ _('Remote / Unreliable Grid') }}</option>
         {% else %}
-        <option value="commercial" selected>{{ _('Solar for Business — Commercial / Office / Shop') }}</option>
+        <option value="commercial" selected>{{ _('SIGNIX Business — commercial site') }}</option>
         {% endif %}
       </select>
       <small id="property-type-hint"
         data-residential-label="{{ _('Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems.') }}"
         data-general-label="{{ _('Remote and commercial planning use their respective load and cost assumptions.') }}">
-        {% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems.') }}{% else %}{{ _('Remote and commercial planning use their respective load and cost assumptions.') }}{% endif %}
+        {% if planning_track == 'home' and default_property_type == 'residential' %}{{ _('Residential planning assumptions are active. Scheme guidance appears only for eligible grid-connected systems.') }}{% elif planning_track == 'home' %}{{ _('Remote-home assumptions are active; central subsidy is not applied.') }}{% else %}{{ _('Commercial tariff, cost, and operating-profile assumptions are active. Residential subsidy is excluded.') }}{% endif %}
       </small>
     </div>
 
     <div class="option-card">
-      <label for="user-priority">{{ _('What matters most to you?') }}</label>
+      <label for="user-priority">{{ _('Investment priority') if planning_track == 'business' else _('What matters most to your household?') }}</label>
       <select id="user-priority">
         <option value="fastest_payback">{{ _('Fastest payback / lowest upfront risk') }}</option>
         <option value="maximum_savings">{{ _('Maximum long-term savings') }}</option>
         <option value="environmental_impact">{{ _('Environmental impact (CO2 reduction)') }}</option>
-        <option value="backup_power">{{ _('Backup power during outages') }}</option>
+        <option value="backup_power">{{ _('Operational resilience / backup') if planning_track == 'business' else _('Backup power during outages') }}</option>
         <option value="no_preference" selected>{{ _('No strong preference') }}</option>
       </select>
       <small>{{ _('Helps us understand what to emphasize in your estimate.') }}</small>
@@ -412,7 +412,7 @@
         <option value="day_heavy" {% if planning_track == 'business' %}selected{% endif %}>{{ _('Day-heavy (office / daytime loads)') }}</option>
         <option value="evening_heavy">{{ _('Evening-heavy (home peaks after sunset)') }}</option>
       </select>
-      <small>{{ _('Sets base self-consumption before any battery boost.') }}</small>
+      <small>{% if planning_track == 'business' %}{{ _('Choose the closest supported operating pattern; SIGNIX does not assume every business has daytime-heavy demand.') }}{% else %}{{ _('Choose the household pattern closest to when electricity is normally used.') }}{% endif %}</small>
     </div>
 
     <div class="option-card">
@@ -498,9 +498,9 @@
   <div class="estimate-top-grid">
     <div class="savings-card">
       <div class="savings-card-copy">
-        <span class="savings-label">{{ _('Estimated Monthly Savings') }}</span>
+        <span class="savings-label" id="result-primary-benefit-label">{{ _('Annual net operating benefit') if planning_track == 'business' else _('Estimated Monthly Bill Savings') }}</span>
         <strong id="result-monthly-savings">₹—</strong>
-        <span class="savings-subtitle">{{ _('Indicative, based on your tariff and estimated generation') }}</span>
+        <span class="savings-subtitle">{{ _('After modeled annual O&M; demand charges and time-of-use savings are excluded') if planning_track == 'business' else _('Indicative, based on your residential tariff and estimated generation') }}</span>
         <span class="monetary-disclaimer">{{ monetary_disclaimer }}</span>
       </div>
       <svg class="savings-trend" viewBox="0 0 150 90" aria-hidden="true">
@@ -549,7 +549,7 @@
   </div>
 
   <div class="investment-section">
-    <h3>{{ _('Investment & Payback') }}</h3>
+    <h3>{{ _('Project Investment & Returns') if planning_track == 'business' else _('Installation Cost & Payback') }}</h3>
     <div class="investment-list">
       <div><span>{{ _('Estimated System Cost') }}</span><strong id="result-system-cost">—</strong></div>
       {% if planning_track == 'home' %}
@@ -561,7 +561,13 @@
       {% else %}
       <span id="result-subsidy" class="hidden"></span>
       {% endif %}
-      <div class="investment-total"><span>{{ _('Your Net Investment') }}</span><strong id="result-net-investment">—</strong></div>
+      <div class="investment-total"><span>{{ _('Project CAPEX') if planning_track == 'business' else _('Estimated Net Upfront Cost') }}</span><strong id="result-net-investment">—</strong></div>
+      {% if planning_track == 'business' %}
+      <div><span>{{ _('Annual net operating benefit') }}</span><strong id="result-annual-net-benefit">—</strong></div>
+      <div><span>{{ _('Year-one ROI') }}</span><strong id="result-annual-roi">—</strong></div>
+      <div><span>{{ _('25-year net financial position') }}</span><strong id="result-lifetime-net-benefit">—</strong></div>
+      <p class="business-unmodeled-note">{{ _('Demand-charge and time-of-use savings are not modelled. Confirm tariff structure, operating schedule, and export rules before investment.') }}</p>
+      {% endif %}
     </div>
     <p class="monetary-disclaimer">{{ monetary_disclaimer }}</p>
   </div>

@@ -71,4 +71,4 @@ def test_savings_empty_state_for_user_without_locations(app):
     assert response.status_code == 200
     assert b"Your savings story starts with an estimate" in response.data
     assert b"Run and save your first rooftop estimate" in response.data
-    assert b"Start an estimate" in response.data
+    assert b"Start Home Estimate" in response.data

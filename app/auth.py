@@ -16,6 +16,7 @@ from app import SUPPORTED_LOCALES
 from app.models import User, UserLocation, db
 
 auth_bp = Blueprint("auth", __name__)
+VALID_PLANNING_TRACKS = frozenset({"home", "business"})
 
 
 def _safe_next_url(value):
@@ -30,6 +31,32 @@ def _safe_next_url(value):
     if not path.startswith("/") or path.startswith("//"):
         return None
     return f"{path}?{target.query}" if target.query else path
+
+
+def _requested_planning_track():
+    explicit = (request.args.get("track") or "").strip().lower()
+    if explicit in VALID_PLANNING_TRACKS:
+        return explicit
+    safe_next = _safe_next_url(request.args.get("next"))
+    if safe_next:
+        path = urlsplit(safe_next).path.rstrip("/")
+        candidate = path.rsplit("/", 1)[-1]
+        if path.startswith("/survey/") and candidate in VALID_PLANNING_TRACKS:
+            return candidate
+    return "home"
+
+
+def _post_auth_destination(planning_track):
+    """Persist the selected product and prevent a mismatched survey redirect."""
+    track = planning_track if planning_track in VALID_PLANNING_TRACKS else "home"
+    session["planning_track"] = track
+    safe_next = _safe_next_url(request.args.get("next"))
+    if safe_next:
+        path = urlsplit(safe_next).path.rstrip("/")
+        if path.startswith("/survey/"):
+            return url_for("pages.survey", planning_track=track)
+        return safe_next
+    return url_for("pages.survey", planning_track=track)
 
 
 @auth_bp.get("/language/<language>")
@@ -125,7 +152,7 @@ def signup():
             _safe_next_url(request.args.get("next"))
             or url_for("pages.dashboard")
         )
-    form = SignupForm()
+    form = SignupForm(planning_track=_requested_planning_track())
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
         if User.query.filter_by(email=email).first() is not None:
@@ -139,10 +166,7 @@ def signup():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            return redirect(
-                _safe_next_url(request.args.get("next"))
-                or url_for("pages.dashboard")
-            )
+            return redirect(_post_auth_destination(form.planning_track.data))
     return render_template("signup.html", form=form)
 
 
@@ -154,7 +178,7 @@ def login():
             _safe_next_url(request.args.get("next"))
             or url_for("pages.dashboard")
         )
-    form = LoginForm()
+    form = LoginForm(planning_track=_requested_planning_track())
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.strip().lower()).first()
         if user is None or not check_password_hash(
@@ -163,10 +187,7 @@ def login():
             flash(_("Invalid email or password."), "error")
         else:
             login_user(user)
-            return redirect(
-                _safe_next_url(request.args.get("next"))
-                or url_for("pages.dashboard")
-            )
+            return redirect(_post_auth_destination(form.planning_track.data))
     return render_template("login.html", form=form)
 
 

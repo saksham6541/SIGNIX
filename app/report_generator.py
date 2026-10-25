@@ -37,8 +37,11 @@ def _enrich_location_data(location):
     data = location.to_dict() if hasattr(location, "to_dict") else dict(location)
     extras = data.get("extras") or {}
     property_type = str(extras.get("property_type") or "").strip().lower()
+    data["planning_track"] = data.get("planning_track") or extras.get("planning_track") or (
+        "business" if property_type in {"commercial", "industrial", "msme", "factory"} else "home"
+    )
     inverter_type = str(extras.get("inverter_type") or "").strip().lower().replace(" ", "-")
-    data["psg_guidance_allowed"] = property_type == "residential" and (
+    data["psg_guidance_allowed"] = data["planning_track"] == "home" and property_type == "residential" and (
         inverter_type in ("on-grid", "hybrid")
         or float(data.get("subsidy_amount") or 0) > 0
     )
@@ -63,6 +66,8 @@ def _enrich_location_data(location):
         "rule_of_thumb_monthly_units",
         "rule_of_thumb_annual_units",
         "property_type",
+        "planning_track",
+        "calculation_policy",
         "needs_backup",
         "planning_notes",
         "system_cost_low",
@@ -85,6 +90,12 @@ def _enrich_location_data(location):
         "emi",
         "sensitivity",
         "sizing",
+        "payback_without_subsidy_years",
+        "subsidy_adjusted_payback_years",
+        "annual_net_benefit",
+        "annual_roi_pct",
+        "lifetime_net_benefit",
+        "demand_charge_savings",
     ):
         if key in extras and extras[key] is not None and not data.get(key):
             data[key] = extras[key]
@@ -545,10 +556,15 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
 
     # Overview cards
     section("1. System overview")
+    benefit_card = (
+        ["Annual net benefit", _inr(loc.get("annual_net_benefit"))]
+        if loc.get("planning_track") == "business"
+        else ["Monthly savings", _inr(loc.get("monthly_savings"))]
+    )
     cards = [
         ["System size", f"{loc.get('system_size', '—')} kW"],
         ["Annual generation", f"{loc.get('annual_generation', '—')} kWh"],
-        ["Monthly savings", _inr(loc.get("monthly_savings"))],
+        benefit_card,
         [
             "Payback",
             f"{loc.get('payback_years')} yrs" if loc.get("payback_years") else "—",
@@ -797,7 +813,19 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
         fin.append((SUBSIDY_CAVEAT, ""))
         fin.append((SUBSIDY_ELIGIBILITY_ASSUMPTION, ""))
     fin.append(("Net investment", _inr(loc.get("net_investment"))))
-    fin.append(("Estimated monthly savings", _inr(loc.get("monthly_savings"))))
+    if loc.get("planning_track") == "business":
+        fin.extend([
+            ("Year-one net operating benefit", _inr(loc.get("annual_net_benefit"))),
+            ("Year-one ROI", f"{loc.get('annual_roi_pct'):.2f}%" if loc.get("annual_roi_pct") is not None else "—"),
+            ("25-year net benefit", _inr(loc.get("lifetime_net_benefit"))),
+            ("Demand-charge savings are not modelled", ""),
+        ])
+    else:
+        fin.append(("Estimated monthly savings", _inr(loc.get("monthly_savings"))))
+        fin.extend([
+            ("Payback without subsidy", f"{loc.get('payback_without_subsidy_years')} years" if loc.get("payback_without_subsidy_years") else "—"),
+            ("Subsidy-adjusted payback", f"{loc.get('subsidy_adjusted_payback_years')} years" if loc.get("subsidy_adjusted_payback_years") else "—"),
+        ])
     lifecycle = loc.get("lifecycle_projection") or {}
     if lifecycle:
         fin.append((
@@ -1011,7 +1039,12 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         ]
 
     story = []
-    story.append(Paragraph("HOMEOWNER SUMMARY", styles["SumEyebrow"]))
+    story.append(Paragraph(
+        "BUSINESS SOLAR SUMMARY"
+        if loc.get("planning_track") == "business"
+        else "HOMEOWNER SUMMARY",
+        styles["SumEyebrow"],
+    ))
     story.append(Paragraph("Your rooftop solar plan", styles["SumTitle"]))
     story.append(Paragraph(str(loc.get("address") or ""), styles["SumBody"]))
     story.append(Spacer(1, 8))
@@ -1035,7 +1068,11 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
             ),
         ),
         card("Yearly generation", f"{float(loc.get('annual_generation') or 0):,.0f}", "kWh / year"),
-        card("Monthly savings", _inr(loc.get("monthly_savings") or 0), "indicative"),
+        card(
+            "Annual net benefit" if loc.get("planning_track") == "business" else "Monthly savings",
+            _inr((loc.get("annual_net_benefit") if loc.get("planning_track") == "business" else loc.get("monthly_savings")) or 0),
+            "indicative",
+        ),
     ]]
     hero = Table(hero_data, colWidths=[55 * mm, 55 * mm, 55 * mm])
     hero.setStyle(TableStyle([
@@ -1069,13 +1106,23 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         ("TOPPADDING", (0, 0), (-1, -1), 3),
     ]))
     story.append(ct)
-    story.append(Paragraph(f"{SUBSIDY_CAVEAT} · {SUBSIDY_ELIGIBILITY_ASSUMPTION}", styles["SumMuted"]))
+    if loc.get("psg_guidance_allowed"):
+        story.append(Paragraph(f"{SUBSIDY_CAVEAT} · {SUBSIDY_ELIGIBILITY_ASSUMPTION}", styles["SumMuted"]))
 
     story.append(Paragraph("When it pays back", styles["SumH2"]))
-    pb_rows = [
-        ["Nominal payback (tariff may rise)", f"{nominal} years" if nominal else "—"],
-        ["Simple payback (flat tariff)", f"{simple} years" if simple else "—"],
-    ]
+    if loc.get("planning_track") == "business":
+        pb_rows = [
+            ["Year-one net operating benefit", _inr(loc.get("annual_net_benefit") or 0)],
+            ["Year-one ROI", f"{loc.get('annual_roi_pct'):.2f}%" if loc.get("annual_roi_pct") is not None else "—"],
+            ["25-year net benefit", _inr(loc.get("lifetime_net_benefit"))],
+            ["Demand-charge savings", "Not modelled"],
+        ]
+    else:
+        pb_rows = [
+            ["Nominal payback (tariff may rise)", f"{nominal} years" if nominal else "—"],
+            ["Simple payback (flat tariff)", f"{simple} years" if simple else "—"],
+            ["Payback without subsidy", f"{loc.get('payback_without_subsidy_years')} years" if loc.get("payback_without_subsidy_years") else "—"],
+        ]
     pt = Table(pb_rows, colWidths=[100 * mm, 70 * mm])
     pt.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (0, -1), font_name),
@@ -1103,7 +1150,12 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
             styles["SumMuted"],
         ))
     story.append(Paragraph(MONETARY_DISCLAIMER, styles["SumMuted"]))
-    story.append(Paragraph("SIGNIX · Page 1 · Summary for homeowners — not a formal quote", styles["SumMuted"]))
+    story.append(Paragraph(
+        "SIGNIX · Page 1 · Business planning summary — not a formal quote"
+        if loc.get("planning_track") == "business"
+        else "SIGNIX · Page 1 · Summary for homeowners — not a formal quote",
+        styles["SumMuted"],
+    ))
 
     story.append(PageBreak())
     story.append(Paragraph("NEXT STEPS", styles["SumEyebrow"]))
@@ -1117,7 +1169,11 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         story.append(Paragraph(f"Subsidy (estimate): {_inr(loc.get('subsidy_amount') or 0)}", styles["SumBody"]))
     story.append(Paragraph("Suggested next steps", styles["SumH2"]))
     for line in (
-        "1. Share this summary with your family or building society.",
+        (
+            "1. Share this summary with site decision-makers."
+            if loc.get("planning_track") == "business"
+            else "1. Share this summary with your family or building society."
+        ),
         *(("2. Confirm subsidy eligibility with your DISCOM / vendor.",) if loc.get("psg_guidance_allowed") else ()),
         "3. Ask installers for a site survey and a firm quote.",
         "4. Download the full technical report if you need detailed assumptions.",
@@ -1125,7 +1181,8 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         story.append(Paragraph(line, styles["SumBody"]))
     story.append(Spacer(1, 12))
     story.append(Paragraph(MONETARY_DISCLAIMER, styles["SumMuted"]))
-    story.append(Paragraph(SUBSIDY_CAVEAT, styles["SumMuted"]))
+    if loc.get("psg_guidance_allowed"):
+        story.append(Paragraph(SUBSIDY_CAVEAT, styles["SumMuted"]))
     story.append(Paragraph("SIGNIX · Page 2 · Indicative planning aid only", styles["SumMuted"]))
 
     doc.build(story)

@@ -155,6 +155,15 @@ class UserLocation(db.Model):
                 for polygon in (obstructions_geojson.get("coordinates") or [])
             ]
         extras = dict(self.extras) if isinstance(self.extras, dict) else {}
+        planning_track = extras.get("planning_track")
+        if planning_track not in {"home", "business"}:
+            planning_track = (
+                "business"
+                if str(extras.get("property_type") or "").strip().lower()
+                in {"commercial", "industrial", "msme", "factory"}
+                else "home"
+            )
+        extras["planning_track"] = planning_track
         saved_fingerprint = extras.get("assumption_fingerprint")
         current_fingerprint = current_assumption_fingerprint()
         if not saved_fingerprint:
@@ -206,6 +215,7 @@ class UserLocation(db.Model):
             text_checks = (
                 saved_inputs.get("net_metering_mode")
                 == extras.get("net_metering_mode", "full_offset"),
+                saved_inputs.get("planning_track", planning_track) == planning_track,
             )
             financial_status = (
                 "current"
@@ -270,6 +280,7 @@ class UserLocation(db.Model):
             "suitability_rating": self.suitability_rating,
             "calculation_status": calculation_status,
             "financial_status": financial_status,
+            "planning_track": planning_track,
             "extras": extras,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

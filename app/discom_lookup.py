@@ -334,12 +334,17 @@ def lookup_location_context(
     pincode: Optional[str] = None,
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
+    planning_track: str = "home",
 ) -> Dict[str, Any]:
     """DISCOM + tariff defaults combined for UI pre-fill.
 
     latitude/longitude reserved for future boundary polygons; currently unused.
     """
+    planning_track = "business" if planning_track == "business" else "home"
     discom = resolve_discom(state=state, city=city, address=address, pincode=pincode)
+    if planning_track == "business":
+        # Do not present residential incentive programmes as commercial inputs.
+        discom["central_schemes"] = []
     tariff = {
         "rate_per_kwh": None,
         "net_metering_mode": None,
@@ -350,14 +355,17 @@ def lookup_location_context(
         try:
             from app.services.estimation_service import lookup_tariff_defaults
 
-            td = lookup_tariff_defaults(discom["state"])
-            if td.get("found"):
-                tariff = {
-                    "rate_per_kwh": td["rate_per_kwh"],
-                    "net_metering_mode": td["net_metering_mode"],
-                    "export_credit_rate": td["export_credit_rate"],
-                    "utility_name": td.get("utility_name"),
-                }
+            td = lookup_tariff_defaults(
+                discom["state"], planning_track=planning_track
+            )
+            tariff = {
+                "rate_per_kwh": td["rate_per_kwh"],
+                "net_metering_mode": td["net_metering_mode"],
+                "export_credit_rate": td["export_credit_rate"],
+                "utility_name": td.get("utility_name"),
+                "found": td.get("found", False),
+                "basis": td.get("basis"),
+            }
         except Exception:
             pass
 
@@ -366,4 +374,5 @@ def lookup_location_context(
         "tariff": tariff,
         "latitude": latitude,
         "longitude": longitude,
+        "planning_track": planning_track,
     }

@@ -120,7 +120,7 @@
 </style>
 </head>
 <body>
-  <p class="eyebrow">{{ _('Homeowner summary') }}</p>
+  <p class="eyebrow">{{ _('Business solar summary') if loc.planning_track == 'business' else _('Homeowner summary') }}</p>
   <h1>{{ _('Your rooftop solar plan') }}</h1>
   <p class="address">{{ loc.address }}</p>
   {% if loc.map_svg_data_uri or loc.map_png_data_uri %}
@@ -142,8 +142,8 @@
       <span class="unit">kWh / year</span>
     </div>
     <div class="hero-card">
-      <span class="label">{{ _('Monthly savings') }}</span>
-      <span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span>
+      <span class="label">{{ _('Annual net benefit') if loc.planning_track == 'business' else _('Monthly savings') }}</span>
+      <span class="value">₹{{ '{:,.0f}'.format((loc.annual_net_benefit if loc.planning_track == 'business' else loc.monthly_savings) or 0) }}</span>
       <span class="unit">{{ _('indicative') }}</span>
     </div>
   </div>
@@ -158,12 +158,19 @@
 
   <div class="section">
     <h2>{{ _('When it pays back') }}</h2>
+    {% if loc.planning_track == 'business' %}
+    <div class="row"><span>{{ _('Year-one ROI') }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
+    <div class="row"><span>{{ _('25-year net benefit') }}</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
+    <p class="disclaimer">{{ _('Demand-charge savings are not modelled.') }}</p>
+    {% else %}
     {% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) if loc.extras is defined else loc.payback_years %}
     {% if not nom and loc.extras %}{% set nom = loc.extras.get('nominal_payback_years') or loc.payback_years %}{% endif %}
     <div class="row">
       <span>{{ _('Nominal payback') }} <small>({{ _('tariff may rise over time') }})</small></span>
       <span>{% if loc.nominal_payback_years or nom %}{{ loc.nominal_payback_years or nom }} {{ _('years') }}{% else %}—{% endif %}</span>
     </div>
+    <div class="row"><span>{{ _('Payback without subsidy') }}</span><span>{% if loc.payback_without_subsidy_years %}{{ loc.payback_without_subsidy_years }} {{ _('years') }}{% else %}—{% endif %}</span></div>
+    {% endif %}
     <div class="row">
       <span>{{ _('Simple payback') }} <small>({{ _('flat tariff') }})</small></span>
       <span>
@@ -192,7 +199,7 @@
     <p class="disclaimer">{{ _('Scan to open live estimate') }}: {{ loc.live_estimate_url }}</p>
   </div>
   {% endif %}
-  <p class="footer">SIGNIX · {{ _('Page') }} 1 · {{ _('Summary for homeowners — not a formal quote') }}</p>
+  <p class="footer">SIGNIX · {{ _('Page') }} 1 · {{ _('Business planning summary — not a formal quote') if loc.planning_track == 'business' else _('Summary for homeowners — not a formal quote') }}</p>
 
   <div class="page-break"></div>
 
@@ -211,7 +218,7 @@
 
   <div class="section">
     <h2>{{ _('Suggested next steps') }}</h2>
-    <p style="margin:0 0 8px;color:#333;">1. {{ _('Share this summary with your family or building society.') }}</p>
+    <p style="margin:0 0 8px;color:#333;">1. {{ _('Share this summary with site decision-makers.') if loc.planning_track == 'business' else _('Share this summary with your family or building society.') }}</p>
     {% if psg_guidance_allowed %}<p style="margin:0 0 8px;color:#333;">2. {{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</p>{% endif %}
     <p style="margin:0 0 8px;color:#333;">{{ '3.' if psg_guidance_allowed else '2.' }} {{ _('Ask installers for a site survey and a firm quote.') }}</p>
     <p style="margin:0;color:#333;">{{ '4.' if psg_guidance_allowed else '3.' }} {{ _('Download the full technical report if you need detailed assumptions.') }}</p>

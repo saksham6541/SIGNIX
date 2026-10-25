@@ -462,7 +462,24 @@ function initEstimationButton() {
       }
     }
     document.getElementById('result-annual-generation').textContent = Number(data.annual_generation || 0).toLocaleString();
-    document.getElementById('result-monthly-savings').textContent = formatCurrency(data.monthly_savings);
+    const isBusinessTrack = data.planning_track === 'business';
+    document.getElementById('result-monthly-savings').textContent = formatCurrency(
+      isBusinessTrack ? data.annual_net_benefit : data.monthly_savings
+    );
+    const annualNetEl = document.getElementById('result-annual-net-benefit');
+    if (annualNetEl) annualNetEl.textContent = formatCurrency(data.annual_net_benefit);
+    const annualRoiEl = document.getElementById('result-annual-roi');
+    if (annualRoiEl) {
+      annualRoiEl.textContent = data.annual_roi_pct != null
+        ? `${Number(data.annual_roi_pct).toFixed(2)}%`
+        : 'Unavailable';
+    }
+    const lifetimeNetEl = document.getElementById('result-lifetime-net-benefit');
+    if (lifetimeNetEl) {
+      lifetimeNetEl.textContent = data.lifetime_net_benefit != null
+        ? formatCurrency(data.lifetime_net_benefit)
+        : 'Unavailable';
+    }
     document.getElementById('result-co2-reduction').textContent = Number(data.co2_reduction_tons || 0).toFixed(2);
     const nominalPayback = data.nominal_payback_years != null
       ? data.nominal_payback_years
