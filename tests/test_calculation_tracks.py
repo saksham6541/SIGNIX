@@ -176,7 +176,12 @@ def test_track_specific_report_copy(client, app):
     text = "\n".join(
         page.extract_text() or "" for page in PdfReader(BytesIO(pdf.data)).pages
     )
-    assert "Annual net benefit" in text
+    # WeasyPrint applies the summary-card CSS text transform while the
+    # ReportLab fallback preserves source casing. PDF extractors may also
+    # split a visual label across lines, so assert the rendered copy after
+    # normalizing those renderer-specific differences.
+    normalized_text = " ".join(text.split()).casefold()
+    assert "annual net benefit" in normalized_text
     assert "BUSINESS SOLAR SUMMARY" in text
     assert "Demand-charge savings" in text
     assert "Not modelled" in text
