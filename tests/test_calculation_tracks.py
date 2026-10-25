@@ -184,7 +184,7 @@ def test_track_specific_report_copy(client, app):
     assert "annual net benefit" in normalized_text
     assert "BUSINESS SOLAR SUMMARY" in text
     assert "Demand-charge savings" in text
-    assert "Not modelled" in text
+    assert "not modelled" in normalized_text
     assert "Central subsidy" not in text
 
 
