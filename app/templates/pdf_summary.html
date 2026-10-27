@@ -4,9 +4,15 @@
 <meta charset="utf-8">
 <title>{{ _('Your solar snapshot') }} · SIGNIX</title>
 <style>
-  @page { size: A4; margin: 18mm 16mm; }
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm;
+    @bottom-left { content: "SIGNIX · {{ _('Indicative planning summary') }}"; color: #777; font-size: 9px; }
+    @bottom-right { content: "{{ _('Page') }} " counter(page) " / " counter(pages); color: #777; font-size: 9px; }
+  }
+  @font-face { font-family: "Noto Sans Devanagari"; src: url("{{ pdf_devanagari_font_url }}") format("truetype"); }
   body {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: {% if (pdf_locale|default('en')) == 'hi' %}"Noto Sans Devanagari", {% endif %}"DejaVu Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #1a1a1a;
     font-size: 13px;
     line-height: 1.45;
@@ -26,6 +32,17 @@
     margin: 0 0 6px;
   }
   .address { color: #555; font-size: 13px; margin: 0 0 18px; }
+  .meta {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin: 0 0 14px;
+    background: #faf8ff;
+    border: 1px solid #e7dff2;
+  }
+  .meta td { width: 25%; padding: 7px 8px; vertical-align: top; }
+  .meta-label { display: block; color: #777; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+  .meta-value { display: block; color: #2e2238; font-size: 11px; font-weight: 700; margin-top: 2px; overflow-wrap: anywhere; }
   .hero {
     display: table;
     width: 100%;
@@ -69,6 +86,7 @@
     margin-top: 18px;
     padding-top: 12px;
     border-top: 1px solid #eee;
+    break-inside: avoid;
   }
   .section h2 {
     font-size: 15px;
@@ -79,6 +97,7 @@
     display: table;
     width: 100%;
     margin-bottom: 8px;
+    break-inside: avoid;
   }
   .row span:first-child {
     display: table-cell;
@@ -117,15 +136,27 @@
     text-align: center;
   }
   .page-break { page-break-before: always; }
+  .map-snapshot { text-align: center; break-inside: avoid; }
+  .map-snapshot img { width: 100%; height: 62mm; object-fit: contain; border: 1px solid #e0d6f0; border-radius: 12px; }
+  .reconciliation-ok { color: #247447; font-size: 10px; }
+  .reconciliation-warn { color: #a13b3b; font-size: 10px; font-weight: 700; }
 </style>
 </head>
 <body>
   <p class="eyebrow">{{ _('Business solar summary') if loc.planning_track == 'business' else _('Homeowner summary') }}</p>
-  <h1>{{ _('Your rooftop solar plan') }}</h1>
+  <h1>{{ _('Your commercial rooftop solar plan') if loc.planning_track == 'business' else _('Your residential rooftop solar plan') }}</h1>
   <p class="address">{{ loc.address }}</p>
+  <table class="meta">
+    <tr>
+      <td><span class="meta-label">{{ _('Customer') }}</span><span class="meta-value">{{ loc.customer_name }}</span></td>
+      <td><span class="meta-label">{{ _('Reference') }}</span><span class="meta-value">{{ loc.estimate_reference }}</span></td>
+      <td><span class="meta-label">{{ _('Report date') }}</span><span class="meta-value">{{ loc.report_date }}</span></td>
+      <td><span class="meta-label">{{ _('Track') }}</span><span class="meta-value">{{ _('Commercial') if loc.planning_track == 'business' else _('Residential') }}</span></td>
+    </tr>
+  </table>
   {% if loc.map_svg_data_uri or loc.map_png_data_uri %}
   <div class="map-snapshot" style="margin:12px 0 16px;">
-    <img src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="Rooftop outline" style="width:100%;max-width:520px;height:auto;border:1px solid #e0d6f0;border-radius:12px;"/>
+    <img src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="Rooftop outline"/>
     <p class="disclaimer" style="margin-top:4px;">{{ _('Rooftop outline — amber areas are marked obstructions') }}</p>
   </div>
   {% endif %}
@@ -150,10 +181,12 @@
 
   <div class="section">
     <h2>{{ _('What it costs') }}</h2>
-    <div class="row"><span>{{ _('System cost (mid)') }}</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
-    {% if psg_guidance_allowed %}<div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>−₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
+    <div class="row"><span>{{ _('PV system cost (mid)') }}</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
+    {% if loc.battery_cost and loc.battery_cost > 0 %}<div class="row"><span>{{ _('Battery storage') }} ({{ loc.battery_kwh }} kWh)</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>{% endif %}
+    {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>−₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
     <div class="row"><span>{{ _('Net investment') }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
-    {% if psg_guidance_allowed %}<p class="disclaimer">{{ subsidy_caveat }} · {{ subsidy_eligibility_assumption }}</p>{% endif %}
+    {% if loc.costs_reconcile %}<p class="reconciliation-ok">{% if loc.planning_track == 'business' %}{{ _('PV cost + battery cost = net investment.') }}{% else %}{{ _('PV cost + battery cost − applicable subsidy = net investment.') }}{% endif %}</p>{% elif loc.cost_reconciliation_note %}<p class="reconciliation-warn">{{ loc.cost_reconciliation_note }}</p>{% endif %}
+    {% if loc.psg_guidance_allowed %}<p class="disclaimer">{{ subsidy_caveat }} · {{ subsidy_eligibility_assumption }}</p>{% endif %}
   </div>
 
   <div class="section">
@@ -161,23 +194,26 @@
     {% if loc.planning_track == 'business' %}
     <div class="row"><span>{{ _('Year-one ROI') }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
     <div class="row"><span>{{ _('25-year net benefit') }}</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
+    <div class="row"><span>{{ _('Commercial payback') }} <small>({{ _('tariff escalation assumed') }})</small></span><span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
     <p class="disclaimer">{{ _('Demand-charge savings are not modelled.') }}</p>
     {% else %}
     {% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) if loc.extras is defined else loc.payback_years %}
     {% if not nom and loc.extras %}{% set nom = loc.extras.get('nominal_payback_years') or loc.payback_years %}{% endif %}
     <div class="row">
       <span>{{ _('Nominal payback') }} <small>({{ _('tariff may rise over time') }})</small></span>
-      <span>{% if loc.nominal_payback_years or nom %}{{ loc.nominal_payback_years or nom }} {{ _('years') }}{% else %}—{% endif %}</span>
+      <span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _('years') }}{% elif nom is not none %}{{ nom }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span>
     </div>
-    <div class="row"><span>{{ _('Payback without subsidy') }}</span><span>{% if loc.payback_without_subsidy_years %}{{ loc.payback_without_subsidy_years }} {{ _('years') }}{% else %}—{% endif %}</span></div>
+    <div class="row"><span>{{ _('Payback without subsidy') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.payback_without_subsidy_years is not none %}{{ loc.payback_without_subsidy_years }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
+    <div class="row"><span>{{ _('Subsidy-adjusted payback') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.subsidy_adjusted_payback_years is not none %}{{ loc.subsidy_adjusted_payback_years }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
     {% endif %}
-    <div class="row">
+    {% if loc.planning_track == 'business' %}<div class="row">
       <span>{{ _('Simple payback') }} <small>({{ _('flat tariff') }})</small></span>
       <span>
-        {% set simp = loc.simple_payback_years or (loc.extras.get('simple_payback_years') if loc.extras else none) %}
-        {% if simp %}{{ simp }} {{ _('years') }}{% else %}—{% endif %}
+        {% set simp = loc.simple_payback_years if loc.simple_payback_years is not none else (loc.extras.get('simple_payback_years') if loc.extras else none) %}
+        {% if simp is not none %}{{ simp }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}
       </span>
-    </div>
+    </div>{% endif %}
+    {% if loc.discounted_payback_years is not none %}<div class="row"><span>{{ _('Discounted payback') }}</span><span>{{ loc.discounted_payback_years }} {{ _('years') }}</span></div>{% elif loc.lifecycle_projection %}<div class="row"><span>{{ _('Discounted payback') }}</span><span>{{ _('No break-even in 25 years') }}</span></div>{% endif %}
   </div>
 
   <div class="section">
@@ -199,7 +235,7 @@
     <p class="disclaimer">{{ _('Scan to open live estimate') }}: {{ loc.live_estimate_url }}</p>
   </div>
   {% endif %}
-  <p class="footer">SIGNIX · {{ _('Page') }} 1 · {{ _('Business planning summary — not a formal quote') if loc.planning_track == 'business' else _('Summary for homeowners — not a formal quote') }}</p>
+  <p class="footer">{{ _('Business planning summary — not a formal quote') if loc.planning_track == 'business' else _('Summary for homeowners — not a formal quote') }}</p>
 
   <div class="page-break"></div>
 
@@ -207,24 +243,30 @@
   <h1>{{ _('Before you decide') }}</h1>
   <div class="section" style="border-top:none;padding-top:0;">
     <div class="row"><span>{{ _('Address') }}</span><span style="font-weight:600;">{{ loc.address }}</span></div>
+    {% if loc.coordinates_display %}<div class="row"><span>{{ _('Coordinates') }}</span><span>{{ loc.coordinates_display }}</span></div>{% endif %}
     {% if loc.orientation_label %}
     <div class="row"><span>{{ _('Roof orientation') }}</span><span>{{ loc.orientation_label }}</span></div>
     {% endif %}
     {% if loc.battery_kwh and loc.battery_kwh > 0 %}
     <div class="row"><span>{{ _('Battery included') }}</span><span>{{ '%.1f'|format(loc.battery_kwh) }} kWh</span></div>
     {% endif %}
-    {% if psg_guidance_allowed %}<div class="row"><span>{{ _('Subsidy (estimate)') }}</span><span>₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
+    {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Subsidy (estimate)') }}</span><span>₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
   </div>
 
   <div class="section">
     <h2>{{ _('Suggested next steps') }}</h2>
     <p style="margin:0 0 8px;color:#333;">1. {{ _('Share this summary with site decision-makers.') if loc.planning_track == 'business' else _('Share this summary with your family or building society.') }}</p>
-    {% if psg_guidance_allowed %}<p style="margin:0 0 8px;color:#333;">2. {{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</p>{% endif %}
-    <p style="margin:0 0 8px;color:#333;">{{ '3.' if psg_guidance_allowed else '2.' }} {{ _('Ask installers for a site survey and a firm quote.') }}</p>
-    <p style="margin:0;color:#333;">{{ '4.' if psg_guidance_allowed else '3.' }} {{ _('Download the full technical report if you need detailed assumptions.') }}</p>
+    {% if loc.psg_guidance_allowed %}<p style="margin:0 0 8px;color:#333;">2. {{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</p>{% endif %}
+    <p style="margin:0 0 8px;color:#333;">{{ '3.' if loc.psg_guidance_allowed else '2.' }} {{ _('Ask installers for a site survey and a firm quote.') }}</p>
+    <p style="margin:0;color:#333;">{{ '4.' if loc.psg_guidance_allowed else '3.' }} {{ _('Download the full technical report if you need detailed assumptions.') }}</p>
   </div>
 
-  <p class="disclaimer">{{ monetary_disclaimer }}{% if psg_guidance_allowed %}<br>{{ subsidy_caveat }}{% endif %}</p>
-  <p class="footer">SIGNIX · {{ _('Page') }} 2 · {{ _('Indicative planning aid only') }}</p>
+  <div class="section">
+    <h2>{{ _('Planning assumptions') }}</h2>
+    <p class="disclaimer">{% if loc.planning_track == 'business' %}{{ _('Commercial operating-benefit assumptions are used. Demand-charge savings are not modelled.') }}{% else %}{{ _('Residential tariff, household-savings and eligibility-dependent subsidy assumptions are used.') }}{% endif %} {{ _('Confirm current DISCOM rules, vendor pricing and site conditions before procurement.') }}</p>
+  </div>
+
+  <p class="disclaimer">{{ monetary_disclaimer }}{% if loc.psg_guidance_allowed %}<br>{{ subsidy_caveat }}{% endif %}</p>
+  <p class="footer">{{ _('Indicative planning aid only') }}</p>
 </body>
 </html>
