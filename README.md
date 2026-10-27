@@ -75,8 +75,8 @@ estimates while reusing shared roof geometry and generation workflows.
                           residential subsidy     Surya Ghar residential
                           when applicable; final  subsidy
                           eligibility and amount
-                          require official  
-                          verification        
+                          require official
+                          verification    
 
   Tariff/cost assumptions Residential planning    Commercial planning
                           assumptions             assumptions
