@@ -4793,6 +4793,35 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   color: var(--indigo);
 }
 
+/* Signup reuses the login layout; allow a slightly taller form card */
+.signup-page .login-form-card {
+  width: min(100%, 430px);
+}
+
+.login-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 7px;
+}
+
+.login-label-row .login-label {
+  margin-bottom: 0;
+}
+
+.login-label-row .field-hint {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+.login-form-footer .login-home-link {
+  margin-top: 8px;
+}
+
+
 @media (max-width: 960px) and (min-width: 861px) {
   .login-layout {
     grid-template-columns: minmax(0, 1.1fr) minmax(380px, 1fr);
@@ -6580,47 +6609,49 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 /* ---------- Landing how-it-works steps ---------- */
 .landing-how-it-works {
   --how-it-works-gutter: clamp(16px, 3vw, 48px);
+  --how-step-size: 56px;
+  --how-step-icon-size: 24px;
   width: calc(100% + var(--how-it-works-gutter) + var(--how-it-works-gutter));
   margin-left: calc(0px - var(--how-it-works-gutter));
-  padding: clamp(68px, 8vw, 104px) 0 clamp(72px, 8vw, 104px);
+  padding: clamp(56px, 6.5vw, 88px) 0 clamp(60px, 6.5vw, 92px);
   border: 0;
   background: color-mix(in srgb, var(--info) 6%, var(--card));
 }
 
 .how-it-works-inner {
-  width: min(1240px, calc(100% - clamp(48px, 10vw, 160px)));
+  width: min(1120px, calc(100% - clamp(40px, 8vw, 120px)));
   margin-inline: auto;
 }
 
 .how-it-works-heading {
-  max-width: 760px;
-  margin-bottom: clamp(48px, 6vw, 72px);
+  max-width: 640px;
+  margin-bottom: clamp(36px, 4.5vw, 52px);
 }
 
 .how-it-works-heading .section-kicker {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   color: #A85C11;
 }
 
 .how-it-works-heading h2 {
   margin: 0;
   color: var(--indigo);
-  font-size: clamp(36px, 4.4vw, 54px);
+  font-size: clamp(28px, 3.6vw, 40px);
   font-weight: 800;
-  letter-spacing: -.035em;
-  line-height: 1.08;
+  letter-spacing: -.03em;
+  line-height: 1.12;
 }
 
 .how-it-works-heading > p:last-child {
-  max-width: 62ch;
-  margin: 18px 0 0;
-  color: var(--info);
-  font-size: 16px;
-  line-height: 1.6;
+  max-width: 56ch;
+  margin: 14px 0 0;
+  color: color-mix(in srgb, var(--info) 55%, var(--gray));
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .how-it-works-steps {
-  --how-step-gap: clamp(12px, 2vw, 30px);
+  --how-step-gap: clamp(16px, 2.2vw, 28px);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--how-step-gap);
@@ -6634,99 +6665,145 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   min-width: 0;
   color: var(--info);
   text-align: center;
+  transition: transform .18s ease;
+}
+
+.how-it-works-step:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-it-works-step {
+    transition: none;
+  }
+
+  .how-it-works-step:hover {
+    transform: none;
+  }
 }
 
 .how-step-visual {
   position: relative;
-  width: 88px;
-  height: 88px;
+  width: var(--how-step-size);
+  height: var(--how-step-size);
   margin: 0 auto;
 }
 
 .how-step-number {
   position: absolute;
   z-index: 1;
-  top: -5px;
-  left: -8px;
+  top: -4px;
+  left: -6px;
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
   place-items: center;
   border-radius: 50%;
   background: var(--indigo);
   color: var(--accent-amber);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: .02em;
+  box-shadow: 0 1px 3px rgba(42, 23, 51, .12);
 }
 
 .how-step-icon {
   display: grid;
-  width: 88px;
-  height: 88px;
+  width: var(--how-step-size);
+  height: var(--how-step-size);
   place-items: center;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--accent-amber) 16%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--accent-amber) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent-amber) 12%, var(--card));
   color: var(--accent-orange);
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.how-it-works-step:hover .how-step-icon {
+  background: color-mix(in srgb, var(--accent-amber) 18%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-amber) 45%, var(--border));
+  box-shadow: 0 4px 12px rgba(200, 117, 25, .12);
 }
 
 .how-step-icon svg {
-  width: 38px;
-  height: 38px;
+  width: var(--how-step-icon-size);
+  height: var(--how-step-icon-size);
 }
 
 .how-it-works-step h3 {
-  margin: 24px 0 9px;
+  margin: 16px 0 6px;
   color: var(--indigo);
-  font-size: clamp(17px, 1.5vw, 20px);
-  font-weight: 750;
-  letter-spacing: -.015em;
+  font-size: clamp(15px, 1.35vw, 17px);
+  font-weight: 700;
+  letter-spacing: -.012em;
   line-height: 1.3;
 }
 
 .how-it-works-step p {
-  max-width: 28ch;
+  max-width: 26ch;
   margin: 0 auto;
-  color: var(--info);
-  font-size: 14px;
-  line-height: 1.6;
+  color: color-mix(in srgb, var(--info) 50%, var(--gray));
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .how-step-connector {
   position: absolute;
-  top: 38px;
-  left: calc(50% + 44px);
-  width: calc(100% + var(--how-step-gap) - 88px);
+  top: calc(var(--how-step-size) / 2 - 6px);
+  left: calc(50% + var(--how-step-size) / 2);
+  width: calc(100% + var(--how-step-gap) - var(--how-step-size));
   height: 12px;
-  color: color-mix(in srgb, var(--info) 42%, var(--card));
+  color: color-mix(in srgb, var(--info) 36%, var(--card));
+  pointer-events: none;
+}
+
+@media (max-width: 900px) and (min-width: 721px) {
+  .landing-how-it-works {
+    --how-step-size: 52px;
+    --how-step-icon-size: 22px;
+  }
+
+  .how-it-works-steps {
+    gap: 14px;
+  }
+
+  .how-it-works-step h3 {
+    font-size: 15px;
+  }
+
+  .how-it-works-step p {
+    font-size: 12.5px;
+  }
 }
 
 @media (max-width: 720px) {
   .landing-how-it-works {
     --how-it-works-gutter: 14px;
-    padding-block: 56px;
+    --how-step-size: 52px;
+    --how-step-icon-size: 22px;
+    padding-block: 48px;
   }
 
   .how-it-works-inner {
-    width: calc(100% - 40px);
+    width: calc(100% - 36px);
   }
 
   .how-it-works-heading {
-    margin-bottom: 38px;
+    margin-bottom: 32px;
   }
 
   .how-it-works-heading h2 {
-    font-size: clamp(23px, 7.2vw, 30px);
+    font-size: clamp(22px, 6.5vw, 28px);
   }
 
   .how-it-works-heading > p:last-child {
-    margin-top: 14px;
-    font-size: 15px;
+    margin-top: 12px;
+    font-size: 14px;
   }
 
   .how-it-works-steps {
     grid-template-columns: minmax(0, 1fr);
-    gap: 38px;
+    gap: 28px;
   }
 
   .how-it-works-step {
@@ -6735,16 +6812,21 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
   .how-step-connector {
     top: auto;
-    bottom: -31px;
+    bottom: -22px;
     left: 50%;
-    width: 28px;
+    width: 24px;
     height: 12px;
     transform: translateX(-50%) rotate(90deg);
   }
 
   .how-it-works-step h3 {
-    margin-top: 17px;
-    font-size: 19px;
+    margin-top: 14px;
+    font-size: 16px;
+  }
+
+  .how-it-works-step p {
+    max-width: 36ch;
+    font-size: 13.5px;
   }
 }
 
