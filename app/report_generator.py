@@ -466,7 +466,7 @@ def _enrich_location_data(location):
 
 
 def _pdf_assets(location, data, mode="full"):
-    """Build map SVG / PNG and QR PNG for PDF embedding. Timed for perf flags."""
+    """Build packaged brand, map, and QR assets for PDF embedding."""
     import base64
     import time
     from flask import has_request_context, request
@@ -508,15 +508,25 @@ def _pdf_assets(location, data, mode="full"):
     png = render_rooftop_png(poly, obs) or (svg_to_png_bytes(svg) if svg else None)
     qr = make_qr_png(live_url) if live_url else None
 
+    brand_logo_path = (
+        Path(current_app.static_folder) / "images" / "signix-logo-full.png"
+    ).resolve()
+    brand_logo = brand_logo_path.read_bytes() if brand_logo_path.is_file() else None
+
     svg_b64 = None
     png_b64 = None
     qr_b64 = None
+    brand_logo_b64 = None
     if svg:
         svg_b64 = "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode("ascii")
     if png:
         png_b64 = "data:image/png;base64," + base64.b64encode(png).decode("ascii")
     if qr:
         qr_b64 = "data:image/png;base64," + base64.b64encode(qr).decode("ascii")
+    if brand_logo:
+        brand_logo_b64 = (
+            "data:image/png;base64," + base64.b64encode(brand_logo).decode("ascii")
+        )
 
     elapsed_ms = (time.perf_counter() - t0) * 1000
     print(f"[TIMING] PDF assets (map+QR) elapsed: {elapsed_ms:.2f} ms mode={mode}")
@@ -533,6 +543,8 @@ def _pdf_assets(location, data, mode="full"):
         "map_png_data_uri": png_b64,
         "qr_png_bytes": qr,
         "qr_png_data_uri": qr_b64,
+        "brand_logo_bytes": brand_logo,
+        "brand_logo_data_uri": brand_logo_b64,
         "live_estimate_url": live_url,
         "assets_elapsed_ms": elapsed_ms,
     }
@@ -556,6 +568,7 @@ def generate_pdf_report(location, locale=None, mode="full"):
     # Keep raw bytes only for ReportLab (not needed in HTML template context size)
     data['_map_png_bytes'] = assets.get('map_png_bytes')
     data['_qr_png_bytes'] = assets.get('qr_png_bytes')
+    data['_brand_logo_bytes'] = assets.get('brand_logo_bytes')
     try:
         active_locale = str(locale or get_locale())
     except Exception:
@@ -803,6 +816,14 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     purple = HexColor("#3d2570")
     orange = HexColor("#c47a0b")
     light = HexColor("#f7f4fc")
+
+    brand_logo = loc.get("_brand_logo_bytes")
+    if brand_logo:
+        from reportlab.platypus import Image as RLImage
+
+        logo = RLImage(io.BytesIO(brand_logo))
+        logo._restrictSize(42 * mm, 15 * mm)
+        story.extend([logo, Spacer(1, 3 * mm)])
 
     if active_locale.startswith("hi"):
         report_title = _("Rooftop Solar Estimation Report")
@@ -1652,6 +1673,13 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         return chart
 
     story = []
+    brand_logo = loc.get("_brand_logo_bytes")
+    if brand_logo:
+        from reportlab.platypus import Image as RLImage
+
+        logo = RLImage(io.BytesIO(brand_logo))
+        logo._restrictSize(42 * mm, 15 * mm)
+        story.extend([logo, Spacer(1, 3 * mm)])
     story.append(Paragraph(
         "BUSINESS SOLAR SUMMARY"
         if loc.get("planning_track") == "business"

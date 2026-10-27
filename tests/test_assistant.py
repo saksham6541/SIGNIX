@@ -3,6 +3,7 @@ from unittest.mock import Mock, PropertyMock, patch
 import pytest
 
 from app.assistant import _asks_about_rating
+from app.services.assistant_ai_service import ChatProviderError
 
 from app.models import UserLocation, db
 
@@ -13,6 +14,13 @@ class ProviderFailure(Exception):
         self.code = code
         self.status = status
         self.details = details
+
+
+@pytest.fixture(autouse=True)
+def configure_retained_gemini_path(app):
+    """Keep legacy Gemini tests explicit now that production defaults to Groq."""
+    app.config["AI_PROVIDER"] = "gemini"
+    app.config["ASSISTANT_MAX_RETRIES"] = 0
 
 
 def _system_instruction(gemini_client):
@@ -45,9 +53,11 @@ def test_assistant_returns_gemini_response(client, app):
         )
 
     assert response.status_code == 200
-    assert response.get_json() == {
-        "response": "SIGNIX provides indicative rooftop solar estimates."
-    }
+    assert response.get_json()["response"] == (
+        "SIGNIX provides indicative rooftop solar estimates."
+    )
+    assert response.get_json()["provider"] == "gemini"
+    assert response.get_json()["fallback_used"] is False
     gemini_client.models.generate_content.assert_called_once()
     assert gemini_client.models.generate_content.call_args.kwargs["contents"] == (
         "How does SIGNIX work?"
@@ -138,13 +148,13 @@ def test_assistant_identifies_model_rejection_without_logging_secrets(
 
     assert response.status_code == 503
     assert response.get_json()["code"] == "provider_configuration"
-    assert "GEMINI_MODEL=gemini-invalid" in caplog.text
+    assert "provider=gemini" in caplog.text
+    assert "model=gemini-invalid" in caplog.text
     assert "provider_http_status=400" in caplog.text
     assert "provider_status=INVALID_ARGUMENT" in caplog.text
     assert "provider_error_code=INVALID_MODEL" in caplog.text
     assert "provider_reason=MODEL_NOT_FOUND" in caplog.text
     assert "rejected_fields=model" in caplog.text
-    assert "GEMINI_API_KEY=configured" in caplog.text
     assert "test-api-secret" not in caplog.text
     assert "private provider details" not in caplog.text
 
@@ -171,7 +181,7 @@ def test_assistant_rejects_empty_model_configuration_safely(client, app, caplog)
 
     assert response.status_code == 503
     assert response.get_json()["code"] == "provider_configuration"
-    assert "field=GEMINI_MODEL" in caplog.text
+    assert "configuration rejected provider=gemini" in caplog.text
     assert "test-key" not in caplog.text
 
 
@@ -438,3 +448,73 @@ def test_rating_explanations_change_with_different_profiles(client, app):
     )
     assert "South orientation" in positive_response.get_json()["response"]
     assert "roof fit" in limiting_response.get_json()["response"]
+
+
+def test_assistant_uses_groq_openai_compatible_provider(client, app):
+    app.config.update(
+        AI_PROVIDER="groq",
+        GROQ_API_KEY="test-groq-key",
+        GROQ_MODEL="openai/gpt-oss-20b",
+    )
+    with patch(
+        "app.assistant.create_openai_compatible_completion",
+        return_value="A grounded SIGNIX answer.",
+    ) as completion:
+        response = client.post("/api/assistant", json={"message": "How does SIGNIX work?"})
+
+    assert response.status_code == 200
+    assert response.get_json()["provider"] == "groq"
+    assert response.get_json()["fallback_used"] is False
+    assert completion.call_args.kwargs["model"] == "openai/gpt-oss-20b"
+    assert "test-groq-key" == completion.call_args.kwargs["api_key"]
+
+
+def test_assistant_falls_back_to_openai_only_for_recoverable_failure(client, app):
+    app.config.update(
+        AI_PROVIDER="groq",
+        GROQ_API_KEY="test-groq-key",
+        GROQ_MODEL="openai/gpt-oss-20b",
+        OPENAI_API_KEY="test-openai-key",
+        OPENAI_MODEL="gpt-5-mini",
+        ASSISTANT_MAX_RETRIES=0,
+    )
+
+    def complete(**kwargs):
+        if kwargs["provider"] == "groq":
+            raise ChatProviderError(
+                "groq",
+                "provider_rate_limited",
+                status_code=429,
+                recoverable=True,
+            )
+        return "OpenAI fallback answer."
+
+    with patch("app.assistant.create_openai_compatible_completion", side_effect=complete):
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "response": "OpenAI fallback answer.",
+        "provider": "openai",
+        "fallback_used": True,
+    }
+
+
+def test_assistant_does_not_fallback_for_provider_auth_failure(client, app):
+    app.config.update(
+        AI_PROVIDER="groq",
+        GROQ_API_KEY="test-groq-key",
+        OPENAI_API_KEY="test-openai-key",
+        ASSISTANT_MAX_RETRIES=0,
+    )
+    with patch(
+        "app.assistant.create_openai_compatible_completion",
+        side_effect=ChatProviderError(
+            "groq", "provider_auth", status_code=401, recoverable=False
+        ),
+    ) as completion:
+        response = client.post("/api/assistant", json={"message": "Question"})
+
+    assert response.status_code == 503
+    assert response.get_json()["code"] == "provider_auth"
+    assert completion.call_count == 1

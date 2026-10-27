@@ -9,6 +9,9 @@
 <section class="auth-page login-page" aria-label="{{ _('Log in to SIGNIX') }}">
   <div class="login-layout">
     <section class="login-brand-panel" aria-labelledby="login-brand-heading">
+      <a class="login-brand-logo" href="{{ url_for('pages.index') }}">
+        <img src="{{ url_for('static', filename='images/signix-logo-full.png') }}" width="220" height="74" alt="{{ _('SIGNIX rooftop solar planning') }}">
+      </a>
       <div class="login-brand-copy">
         <h1 id="login-brand-heading">{{ _('Your Roof.') }}<br><span>{{ _('Your Solar Potential.') }}</span></h1>
         <p>{{ _('Plan your rooftop solar system, visualize your roof in 3D, get indicative estimates, and explore your savings.') }}</p>

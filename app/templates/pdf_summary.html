@@ -17,6 +17,7 @@
     font-size: 13px;
     line-height: 1.45;
   }
+  .pdf-brand-logo { display: block; width: 42mm; height: auto; margin: 0 0 5mm; }
   h1 {
     font-size: 25px;
     color: #2a1733;
@@ -178,6 +179,9 @@
 </style>
 </head>
 <body>
+{% if loc.brand_logo_data_uri %}
+  <img class="pdf-brand-logo" src="{{ loc.brand_logo_data_uri }}" alt="{{ _('SIGNIX rooftop solar planning') }}">
+{% endif %}
   <p class="eyebrow">{{ _('Business solar summary') if loc.planning_track == 'business' else _('Homeowner summary') }}</p>
   <h1>{{ _('Your commercial rooftop solar plan') if loc.planning_track == 'business' else _('Your residential rooftop solar plan') }}</h1>
   <p class="address">{% if loc.address_is_fallback %}{{ _(loc.location_label) }}: {% endif %}{{ loc.location_display }}</p>

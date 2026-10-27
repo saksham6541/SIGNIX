@@ -6,8 +6,8 @@
   <div class="compare-header">
     <div>
       <p class="console-index">{{ _('SCENARIO ANALYSIS') }}</p>
-      <h1>{{ _('Compare business investment scenarios') if planning_track == 'business' else _('Compare home system options') }}</h1>
-      <p class="tagline">{{ _('Compare 2–3 site configurations by investment, annual benefit, generation, and payback.') if planning_track == 'business' else _('Compare 2–3 configurations for the same home roof, including size, battery, cost, and savings.') }}</p>
+      <h1>{{ _('Compare Solar Systems') }}</h1>
+      <p class="tagline">{{ _('Compare 2–3 saved estimates for the same business site or roof group.') if planning_track == 'business' else _('Compare 2–3 saved estimates for the same home or roof group.') }}</p>
     </div>
   </div>
 
@@ -19,33 +19,78 @@
     <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('Start Business Estimate') if planning_track == 'business' else _('Start Home Estimate') }}</a>
   </div>
   {% else %}
-  <form method="post" class="compare-picker">
+  {% set selected_ids = selected_locations|map(attribute='id')|list %}
+  <form method="post" class="compare-picker" data-compare-picker data-min-selections="2" data-max-selections="3"
+    data-empty-message="{{ _('Select two or three systems to compare.') }}"
+    data-one-message="{{ _('Select one more system to enable comparison.') }}"
+    data-ready-message="{{ _('Ready to compare the selected systems.') }}"
+    data-maximum-message="{{ _('Three systems selected. Deselect one before choosing another.') }}"
+    data-select-label="{{ _('Select') }}" data-selected-label="{{ _('Selected') }}"
+    data-deselect-label="{{ _('Deselect') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="compare-picker-heading">
       <div>
         <p class="console-index">{{ _('SELECTION') }}</p>
-        <h2>{{ _('Choose scenarios') }}</h2>
-        <p class="tagline">{{ _('Pick 2 or 3 saved estimates (ideally from the same roof group).') }}</p>
+        <h2>{{ _('Choose saved systems') }}</h2>
+        <p class="tagline">{{ _('Select two or three estimates from the same roof group for a meaningful comparison.') }}</p>
       </div>
-      <button type="submit" class="btn-primary-lg">{{ _('Compare selected') }}</button>
+      <div class="compare-picker-actions">
+        <p class="compare-selection-count" role="status" aria-live="polite"><strong data-selected-count>{{ selected_locations|length }}</strong> {{ _('of 3 systems selected') }}</p>
+        <button type="submit" class="btn-primary-lg compare-submit" aria-describedby="compare-selection-guidance"{% if selected_locations|length < 2 %} disabled{% endif %}>{{ _('Compare selected') }}</button>
+      </div>
     </div>
-    <div class="location-checklist">
+    <p id="compare-selection-guidance" class="compare-selection-guidance" role="status" aria-live="polite">
+      {% if selected_locations|length >= 3 %}{{ _('Three systems selected. Deselect one before choosing another.') }}
+      {% elif selected_locations|length == 2 %}{{ _('Ready to compare the selected systems.') }}
+      {% elif selected_locations|length == 1 %}{{ _('Select one more system to enable comparison.') }}
+      {% else %}{{ _('Select two or three systems to compare.') }}{% endif %}
+    </p>
+    <div class="location-checklist" role="group" aria-label="{{ _('Saved solar systems') }}">
       {% for location in locations %}
-      <label class="location-option">
+      {% set battery_known = location.battery_kwh is not none %}
+      {% set has_battery = battery_known and location.battery_kwh > 0 %}
+      {% set automatic_label = (location.sizing_mode or 'auto')|replace('_', ' ') %}
+      {% if has_battery %}{% set automatic_label = automatic_label ~ ' + battery' %}{% endif %}
+      {% set has_custom_title = location.scenario_label and (location.scenario_label|trim|lower != automatic_label|lower) %}
+      {% if has_custom_title %}
+        {% set card_title = location.scenario_label %}
+      {% elif location.system_size is not none %}
+        {% if has_battery %}
+          {% set card_title = ('%.2f'|format(location.system_size)) ~ ' kW + ' ~ ('%.1f'|format(location.battery_kwh)) ~ ' kWh ' ~ _('battery') %}
+        {% else %}
+          {% set card_title = ('%.2f'|format(location.system_size)) ~ ' kW ' ~ _('solar system') %}
+        {% endif %}
+      {% elif location.address %}
+        {% set card_title = location.address %}
+      {% else %}
+        {% set card_title = _('Saved solar estimate') %}
+      {% endif %}
+      <label class="location-option{% if location.id in selected_ids %} is-selected{% endif %}" data-scenario-option>
         <input type="checkbox" name="location_ids" value="{{ location.id }}"
-          {% if location in selected_locations or location.id in selected_locations|map(attribute='id') %}checked{% endif %}>
-        <span>
-          <strong>
-            {% if location.scenario_label %}{{ location.scenario_label }}
-            {% else %}{{ location.address }}{% endif %}
-          </strong>
-          <small>
-            {{ location.address }} ·
-            {% if location.sizing_mode %}{{ location.sizing_mode }} · {% endif %}
-            {{ location.system_size|round(2) }} kW ·
-            {{ _('Saved') }} {{ location.created_at.strftime("%b %d, %Y") if location.created_at else _('Unknown') }}
-            {% if location.roof_group_id %}<span class="group-tag">grp {{ location.roof_group_id[:8] }}</span>{% endif %}
-          </small>
+          data-scenario-name="{{ card_title }}" aria-label="{{ _('Select %(name)s', name=card_title) }}"{% if location.id in selected_ids %} checked{% endif %}>
+        <span class="scenario-card-content">
+          <span class="scenario-card-topline">
+            <span class="scenario-card-index">{{ _('SYSTEM %(number)02d', number=loop.index) }}</span>
+            <span class="scenario-card-selection" data-selection-label>{{ _('Selected') if location.id in selected_ids else _('Select') }}</span>
+          </span>
+          <strong class="scenario-card-title">{{ card_title }}</strong>
+          {% if location.address and location.address != card_title %}<span class="scenario-card-location">{{ location.address }}</span>{% endif %}
+          <span class="scenario-card-chips">
+            <span>{{ _('Business') if planning_track == 'business' else _('Home') }}</span>
+            {% if location.sizing_mode %}<span>{{ location.sizing_mode|replace('_', ' ') }}</span>{% endif %}
+            {% if battery_known %}<span>{{ _('Battery') if has_battery else _('Solar only') }}</span>{% endif %}
+          </span>
+          <span class="scenario-card-facts">
+            <span><small>{{ _('System capacity') }}</small><strong>{% if location.system_size is not none %}{{ '%.2f'|format(location.system_size) }} kW{% else %}—{% endif %}</strong></span>
+            {% if battery_known %}<span><small>{{ _('Battery') }}</small><strong>{% if has_battery %}{{ '%.1f'|format(location.battery_kwh) }} kWh{% else %}{{ _('None') }}{% endif %}</strong></span>{% endif %}
+            {% if planning_track == 'business' and (location.extras or {}).get('annual_net_benefit') is not none %}
+            <span><small>{{ _('Annual net benefit') }}</small><strong>₹{{ '{:,.0f}'.format((location.extras or {}).get('annual_net_benefit')) }}</strong></span>
+            {% elif planning_track == 'home' and location.monthly_savings is not none %}
+            <span><small>{{ _('Monthly savings') }}</small><strong>₹{{ '{:,.0f}'.format(location.monthly_savings) }}</strong></span>
+            {% endif %}
+            {% if location.payback_years is not none %}<span><small>{{ _('Payback') }}</small><strong>{{ '%.1f'|format(location.payback_years) }} {{ _('years') }}</strong></span>{% endif %}
+          </span>
+          <span class="scenario-card-date"><small>{{ _('Estimate date') }}</small><strong>{{ location.created_at.strftime('%d %b %Y') if location.created_at else _('Not available') }}</strong></span>
         </span>
       </label>
       {% endfor %}
@@ -69,7 +114,8 @@
             {% for location in selected_locations %}
             <th>
               <div class="scenario-col-title">
-                {{ location.scenario_label or location.address }}
+                {% set row = (comparison.rows|selectattr('id','equalto',location.id)|list|first) if comparison else none %}
+                {{ row.label if row else location.scenario_label or location.address }}
               </div>
               <div class="scenario-col-sub">
                 {{ location.sizing_mode or '—' }}
@@ -211,6 +257,22 @@
   {% elif request.method == "POST" or request.args.get('ids') %}
   <p class="compare-selection-error" role="alert" aria-live="assertive">{{ _('Select at least 2 of your saved estimates to compare them.') }}</p>
   {% endif %}
+
+  {% if selected_locations|length < 2 %}
+  <section class="compare-instruction" aria-labelledby="compare-instruction-title">
+    <div class="compare-instruction-count" aria-hidden="true">2–3</div>
+    <div>
+      <p class="console-index">{{ _('HOW TO COMPARE') }}</p>
+      <h2 id="compare-instruction-title">{{ _('Select systems to see a side-by-side comparison') }}</h2>
+      <p>{{ _('Choose two or three cards above. SIGNIX will compare only their saved system, energy, and financial values—no results are estimated on this page.') }}</p>
+      <a href="{{ url_for('pages.report', location_id=locations[0].id) }}">{{ _('Open a saved report to review or duplicate a scenario') }} <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+  {% endif %}
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/compare.js') }}"></script>
 {% endblock %}

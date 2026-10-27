@@ -435,11 +435,16 @@
   </article>
   </div>
 
-  <div class="report-visual-grid">
-    <article class="report-visual report-visual-wide">
+  {% set monthly_consumption_available = loc.chart_data.consumption.monthly_available %}
+  <div class="report-visual-grid report-energy-comparison-grid{% if not monthly_consumption_available %} is-consumption-unavailable{% endif %}">
+    <article class="report-visual report-visual-wide{% if not monthly_consumption_available %} is-chart-unavailable{% endif %}">
       <div class="report-visual-heading"><h3>Consumption vs solar</h3></div>
-      <div class="chart-frame"><canvas id="consumptionGenerationChart"></canvas></div>
-      <p id="consumption-chart-empty" class="chart-empty hidden"></p>
+      <div class="chart-frame{% if not monthly_consumption_available %} chart-frame-unavailable{% endif %}"><canvas id="consumptionGenerationChart"{% if not monthly_consumption_available %} class="hidden"{% endif %}></canvas></div>
+      <div id="consumption-chart-empty" class="chart-empty chart-empty-compact{% if monthly_consumption_available %} hidden{% endif %}" role="status">
+        <strong>{{ _('Monthly consumption profile needed') }}</strong>
+        <span data-chart-empty-message>{{ _(loc.chart_data.consumption.unavailable_reason or 'A complete monthly consumption profile is unavailable.') }}</span>
+        <small>{{ _('Only twelve actual monthly kWh readings can enable this comparison.') }}</small>
+      </div>
     </article>
     <article class="report-visual">
       <div class="report-visual-heading"><h3>Representative monthly bill impact</h3></div>

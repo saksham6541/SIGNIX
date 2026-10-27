@@ -15,7 +15,7 @@
 - `rooftop_design.py`: design revisions, ingestion/review, and layout acceptance.
 - `roof_model.py`: reconstructed roof model and protected provider layers.
 - `roof_ai.py`: satellite imagery and Gemini advisory analysis.
-- `assistant.py`: authenticated Gemini FAQ assistant.
+- `assistant.py`: authenticated, provider-configurable FAQ assistant with Groq as the default and an optional OpenAI fallback.
 
 Routes should remain thin: authenticate, parse, delegate, and shape HTTP errors. Put reusable domain work in services.
 
@@ -53,6 +53,7 @@ Never accept client-derived authoritative panel capacity, generation, or financi
 - Deterministic mock irradiance supports offline planning and must remain low confidence.
 - Google Solar is optional and must not be called automatically without configuration and an explicit workflow.
 - Gemini roof analysis is advisory and requires explicit review before accepted data changes.
+- Assistant chat supports `groq`, `openai`, and the retained `gemini` provider. OpenAI fallback is attempted only after a recoverable primary-provider failure; authentication and configuration failures do not fall through.
 
 Provider failures must return diagnostics or a truthful unavailable state while preserving the last successful reusable cache entry where the service supports it.
 

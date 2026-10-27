@@ -4,7 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#FAF8F1">
+  <meta name="application-name" content="SIGNIX">
+  <meta property="og:site_name" content="SIGNIX">
+  <meta property="og:image" content="{{ url_for('static', filename='images/signix-logo-full.png', _external=True) }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="{{ url_for('static', filename='images/signix-logo-full.png', _external=True) }}">
   <title>{% block title %}{{ _('SIGNIX — Bridging You to Clean Energy') }}{% endblock %}</title>
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='images/signix-favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/signix-favicon.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,21 +26,7 @@
     {% if current_user.is_authenticated and not hide_sidebar %}
     <aside class="sidebar" id="primary-sidebar" aria-label="{{ _('Primary navigation') }}">
       <a href="{{ url_for('pages.dashboard') }}" class="logo-block">
-        <span class="logo-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40" width="44" height="44">
-            <circle cx="20" cy="20" r="7" fill="currentColor"/>
-            <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-              <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
-              <line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/>
-              <line x1="8.5" y1="8.5" x2="11.5" y2="11.5"/><line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
-              <line x1="31.5" y1="8.5" x2="28.5" y2="11.5"/><line x1="11.5" y1="28.5" x2="8.5" y2="31.5"/>
-            </g>
-          </svg>
-        </span>
-        <span class="logo-text">
-          <span class="logo-name">SIGNIX</span>
-          <span class="logo-tagline">{{ _('Business Solar') if active_planning_track == 'business' else _('Home Solar') }}</span>
-        </span>
+        <img class="sidebar-brand-logo" src="{{ url_for('static', filename='images/signix-logo-full.png') }}" width="190" height="64" alt="{{ _('SIGNIX rooftop solar planning') }}">
       </a>
 
       <div class="product-switch" aria-label="{{ _('Solar planning experience') }}">
@@ -118,19 +112,8 @@
         <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="{{ _('Toggle menu') }}" aria-expanded="false" aria-controls="primary-sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
         {% endif %}
         {% if not current_user.is_authenticated or hide_sidebar %}
-        <a href="{{ url_for('pages.index') }}" class="auth-top-logo" aria-label="SIGNIX Home">
-          <span class="logo-mark" aria-hidden="true">
-            <svg viewBox="0 0 40 40" width="30" height="30">
-              <circle cx="20" cy="20" r="7" fill="currentColor"/>
-              <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                <line x1="20" y1="4" x2="20" y2="8"/><line x1="20" y1="32" x2="20" y2="36"/>
-                <line x1="4" y1="20" x2="8" y2="20"/><line x1="32" y1="20" x2="36" y2="20"/>
-                <line x1="8.5" y1="8.5" x2="11.5" y2="11.5"/><line x1="28.5" y1="28.5" x2="31.5" y2="31.5"/>
-                <line x1="31.5" y1="8.5" x2="28.5" y2="11.5"/><line x1="11.5" y1="28.5" x2="8.5" y2="31.5"/>
-              </g>
-            </svg>
-          </span>
-          <span class="logo-name">SIGNIX</span>
+        <a href="{{ url_for('pages.index') }}" class="auth-top-logo">
+          <img class="auth-brand-mark" src="{{ url_for('static', filename='images/signix-logo-mark.png') }}" width="36" height="36" alt="{{ _('SIGNIX rooftop solar planning') }}">
         </a>
         {% endif %}
         {% block top_bar_nav %}{% endblock %}
@@ -250,6 +233,8 @@
   <div id="assistant-widget" class="assistant-widget"
     data-rating-explanations="true"
     data-loading-label="{{ _('Assistant is thinking') }}"
+    data-retrying-label="{{ _('Retrying your question') }}"
+    data-retry-label="{{ _('Retry') }}"
     data-rate-limit-message="{{ _('You\'ve reached today\'s question limit.') }}"
     data-unavailable-message="{{ _('The assistant is temporarily unavailable. Please try again later.') }}"
     data-empty-response-message="{{ _('Received an empty response from assistant.') }}"

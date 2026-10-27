@@ -83,8 +83,15 @@
       canvas.parentElement?.classList.add('chart-frame-unavailable');
     }
     if (empty) {
-      empty.textContent = message;
+      const messageTarget = empty.querySelector('[data-chart-empty-message]');
+      if (messageTarget) messageTarget.textContent = message;
+      else empty.textContent = message;
       empty.classList.remove('hidden');
+    }
+    const visual = (canvas || empty)?.closest('.report-visual');
+    visual?.classList.add('is-chart-unavailable');
+    if (canvasId === 'consumptionGenerationChart') {
+      visual?.closest('.report-energy-comparison-grid')?.classList.add('is-consumption-unavailable');
     }
   }
 
@@ -111,7 +118,13 @@
     const canvas = document.getElementById(canvasId);
     canvas?.classList.remove('hidden');
     canvas?.parentElement?.classList.remove('chart-frame-unavailable');
-    document.getElementById(messageId)?.classList.add('hidden');
+    const empty = document.getElementById(messageId);
+    empty?.classList.add('hidden');
+    const visual = (canvas || empty)?.closest('.report-visual');
+    visual?.classList.remove('is-chart-unavailable');
+    if (canvasId === 'consumptionGenerationChart') {
+      visual?.closest('.report-energy-comparison-grid')?.classList.remove('is-consumption-unavailable');
+    }
   }
 
   function renderEnergy(data) {

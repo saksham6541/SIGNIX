@@ -17,6 +17,7 @@
   .hindi-title-word-{{ title_word_index }} { font-family: 'Noto Sans Devanagari Title {{ title_word_index }}'; }
   {% endfor %}
   body { font-family: {% if (pdf_locale|default('en')) == 'hi' %}'Noto Sans Devanagari', {% endif %}'DejaVu Sans', Helvetica, Arial, sans-serif; color: #1a1a1a; font-size: 10.5px; line-height: 1.45; }
+  .pdf-brand-logo { display: block; width: 42mm; height: auto; margin: 0 0 5mm; }
   h1 { color: #2a1733; margin: 0 0 4px; font-size: 19px; letter-spacing: -.2px; }
   h2 { color: #2a1733; border-bottom: 1.5px solid #ded5c8; padding-bottom: 4px; margin: 16px 0 8px; font-size: 13px; break-after: avoid; }
   h3 { color: #2a1733; font-size: 11px; margin: 12px 0 6px; break-after: avoid; }
@@ -95,6 +96,9 @@
 </style>
 </head>
 <body>
+{% if loc.brand_logo_data_uri %}
+  <img class="pdf-brand-logo" src="{{ loc.brand_logo_data_uri }}" alt="{{ _('SIGNIX rooftop solar planning') }}">
+{% endif %}
   {% if (pdf_locale|default('en')) == 'hi' %}
   {% set report_title = _('Rooftop Solar Estimation Report') %}
   {% else %}

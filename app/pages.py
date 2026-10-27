@@ -504,9 +504,17 @@ def download_pdf(location_id):
 
 
 def _scenario_label(location, index):
-    if location.scenario_label:
-        return location.scenario_label
-    return f"Scenario {chr(ord('A') + index)}"
+    base = location.scenario_label or location.address or f"Scenario {chr(ord('A') + index)}"
+    if location.system_size is None:
+        return base
+    configuration = f"{float(location.system_size):.2f} kW"
+    if location.battery_kwh is not None:
+        configuration += (
+            f" + {float(location.battery_kwh):.1f} kWh battery"
+            if float(location.battery_kwh) > 0
+            else " · solar only"
+        )
+    return f"{base} · {configuration}"
 
 
 def _build_scenario_comparison(locations):

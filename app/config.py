@@ -1,7 +1,29 @@
 # filename: app/config.py
 import os
 
+from dotenv import load_dotenv
+
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+# Load the project-root file before Config class attributes read os.environ.
+# ``override=False`` preserves real deployment/container environment values.
+load_dotenv(os.path.join(BASE_DIR, ".env"), override=False)
+
+
+def _bounded_float(name, default, minimum, maximum):
+    try:
+        value = float(os.environ.get(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+    return min(max(value, minimum), maximum)
+
+
+def _bounded_int(name, default, minimum, maximum):
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+    return min(max(value, minimum), maximum)
 
 
 class Config:
@@ -9,6 +31,15 @@ class Config:
     one-line change (just set SQLALCHEMY_DATABASE_URI via env var in prod)."""
 
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
+    AI_PROVIDER = os.environ.get("AI_PROVIDER", "groq").strip().lower()
+    GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+    GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
+    ASSISTANT_REQUEST_TIMEOUT = _bounded_float(
+        "ASSISTANT_REQUEST_TIMEOUT", 8.0, 1.0, 30.0
+    )
+    ASSISTANT_MAX_RETRIES = _bounded_int("ASSISTANT_MAX_RETRIES", 1, 0, 2)
     GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
     GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
     GEMINI_ROOF_MODEL = os.environ.get("GEMINI_ROOF_MODEL", GEMINI_MODEL)

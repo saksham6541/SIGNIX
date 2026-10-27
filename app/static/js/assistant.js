@@ -1,4 +1,189 @@
-  if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
+function getSafeAssistantHref(value, baseUrl = null) {
+  const href = String(value || '').trim();
+  if (!href || /[\u0000-\u001F\u007F]/.test(href)) return null;
+  if (href.startsWith('#') || (href.startsWith('/') && !href.startsWith('//'))) return href;
+
+  try {
+    const parsed = new URL(href, baseUrl || 'https://signix.invalid/');
+    return ['http:', 'https:', 'mailto:'].includes(parsed.protocol) ? href : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function appendAssistantInlineMarkdown(parent, source, doc, depth = 0) {
+  const text = String(source || '');
+  if (depth > 8) {
+    parent.appendChild(doc.createTextNode(text));
+    return;
+  }
+
+  let cursor = 0;
+  const appendText = value => parent.appendChild(doc.createTextNode(value));
+  while (cursor < text.length) {
+    const remaining = text.slice(cursor);
+
+    if (remaining[0] === '\\' && remaining.length > 1 && /[\\`*_[\]()]/.test(remaining[1])) {
+      appendText(remaining[1]);
+      cursor += 2;
+      continue;
+    }
+
+    if (remaining[0] === '`') {
+      const end = remaining.indexOf('`', 1);
+      if (end > 0) {
+        const code = doc.createElement('code');
+        code.textContent = remaining.slice(1, end);
+        parent.appendChild(code);
+        cursor += end + 1;
+        continue;
+      }
+    }
+
+    const link = remaining.match(/^\[([^\]\n]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/);
+    if (link) {
+      const safeHref = getSafeAssistantHref(link[2], doc.defaultView?.location?.href);
+      if (safeHref) {
+        const anchor = doc.createElement('a');
+        anchor.href = safeHref;
+        appendAssistantInlineMarkdown(anchor, link[1], doc, depth + 1);
+        if (/^https?:/i.test(safeHref)) {
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer nofollow';
+        }
+        parent.appendChild(anchor);
+      } else {
+        appendText(link[0]);
+      }
+      cursor += link[0].length;
+      continue;
+    }
+
+    const boldMarker = remaining.startsWith('**') ? '**' : remaining.startsWith('__') ? '__' : null;
+    if (boldMarker) {
+      const end = remaining.indexOf(boldMarker, boldMarker.length);
+      if (end > boldMarker.length) {
+        const strong = doc.createElement('strong');
+        appendAssistantInlineMarkdown(strong, remaining.slice(boldMarker.length, end), doc, depth + 1);
+        parent.appendChild(strong);
+        cursor += end + boldMarker.length;
+        continue;
+      }
+    }
+
+    const italicMarker = remaining[0] === '*' || remaining[0] === '_' ? remaining[0] : null;
+    if (italicMarker) {
+      const end = remaining.indexOf(italicMarker, 1);
+      if (end > 1) {
+        const emphasis = doc.createElement('em');
+        appendAssistantInlineMarkdown(emphasis, remaining.slice(1, end), doc, depth + 1);
+        parent.appendChild(emphasis);
+        cursor += end + 1;
+        continue;
+      }
+    }
+
+    const bareUrl = remaining.match(/^https?:\/\/[^\s<>]+/i);
+    if (bareUrl) {
+      let url = bareUrl[0];
+      let trailing = '';
+      while (/[.,!?;:]$/.test(url)) {
+        trailing = url.slice(-1) + trailing;
+        url = url.slice(0, -1);
+      }
+      const anchor = doc.createElement('a');
+      anchor.href = url;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer nofollow';
+      anchor.textContent = url;
+      parent.appendChild(anchor);
+      appendText(trailing);
+      cursor += bareUrl[0].length;
+      continue;
+    }
+
+    const nextSpecial = remaining.search(/[\\`*_[\]hH]/);
+    const length = nextSpecial === 0 ? 1 : nextSpecial < 0 ? remaining.length : nextSpecial;
+    appendText(remaining.slice(0, length));
+    cursor += length;
+  }
+}
+
+function renderAssistantMarkdown(markdown, doc = document) {
+  const fragment = doc.createDocumentFragment();
+  const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n');
+  let index = 0;
+
+  while (index < lines.length) {
+    if (!lines[index].trim()) {
+      index += 1;
+      continue;
+    }
+
+    const fence = lines[index].match(/^\s*```.*$/);
+    if (fence) {
+      index += 1;
+      const codeLines = [];
+      while (index < lines.length && !/^\s*```\s*$/.test(lines[index])) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+      if (index < lines.length) index += 1;
+      const pre = doc.createElement('pre');
+      const code = doc.createElement('code');
+      code.textContent = codeLines.join('\n');
+      pre.appendChild(code);
+      fragment.appendChild(pre);
+      continue;
+    }
+
+    const heading = lines[index].match(/^\s*(#{1,6})\s+(.+)$/);
+    if (heading) {
+      const level = Math.min(heading[1].length + 2, 6);
+      const title = doc.createElement(`h${level}`);
+      appendAssistantInlineMarkdown(title, heading[2], doc);
+      fragment.appendChild(title);
+      index += 1;
+      continue;
+    }
+
+    const unordered = lines[index].match(/^\s*[-*+]\s+(.+)$/);
+    const ordered = lines[index].match(/^\s*\d+[.)]\s+(.+)$/);
+    if (unordered || ordered) {
+      const list = doc.createElement(unordered ? 'ul' : 'ol');
+      const itemPattern = unordered ? /^\s*[-*+]\s+(.+)$/ : /^\s*\d+[.)]\s+(.+)$/;
+      while (index < lines.length) {
+        const item = lines[index].match(itemPattern);
+        if (!item) break;
+        const listItem = doc.createElement('li');
+        appendAssistantInlineMarkdown(listItem, item[1], doc);
+        list.appendChild(listItem);
+        index += 1;
+      }
+      fragment.appendChild(list);
+      continue;
+    }
+
+    const paragraphLines = [];
+    while (index < lines.length
+      && lines[index].trim()
+      && !/^\s*```.*$/.test(lines[index])
+      && !/^\s*(?:#{1,6}\s+.+|[-*+]\s+.+|\d+[.)]\s+.+)/.test(lines[index])) {
+      paragraphLines.push(lines[index]);
+      index += 1;
+    }
+    const paragraph = doc.createElement('p');
+    paragraphLines.forEach((line, lineIndex) => {
+      if (lineIndex) paragraph.appendChild(doc.createElement('br'));
+      appendAssistantInlineMarkdown(paragraph, line, doc);
+    });
+    fragment.appendChild(paragraph);
+  }
+
+  return fragment;
+}
+
+if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
   const widget = document.getElementById('assistant-widget');
   if (!widget) return;
 
@@ -18,6 +203,8 @@
   let formSendInFlight = false;
   const strings = {
     loading: widget.dataset.loadingLabel,
+    retrying: widget.dataset.retryingLabel,
+    retry: widget.dataset.retryLabel,
     rateLimit: widget.dataset.rateLimitMessage,
     unavailable: widget.dataset.unavailableMessage,
     emptyResponse: widget.dataset.emptyResponseMessage,
@@ -144,9 +331,13 @@
   function appendMessage(text, isUser = false) {
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${isUser ? 'user-bubble' : 'assistant-bubble'}`;
-    const messageText = document.createElement('span');
+    const messageText = document.createElement(isUser ? 'span' : 'div');
     messageText.className = 'chat-message-text';
-    messageText.textContent = text;
+    if (isUser) {
+      messageText.textContent = text;
+    } else {
+      messageText.appendChild(renderAssistantMarkdown(text));
+    }
     bubble.appendChild(messageText);
     if (!isUser && speechOutput.supported) {
       const speakButton = document.createElement('button');
@@ -163,21 +354,43 @@
     return bubble;
   }
 
-  function appendError(text) {
+  function appendError(text, retryMessage = null) {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble error-bubble';
-    bubble.textContent = text;
+    const messageText = document.createElement('span');
+    messageText.textContent = text;
+    bubble.appendChild(messageText);
+    if (retryMessage) {
+      const retryButton = document.createElement('button');
+      retryButton.type = 'button';
+      retryButton.className = 'assistant-retry-btn';
+      retryButton.textContent = strings.retry || 'Retry';
+      retryButton.addEventListener('click', () => {
+        bubble.remove();
+        submitMessage(retryMessage, { appendUser: false, retrying: true });
+      });
+      bubble.appendChild(retryButton);
+    }
     messagesContainer.appendChild(bubble);
     scrollToBottom();
   }
 
-  function createLoadingIndicator() {
+  function createLoadingIndicator(labelText = strings.loading) {
+    removeLoadingIndicator();
     const loadingDiv = document.createElement('div');
     loadingDiv.className = 'chat-bubble assistant-bubble assistant-loading';
     loadingDiv.id = 'assistant-loading-indicator';
     loadingDiv.setAttribute('role', 'status');
-    loadingDiv.setAttribute('aria-label', strings.loading);
-    loadingDiv.innerHTML = '<span></span><span></span><span></span>';
+    loadingDiv.setAttribute('aria-label', labelText);
+    const label = document.createElement('span');
+    label.className = 'assistant-loading-label';
+    label.textContent = labelText;
+    const dots = document.createElement('span');
+    dots.className = 'assistant-loading-dots';
+    for (let dotIndex = 0; dotIndex < 3; dotIndex += 1) {
+      dots.appendChild(document.createElement('span'));
+    }
+    loadingDiv.append(label, dots);
     messagesContainer.appendChild(loadingDiv);
     scrollToBottom();
     return loadingDiv;
@@ -224,24 +437,35 @@
     return assistantClient.send(message);
   }
 
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const message = input.value.trim();
+  function isRetryableAssistantError(error) {
+    return [
+      'request_timeout',
+      'connection_error',
+      'provider_rate_limited',
+      'provider_timeout',
+      'provider_connection',
+      'provider_unavailable',
+    ].includes(error?.code);
+  }
+
+  async function submitMessage(message, { appendUser = true, retrying = false } = {}) {
     if (!message || formSendInFlight || assistantClient.inFlight) return;
     formSendInFlight = true;
 
     speechOutput.cancel();
-    appendMessage(message, true);
+    if (appendUser) appendMessage(message, true);
     input.value = '';
     input.disabled = true;
     sendBtn.disabled = true;
-
-    createLoadingIndicator();
+    createLoadingIndicator(retrying ? strings.retrying : strings.loading);
 
     try {
       appendMessage(await sendAssistantMessage(message), false);
-    } catch (err) {
-      appendError(friendlyError(err));
+    } catch (error) {
+      appendError(
+        friendlyError(error),
+        isRetryableAssistantError(error) ? message : null,
+      );
     } finally {
       removeLoadingIndicator();
       formSendInFlight = false;
@@ -249,13 +473,19 @@
       sendBtn.disabled = false;
       input.focus();
     }
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    await submitMessage(message);
   });
 });
 
 function createAssistantClient({
   fetchImpl,
   csrfToken,
-  timeoutMs = 15000,
+  timeoutMs = 30000,
   AbortControllerConstructor = typeof AbortController === 'undefined' ? null : AbortController,
 }) {
   let inFlight = false;
@@ -441,5 +671,12 @@ function setupSpeechOutput({ synthesis, utteranceConstructor, locale, onError = 
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { createAssistantClient, getAssistantErrorMessage, setupSpeechOutput, setupVoiceInput };
+  module.exports = {
+    createAssistantClient,
+    getAssistantErrorMessage,
+    getSafeAssistantHref,
+    renderAssistantMarkdown,
+    setupSpeechOutput,
+    setupVoiceInput,
+  };
 }

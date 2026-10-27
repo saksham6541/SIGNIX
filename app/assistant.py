@@ -1,4 +1,7 @@
+import json
+import math
 import re
+import time
 from datetime import datetime, timezone
 from threading import Lock
 
@@ -6,6 +9,10 @@ from flask import Blueprint, current_app, jsonify, request
 from flask_babel import get_locale, gettext as _
 from flask_login import current_user, login_required
 
+from app.services.assistant_ai_service import (
+    ChatProviderError,
+    create_openai_compatible_completion,
+)
 from app.services.location_service import list_recent_locations
 
 assistant_bp = Blueprint("assistant", __name__)
@@ -15,9 +22,11 @@ You are the SIGNIX general FAQ assistant. SIGNIX helps people in India explore
 rooftop solar options by estimating usable roof area, system size, generation,
 savings, payback, environmental impact, and applicable subsidy. Do not access,
 infer, or discuss any user's saved locations, profile, bills, or other personal
-data except the explicit RATING_CONTEXT supplied for that authenticated user;
-use that context only to explain their own suitability rating. Otherwise answer
-general questions about how SIGNIX works and rooftop solar in India.
+data except the explicit RATING_CONTEXT or ESTIMATE_CONTEXT supplied by the
+server for that authenticated user. Use only the supplied values, preserve
+their planning track, and never calculate or infer missing financial or
+technical figures. Otherwise answer general questions about how SIGNIX works
+and rooftop solar in India.
 
 SIGNIX estimates use real solar irradiance data from NASA POWER or PVGIS when
 available. If both services are unavailable, SIGNIX uses a location-sensitive
@@ -73,6 +82,20 @@ RATING_CONTEXT_PHRASES = (
     ("घर", "सौर"),
     ("सोलर", "ठीक"),
     ("सौर", "उपयुक्त"),
+)
+ESTIMATE_QUESTION_TERMS = (
+    "my estimate",
+    "my system",
+    "my savings",
+    "my subsidy",
+    "my payback",
+    "my generation",
+    "my solar plan",
+    "मेरे अनुमान",
+    "मेरी बचत",
+    "मेरी सब्सिडी",
+    "मेरा सिस्टम",
+    "मेरा सोलर",
 )
 
 
@@ -140,8 +163,6 @@ def _latest_rating_context(user_id):
 def _rating_prompt_context(message, user_id):
     if not _asks_about_rating(message):
         return ""
-    import json
-
     rating_context = _latest_rating_context(user_id)
     if rating_context is None:
         return (
@@ -153,6 +174,69 @@ def _rating_prompt_context(message, user_id):
         "RATING_CONTEXT: This is the authenticated user's latest saved estimate. "
         "Explain only this rating and its actual factors; do not expose unrelated "
         "saved data.\n" + json.dumps(rating_context, ensure_ascii=False, sort_keys=True)
+    )
+
+
+def _asks_about_estimate(message):
+    normalized = message.casefold()
+    return any(term in normalized for term in ESTIMATE_QUESTION_TERMS)
+
+
+def _estimate_prompt_context(message, user_id):
+    """Return only persisted, presentation-safe values for estimate questions."""
+    if not _asks_about_estimate(message) or _asks_about_rating(message):
+        return ""
+    location = next(iter(list_recent_locations(user_id, limit=1)), None)
+    if location is None:
+        return (
+            "ESTIMATE_STATUS: The user has no saved estimate yet. Say that clearly "
+            "and do not invent a system size, savings, subsidy, cost, or payback."
+        )
+
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    planning_track = extras.get("planning_track")
+    if planning_track not in {"home", "business"}:
+        planning_track = (
+            "business"
+            if str(extras.get("property_type") or "").strip().lower()
+            in {"commercial", "industrial", "msme", "factory"}
+            else "home"
+        )
+
+    def finite_number(value):
+        if value is None or isinstance(value, bool):
+            return None
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+        return number if math.isfinite(number) else None
+
+    context = {
+        "planning_track": planning_track,
+        "address": location.address,
+        "system_size_kw": finite_number(location.system_size),
+        "annual_generation_kwh": finite_number(location.annual_generation),
+        "system_cost": finite_number(location.system_cost),
+        "battery_cost": finite_number(location.battery_cost),
+        "net_investment": finite_number(location.net_investment),
+        "monthly_savings": finite_number(location.monthly_savings),
+        "payback_years": finite_number(location.payback_years),
+        "annual_net_benefit": finite_number(extras.get("annual_net_benefit")),
+        "annual_roi_pct": finite_number(extras.get("annual_roi_pct")),
+        "discounted_payback_years": finite_number(
+            extras.get("discounted_payback_years")
+        ),
+        "calculation_status": extras.get("calculation_status"),
+        "financial_status": extras.get("financial_status"),
+    }
+    if planning_track == "home":
+        context["subsidy_amount"] = finite_number(location.subsidy_amount)
+    return (
+        "ESTIMATE_CONTEXT: These are persisted values from the authenticated "
+        "user's latest saved estimate. Use only non-null values, distinguish "
+        "Home from Business, and do not infer missing results.\n"
+        + json.dumps(context, ensure_ascii=False, sort_keys=True)
     )
 
 
@@ -211,8 +295,6 @@ def _consume_daily_message(user_id):
     return True
 
 
-
-
 def _create_gemini_client(api_key, timeout_seconds):
     from google import genai
     from google.genai import types
@@ -221,6 +303,131 @@ def _create_gemini_client(api_key, timeout_seconds):
         api_key=api_key,
         http_options=types.HttpOptions(timeout=max(1, timeout_seconds) * 1000),
     )
+
+
+SUPPORTED_CHAT_PROVIDERS = {"groq", "openai", "gemini"}
+_MODEL_NAME = re.compile(r"[A-Za-z0-9_.:/-]{1,120}")
+
+
+def _provider_configuration(provider, config=None):
+    config = current_app.config if config is None else config
+    provider = str(provider or "").strip().lower()
+    if provider not in SUPPORTED_CHAT_PROVIDERS:
+        raise ChatProviderError(provider or "unknown", "provider_configuration")
+
+    prefix = provider.upper()
+    api_key = config.get(f"{prefix}_API_KEY")
+    model = config.get(f"{prefix}_MODEL")
+    if not isinstance(api_key, str) or not api_key.strip():
+        raise ChatProviderError(provider, "missing_configuration")
+    if not isinstance(model, str) or not _MODEL_NAME.fullmatch(model.strip()):
+        raise ChatProviderError(provider, "provider_configuration")
+    return api_key.strip(), model.strip()
+
+
+def _assistant_configuration_diagnostics(config):
+    provider = str(config.get("AI_PROVIDER") or "").strip().lower()
+    prefix = provider.upper() if provider else ""
+    key_present = bool(prefix and str(config.get(f"{prefix}_API_KEY") or "").strip())
+    try:
+        _provider_configuration(provider, config=config)
+    except ChatProviderError as error:
+        category = error.category
+    else:
+        category = "configured"
+    return {
+        "provider": provider or "missing",
+        "key_present": key_present,
+        "category": category,
+    }
+
+
+@assistant_bp.record_once
+def _log_assistant_configuration(state):
+    diagnostics = _assistant_configuration_diagnostics(state.app.config)
+    state.app.logger.info(
+        "Assistant configuration provider=%s key_present=%s category=%s",
+        diagnostics["provider"],
+        diagnostics["key_present"],
+        diagnostics["category"],
+    )
+
+
+def _is_recoverable_provider_error(error):
+    if isinstance(error, ChatProviderError):
+        return error.recoverable
+    code = getattr(error, "code", None)
+    error_name = type(error).__name__.lower()
+    return (
+        code in {408, 409, 425, 429, 500, 502, 503, 504}
+        or "timeout" in error_name
+        or any(term in error_name for term in ("connection", "network", "transport"))
+    )
+
+
+def _call_provider_once(provider, *, api_key, model, system_prompt, user_prompt):
+    timeout_seconds = current_app.config.get("ASSISTANT_REQUEST_TIMEOUT", 8)
+    if provider in {"groq", "openai"}:
+        return create_openai_compatible_completion(
+            provider=provider,
+            api_key=api_key,
+            model=model,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            timeout_seconds=timeout_seconds,
+        )
+
+    client = _create_gemini_client(api_key, timeout_seconds)
+    response = client.models.generate_content(
+        model=model,
+        contents=user_prompt,
+        config={"system_instruction": system_prompt},
+    )
+    try:
+        response_text = response.text
+    except Exception as error:
+        raise ChatProviderError(provider, "malformed_response") from error
+    if not isinstance(response_text, str):
+        raise ChatProviderError(provider, "malformed_response")
+    if not response_text.strip():
+        raise ChatProviderError(provider, "empty_response")
+    return response_text.strip()
+
+
+def _call_provider_with_retries(
+    provider, *, system_prompt, user_prompt, max_retries_override=None
+):
+    api_key, model = _provider_configuration(provider)
+    try:
+        configured_retries = int(current_app.config.get("ASSISTANT_MAX_RETRIES", 1))
+    except (TypeError, ValueError):
+        configured_retries = 1
+    if max_retries_override is not None:
+        configured_retries = max_retries_override
+    max_retries = max(0, min(configured_retries, 2))
+
+    for attempt in range(max_retries + 1):
+        try:
+            return (
+                _call_provider_once(
+                    provider,
+                    api_key=api_key,
+                    model=model,
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                ),
+                model,
+            )
+        except Exception as error:
+            if attempt >= max_retries or not _is_recoverable_provider_error(error):
+                raise
+            current_app.logger.warning(
+                "Assistant provider retry provider=%s attempt=%s error=%s",
+                provider,
+                attempt + 1,
+                type(error).__name__,
+            )
+            time.sleep(0.15 * (attempt + 1))
 
 
 def _provider_error_diagnostics(error):
@@ -289,6 +496,63 @@ def _provider_error_diagnostics(error):
 
 def _provider_error_response(error):
     """Map provider failures to stable, non-sensitive assistant API errors."""
+    if isinstance(error, ChatProviderError):
+        normalized = {
+            "missing_configuration": (
+                _("The assistant is not configured"),
+                503,
+                "missing_configuration",
+            ),
+            "provider_configuration": (
+                _("The assistant configuration is invalid."),
+                503,
+                "provider_configuration",
+            ),
+            "provider_auth": (
+                _("The assistant provider is not configured correctly."),
+                503,
+                "provider_auth",
+            ),
+            "provider_rate_limited": (
+                _("The assistant provider is busy. Please try again later."),
+                503,
+                "provider_rate_limited",
+            ),
+            "provider_timeout": (
+                _("The assistant request timed out. Please try again."),
+                504,
+                "provider_timeout",
+            ),
+            "provider_connection": (
+                _("Unable to reach the assistant provider."),
+                502,
+                "provider_connection",
+            ),
+            "provider_unavailable": (
+                _("The assistant provider is temporarily unavailable."),
+                502,
+                "provider_unavailable",
+            ),
+            "provider_request_rejected": (
+                _("The assistant is temporarily unavailable."),
+                502,
+                "provider_request_rejected",
+            ),
+            "malformed_response": (
+                _("The assistant returned an invalid response"),
+                502,
+                "malformed_response",
+            ),
+            "empty_response": (
+                _("The assistant returned an empty response"),
+                502,
+                "empty_response",
+            ),
+        }
+        return normalized.get(
+            error.category,
+            (_("The assistant is temporarily unavailable."), 502, "provider_unavailable"),
+        )
     code = getattr(error, "code", None)
     error_name = type(error).__name__.lower()
     provider_status, _provider_reason, _provider_error_code, rejected_fields = (
@@ -331,13 +595,6 @@ def assistant():
         current_app.logger.warning("Assistant request rejected: message too long")
         return jsonify(error=_("Message must be 2,000 characters or fewer")), 400
 
-    if not _consume_daily_message(current_user.id):
-        current_app.logger.warning(
-            "Assistant request rate-limited user_id=%s",
-            current_user.id,
-        )
-        return jsonify(error=_("Daily assistant message limit reached")), 429
-
     rating_context = _rating_prompt_context(message, current_user.id)
     if rating_context.startswith("RATING_STATUS:"):
         return jsonify(
@@ -345,90 +602,121 @@ def assistant():
                 "You do not have a saved suitability rating yet. Create an estimate first, and I can explain its score."
             )
         )
-
-    api_key = current_app.config.get("GEMINI_API_KEY")
-    model = current_app.config.get("GEMINI_MODEL")
-    if not api_key:
-        current_app.logger.error(
-            "Assistant configuration status GEMINI_API_KEY=missing GEMINI_MODEL=%s",
-            model if isinstance(model, str) and re.fullmatch(
-                r"[A-Za-z0-9_.-]{1,100}", model
-            ) else "invalid",
-        )
+    estimate_context = _estimate_prompt_context(message, current_user.id)
+    if estimate_context.startswith("ESTIMATE_STATUS:"):
         return jsonify(
-            error=_("The assistant is not configured"), code="missing_configuration"
-        ), 503
-
-    if not isinstance(model, str) or not model.strip():
-        current_app.logger.error(
-            "Assistant configuration invalid field=GEMINI_MODEL "
-            "GEMINI_API_KEY=configured GEMINI_MODEL=missing"
+            response=_(
+                "You do not have a saved estimate yet. Create an estimate first, and I can explain its saved results."
+            )
         )
-        return jsonify(
-            error=_("The assistant configuration is invalid."),
-            code="provider_configuration",
-        ), 503
 
+    provider = str(current_app.config.get("AI_PROVIDER") or "").strip().lower()
     try:
-        client = _create_gemini_client(
-            api_key, current_app.config.get("REQUEST_TIMEOUT", 6)
-        )
-        prompt_contents = message.strip()
-        if rating_context:
-            prompt_contents = f"{prompt_contents}\n\n{rating_context}"
-        response = client.models.generate_content(
-            model=model,
-            contents=prompt_contents,
-            config={
-                "system_instruction": build_system_prompt(
-                    get_locale(), rating_explanation=bool(rating_context)
-                )
-            },
-        )
+        _provider_configuration(provider)
     except Exception as error:
         message_text, response_status, response_code = _provider_error_response(error)
-        (
-            provider_status,
-            provider_reason,
-            provider_error_code,
-            rejected_fields,
-        ) = _provider_error_diagnostics(error)
-        safe_model = (
-            model if re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", model) else "invalid"
-        )
-        provider_http_status = (
-            error.code if type(getattr(error, "code", None)) is int else "unknown"
-        )
+        diagnostics = _assistant_configuration_diagnostics(current_app.config)
         current_app.logger.error(
-            "Gemini assistant request failed error=%s response_status=%s "
-            "provider_http_status=%s provider_status=%s provider_error_code=%s "
-            "provider_reason=%s rejected_fields=%s GEMINI_API_KEY=configured "
-            "GEMINI_MODEL=%s",
-            type(error).__name__,
-            response_status,
-            provider_http_status,
-            provider_status or "unknown",
-            provider_error_code if provider_error_code is not None else "unknown",
-            provider_reason or "unknown",
-            ",".join(rejected_fields) or "unknown",
-            safe_model,
+            "Assistant configuration rejected provider=%s key_present=%s category=%s",
+            diagnostics["provider"],
+            diagnostics["key_present"],
+            diagnostics["category"],
         )
         return jsonify(error=message_text, code=response_code), response_status
 
-    try:
-        response_text = response.text
-    except Exception:
-        current_app.logger.warning("Gemini assistant response could not be decoded")
-        return jsonify(
-            error=_("The assistant returned an invalid response"),
-            code="malformed_response",
-        ), 502
-    if not isinstance(response_text, str) or not response_text.strip():
-        current_app.logger.warning("Gemini assistant returned an empty response")
-        return jsonify(
-            error=_("The assistant returned an empty response"),
-            code="empty_response",
-        ), 502
+    if not _consume_daily_message(current_user.id):
+        current_app.logger.warning(
+            "Assistant request rate-limited user_id=%s",
+            current_user.id,
+        )
+        return jsonify(error=_("Daily assistant message limit reached")), 429
 
-    current_app.logger.info("Assistant response succeeded user_id=%s", current_user.id)
-    return jsonify(response=response_text.strip())
+    prompt_contents = message.strip()
+    prompt_context = rating_context or estimate_context
+    if prompt_context:
+        prompt_contents = f"{prompt_contents}\n\n{prompt_context}"
+    system_prompt = build_system_prompt(
+        get_locale(), rating_explanation=bool(rating_context)
+    )
+
+    fallback_used = False
+    response_provider = provider
+    try:
+        response_text, model = _call_provider_with_retries(
+            provider,
+            system_prompt=system_prompt,
+            user_prompt=prompt_contents,
+        )
+    except Exception as primary_error:
+        openai_key = current_app.config.get("OPENAI_API_KEY")
+        may_fallback = (
+            provider != "openai"
+            and isinstance(openai_key, str)
+            and bool(openai_key.strip())
+            and _is_recoverable_provider_error(primary_error)
+        )
+        if may_fallback:
+            current_app.logger.warning(
+                "Assistant primary provider unavailable; trying configured fallback "
+                "provider=%s fallback=openai error=%s",
+                provider,
+                type(primary_error).__name__,
+            )
+            try:
+                response_text, model = _call_provider_with_retries(
+                    "openai",
+                    system_prompt=system_prompt,
+                    user_prompt=prompt_contents,
+                    max_retries_override=0,
+                )
+                fallback_used = True
+                response_provider = "openai"
+            except Exception as fallback_error:
+                error = fallback_error
+            else:
+                error = None
+        else:
+            error = primary_error
+
+        if error is not None:
+            message_text, response_status, response_code = _provider_error_response(error)
+            provider_status, provider_reason, provider_error_code, rejected_fields = (
+                _provider_error_diagnostics(error)
+            )
+            provider_http_status = (
+                error.code if type(getattr(error, "code", None)) is int else "unknown"
+            )
+            provider_request_id = getattr(error, "request_id", None) or "unknown"
+            failed_provider = getattr(error, "provider", response_provider)
+            safe_model = current_app.config.get(f"{str(failed_provider).upper()}_MODEL")
+            safe_model = safe_model if isinstance(safe_model, str) and _MODEL_NAME.fullmatch(safe_model) else "invalid"
+            current_app.logger.error(
+                "Assistant provider request failed provider=%s error=%s "
+                "response_status=%s provider_http_status=%s provider_status=%s "
+                "provider_error_code=%s provider_reason=%s provider_request_id=%s "
+                "rejected_fields=%s model=%s",
+                failed_provider,
+                type(error).__name__,
+                response_status,
+                provider_http_status,
+                provider_status or "unknown",
+                provider_error_code if provider_error_code is not None else "unknown",
+                provider_reason or "unknown",
+                provider_request_id,
+                ",".join(rejected_fields) or "unknown",
+                safe_model,
+            )
+            return jsonify(error=message_text, code=response_code), response_status
+
+    current_app.logger.info(
+        "Assistant response succeeded user_id=%s provider=%s fallback=%s model=%s",
+        current_user.id,
+        response_provider,
+        fallback_used,
+        model,
+    )
+    return jsonify(
+        response=response_text,
+        provider=response_provider,
+        fallback_used=fallback_used,
+    )

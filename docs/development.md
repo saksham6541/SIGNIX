@@ -13,14 +13,17 @@ Hindi PDF reports use the packaged `app/static/fonts/NotoSansDevanagari-Regular.
 
 ## Environment
 
-Create `.env` from `.env.example` and replace `SECRET_KEY`. The SIGNIX Assistant requires a valid `GEMINI_API_KEY`; the app's `run.py` entry point loads `.env` before creating the Flask application. Set `GEMINI_API_KEY` in the server environment for other deployment entry points. Replace the example placeholder with a key from Google AI Studio, keep it server-side, and restart the application. Provider keys for non-chat features are otherwise optional. `.env`, databases, caches, virtual environments, editor settings, logs, generated PDFs, and build output are ignored.
+Create `.env` from `.env.example` and replace `SECRET_KEY`. The SIGNIX Assistant defaults to Groq: set `AI_PROVIDER=groq`, `GROQ_API_KEY`, and optionally `GROQ_MODEL`. When `OPENAI_API_KEY` is configured, OpenAI is used only after recoverable primary-provider failures such as rate limits, timeouts, connection failures, or temporary service errors. Set `AI_PROVIDER=openai` to use OpenAI directly, or `AI_PROVIDER=gemini` to retain the existing Gemini chat path. `GEMINI_API_KEY` remains independently required for Gemini roof analysis. The app's `run.py` entry point loads `.env` before creating the Flask application; other deployment entry points must supply the same variables in the server environment. Keep every provider key server-side and restart the application after changes. `.env`, databases, caches, virtual environments, editor settings, logs, generated PDFs, and build output are ignored.
 
 Important optional variables:
 
 - `DATABASE_URL`
 - `NASA_POWER_URL`, `PVGIS_URL`
 - `NOMINATIM_URL`, `NOMINATIM_REVERSE_URL`
-- `GEMINI_API_KEY` (required for Assistant chat), `GEMINI_MODEL`, `GEMINI_ROOF_MODEL`
+- `AI_PROVIDER`, `GROQ_API_KEY`, `GROQ_MODEL`
+- `OPENAI_API_KEY`, `OPENAI_MODEL` (optional recoverable-failure fallback)
+- `ASSISTANT_REQUEST_TIMEOUT`, `ASSISTANT_MAX_RETRIES`
+- `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_ROOF_MODEL` (optional Gemini chat and roof analysis)
 - `GOOGLE_SOLAR_API_KEY` or `GOOGLE_MAPS_API_KEY`
 - `ROOFTOP_PROTOTYPE_FIXTURE`, `ROOFTOP_EXTERNAL_CACHE_DAYS`
 
@@ -71,7 +74,7 @@ Tests may create ignored `__pycache__/` and `.pytest_cache/` directories. They a
 
 The explicit `tests` path keeps collection scoped to the maintained application suite. The Node tests use the built-in test runner and deterministic test doubles; they do not require a browser or JavaScript package installation. The Markdown validator uses only the Python standard library and validates tracked or non-ignored local Markdown targets and GitHub-style heading anchors.
 
-Tests isolate databases through pytest fixtures and mock provider requests. CI deliberately does not supply `.env`, Google Solar, Gemini, NASA POWER, PVGIS, geocoding, database, or other service credentials. A failure caused by an attempted live request should be treated as a test-isolation defect, not fixed by adding a secret.
+Tests isolate databases through pytest fixtures and mock provider requests. CI deliberately does not supply `.env`, Groq, OpenAI, Google Solar, Gemini, NASA POWER, PVGIS, geocoding, database, or other service credentials. A failure caused by an attempted live request should be treated as a test-isolation defect, not fixed by adding a secret.
 
 To reproduce CI in Windows PowerShell after activating the Python 3.11 environment:
 

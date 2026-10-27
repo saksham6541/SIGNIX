@@ -37,9 +37,9 @@ These constraints are part of the current implementation and should remain visib
 
 ## Providers and deployment
 
-- Google Solar and Gemini require separately configured keys and may incur provider costs; the prototype does not require either.
+- Google Solar, Groq, OpenAI, and Gemini require separately configured keys and may incur provider costs; the prototype does not require them for non-AI planning workflows.
 - Geocoding, Leaflet tiles, satellite imagery, Google Fonts, Leaflet scripts, and Three.js depend on third-party availability and network policy.
-- The assistant's daily message counter is database-backed. Gemini chat still requires `GEMINI_API_KEY`, while browser voice recognition and speech output depend on the browser, microphone permission, installed voices, and the browser vendor's recognition service.
+- The assistant's daily message counter is database-backed. Chat requires the key for the selected provider; OpenAI fallback is optional and limited to recoverable primary-provider failures. Browser voice recognition and speech output still depend on the browser, microphone permission, installed voices, and the browser vendor's recognition service.
 - Diskcache is local to an application filesystem; multiple hosts do not share it.
 - The repository has no committed CI workflow, Alembic migration history, JavaScript lockfile, or Render infrastructure manifest.
 
