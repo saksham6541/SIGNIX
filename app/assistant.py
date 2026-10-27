@@ -387,6 +387,8 @@ def _call_provider_once(provider, *, api_key, model, system_prompt, user_prompt)
         response_text = response.text
     except Exception as error:
         raise ChatProviderError(provider, "malformed_response") from error
+    if response_text is None:
+        raise ChatProviderError(provider, "empty_response")
     if not isinstance(response_text, str):
         raise ChatProviderError(provider, "malformed_response")
     if not response_text.strip():
