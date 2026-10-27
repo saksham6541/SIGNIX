@@ -76,7 +76,7 @@ estimates while reusing shared roof geometry and generation workflows.
                           when applicable; final  subsidy
                           eligibility and amount
                           require official
-                          verification    
+                          verification
 
   Tariff/cost assumptions Residential planning    Commercial planning
                           assumptions             assumptions
