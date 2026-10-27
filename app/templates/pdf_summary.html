@@ -18,8 +18,8 @@
     line-height: 1.45;
   }
   h1 {
-    font-size: 26px;
-    color: #3d2570;
+    font-size: 25px;
+    color: #2a1733;
     margin: 0 0 4px;
     letter-spacing: -0.3px;
   }
@@ -43,20 +43,21 @@
   .meta td { width: 25%; padding: 7px 8px; vertical-align: top; }
   .meta-label { display: block; color: #777; font-size: 9px; font-weight: 700; text-transform: uppercase; }
   .meta-value { display: block; color: #2e2238; font-size: 11px; font-weight: 700; margin-top: 2px; overflow-wrap: anywhere; }
+  .verdict { margin: 6px 0 14px; padding: 10px 12px; background: #f7f3ea; border-left: 4px solid #e59a2f; color: #2a1733; font-size: 11px; font-weight: 700; }
   .hero {
     display: table;
     width: 100%;
     border-collapse: separate;
-    border-spacing: 10px 0;
+    border-spacing: 7px 0;
     margin: 8px 0 20px;
   }
   .hero-card {
     display: table-cell;
-    width: 33%;
-    background: #f7f4fc;
-    border: 1px solid #e4daf5;
-    border-radius: 14px;
-    padding: 16px 14px;
+    width: 25%;
+    background: #fff;
+    border: 1px solid #ded5c8;
+    border-radius: 10px;
+    padding: 12px 9px;
     text-align: center;
     vertical-align: top;
   }
@@ -71,9 +72,9 @@
   }
   .hero-card .value {
     display: block;
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 800;
-    color: #3d2570;
+    color: #2a1733;
     line-height: 1.1;
   }
   .hero-card .unit {
@@ -140,12 +141,46 @@
   .map-snapshot img { width: 100%; height: 62mm; object-fit: contain; border: 1px solid #e0d6f0; border-radius: 12px; }
   .reconciliation-ok { color: #247447; font-size: 10px; }
   .reconciliation-warn { color: #a13b3b; font-size: 10px; font-weight: 700; }
+  .two-up { width: 100%; border-collapse: separate; border-spacing: 10px 0; table-layout: fixed; }
+  .two-up > tbody > tr > td { width: 50%; vertical-align: top; padding: 0; border: 0; }
+  .panel { border: 1px solid #ded5c8; border-radius: 10px; padding: 12px; break-inside: avoid; }
+  .panel h2 { margin-top: 0; }
+  .cost-track { height: 8px; background: #ece6dc; margin: 5px 0 2px; }
+  .cost-fill { display: block; height: 8px; background: #e59a2f; }
+  .cost-fill.net { background: #2a1733; }
+  .chart-panel { break-inside: avoid; margin-top: 16px; padding-top: 10px; border-top: 1px solid #ded5c8; }
+  .chart-panel h2 { margin: 0 0 3px; color: #2a1733; font-size: 15px; }
+  .chart-note { margin: 0 0 9px; color: #6b646c; font-size: 9px; }
+  .monthly-chart { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .monthly-chart td { border: 0; padding: 2px 3px; vertical-align: bottom; text-align: center; }
+  .bar-stage { height: 52px; border-bottom: 1px solid #cfc5b8; position: relative; white-space: nowrap; }
+  .bar { display: inline-block; width: 7px; vertical-align: bottom; background: #e59a2f; }
+  .bar.load { background: #8e8391; margin-left: 2px; }
+  .bar-label { font-size: 7px; color: #6b646c; }
+  .legend { font-size: 8px; color: #6b646c; margin-top: 5px; }
+  .key { display: inline-block; width: 8px; height: 8px; margin: 0 3px 0 9px; background: #e59a2f; }
+  .key.load { background: #8e8391; }
+  .projection { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .projection td { border: 0; padding: 3px 4px; font-size: 8px; text-align: center; vertical-align: bottom; }
+  .projection-stage { height: 55px; border-bottom: 1px solid #cfc5b8; }
+  .projection-bar { display: inline-block; width: 18px; background: #2f6b53; vertical-align: bottom; }
+  .projection-bar.negative { background: #c89139; }
+  .projection-value { display: block; font-size: 7px; color: #5f5762; }
+  .sensitivity { width: 100%; border-collapse: collapse; font-size: 8px; }
+  .sensitivity th { background: #f7f3ea; color: #2a1733; }
+  .sensitivity th, .sensitivity td { padding: 4px 5px; border-bottom: 1px solid #e6ded2; text-align: left; }
+  .step { display: table; width: 100%; margin: 0 0 9px; break-inside: avoid; }
+  .step-num { display: table-cell; width: 24px; height: 24px; background: #2a1733; color: white; font-weight: 800; text-align: center; vertical-align: middle; }
+  .step-copy { display: table-cell; padding-left: 10px; vertical-align: middle; color: #333; }
+  .glossary { width: 100%; border-collapse: collapse; font-size: 9px; }
+  .glossary td { padding: 4px 6px; border-bottom: 1px solid #ece6dc; vertical-align: top; }
+  .glossary td:first-child { width: 28%; font-weight: 700; color: #2a1733; }
 </style>
 </head>
 <body>
   <p class="eyebrow">{{ _('Business solar summary') if loc.planning_track == 'business' else _('Homeowner summary') }}</p>
   <h1>{{ _('Your commercial rooftop solar plan') if loc.planning_track == 'business' else _('Your residential rooftop solar plan') }}</h1>
-  <p class="address">{{ loc.address }}</p>
+  <p class="address">{% if loc.address_is_fallback %}{{ _(loc.location_label) }}: {% endif %}{{ loc.location_display }}</p>
   <table class="meta">
     <tr>
       <td><span class="meta-label">{{ _('Customer') }}</span><span class="meta-value">{{ loc.customer_name }}</span></td>
@@ -154,13 +189,7 @@
       <td><span class="meta-label">{{ _('Track') }}</span><span class="meta-value">{{ _('Commercial') if loc.planning_track == 'business' else _('Residential') }}</span></td>
     </tr>
   </table>
-  {% if loc.map_svg_data_uri or loc.map_png_data_uri %}
-  <div class="map-snapshot" style="margin:12px 0 16px;">
-    <img src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="Rooftop outline"/>
-    <p class="disclaimer" style="margin-top:4px;">{{ _('Rooftop outline — amber areas are marked obstructions') }}</p>
-  </div>
-  {% endif %}
-
+  <p class="verdict">{{ loc.report_verdict }}</p>
   <div class="hero">
     <div class="hero-card">
       <span class="label">{{ _('Recommended system') }}</span>
@@ -177,19 +206,23 @@
       <span class="value">₹{{ '{:,.0f}'.format((loc.annual_net_benefit if loc.planning_track == 'business' else loc.monthly_savings) or 0) }}</span>
       <span class="unit">{{ _('indicative') }}</span>
     </div>
+    <div class="hero-card">
+      <span class="label">{{ _('Commercial payback') if loc.planning_track == 'business' else _('Nominal payback') }}</span>
+      <span class="value">{% if loc.headline_payback_years is not none %}{{ loc.headline_payback_years }}{% else %}—{% endif %}</span>
+      <span class="unit">{{ _('years') if loc.headline_payback_years is not none else _('unavailable') }}</span>
+    </div>
   </div>
 
-  <div class="section">
+  <table class="two-up"><tr><td><div class="panel">
     <h2>{{ _('What it costs') }}</h2>
     <div class="row"><span>{{ _('PV system cost (mid)') }}</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
-    {% if loc.battery_cost and loc.battery_cost > 0 %}<div class="row"><span>{{ _('Battery storage') }} ({{ loc.battery_kwh }} kWh)</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>{% endif %}
-    {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>−₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
+    {% if loc.battery_cost_included %}<div class="row"><span>{{ _('Battery storage') }}{% if loc.battery_kwh and loc.battery_kwh > 0 %} ({{ loc.battery_kwh }} kWh){% endif %}</span><span>{% if loc.battery_cost_available %}₹{{ '{:,.0f}'.format(loc.battery_cost) }}{% else %}{{ _('Cost unavailable') }}{% endif %}</span></div>{% endif %}
+    {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>{% if loc.subsidy_value_available %}−₹{{ '{:,.0f}'.format(loc.subsidy_amount) }}{% else %}{{ _('Amount unavailable') }}{% endif %}</span></div>{% endif %}
     <div class="row"><span>{{ _('Net investment') }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
-    {% if loc.costs_reconcile %}<p class="reconciliation-ok">{% if loc.planning_track == 'business' %}{{ _('PV cost + battery cost = net investment.') }}{% else %}{{ _('PV cost + battery cost − applicable subsidy = net investment.') }}{% endif %}</p>{% elif loc.cost_reconciliation_note %}<p class="reconciliation-warn">{{ loc.cost_reconciliation_note }}</p>{% endif %}
+    {% if loc.costs_reconcile %}<p class="reconciliation-ok">{{ loc.cost_reconciliation_equation }}</p>{% elif loc.cost_reconciliation_note %}<p class="reconciliation-warn">{{ loc.cost_reconciliation_note }}</p>{% endif %}
     {% if loc.psg_guidance_allowed %}<p class="disclaimer">{{ subsidy_caveat }} · {{ subsidy_eligibility_assumption }}</p>{% endif %}
-  </div>
-
-  <div class="section">
+    {% if loc.system_cost and loc.net_investment %}<div class="cost-track"><span class="cost-fill" style="width:100%;"></span></div><p class="chart-note">{{ _('Gross PV cost') }}</p><div class="cost-track"><span class="cost-fill net" style="width:{{ [100, (loc.net_investment / loc.system_cost * 100)]|min }}%;"></span></div><p class="chart-note">{{ _('Net investment after displayed adjustments') }}</p>{% endif %}
+  </div></td><td><div class="panel">
     <h2>{{ _('When it pays back') }}</h2>
     {% if loc.planning_track == 'business' %}
     <div class="row"><span>{{ _('Year-one ROI') }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
@@ -214,7 +247,7 @@
       </span>
     </div>{% endif %}
     {% if loc.discounted_payback_years is not none %}<div class="row"><span>{{ _('Discounted payback') }}</span><span>{{ loc.discounted_payback_years }} {{ _('years') }}</span></div>{% elif loc.lifecycle_projection %}<div class="row"><span>{{ _('Discounted payback') }}</span><span>{{ _('No break-even in 25 years') }}</span></div>{% endif %}
-  </div>
+  </div></td></tr></table>
 
   <div class="section">
     <h2>{{ _('How suitable is this roof?') }}</h2>
@@ -237,34 +270,88 @@
   {% endif %}
   <p class="footer">{{ _('Business planning summary — not a formal quote') if loc.planning_track == 'business' else _('Summary for homeowners — not a formal quote') }}</p>
 
+  {% if loc.monthly_chart or loc.projection_chart %}
+  <div class="page-break"></div>
+
+  <p class="eyebrow">{{ _('Energy and value over time') }}</p>
+  <h1>{{ _('How the estimate develops') }}</h1>
+  {% if loc.monthly_chart %}
+  <div class="chart-panel">
+    <h2>{{ _('Monthly solar generation') }}</h2>
+    <p class="chart-note">{{ _('Estimated generation by month in kWh.') }} {% if not loc.chart_data.consumption.monthly_available %}{{ _(loc.monthly_consumption_note) }}{% endif %}</p>
+    <table class="monthly-chart"><tr>{% for item in loc.monthly_chart %}<td><div class="bar-stage"><span class="bar" style="height:{{ [item.generation_pct, 3]|max }}%;"></span>{% if item.consumption_kwh is not none %}<span class="bar load" style="height:{{ [item.consumption_pct, 3]|max }}%;"></span>{% endif %}</div><span class="bar-label">{{ item.month[:3] }}</span></td>{% endfor %}</tr></table>
+    <p class="legend"><span class="key"></span>{{ _('Solar generation') }}{% if loc.chart_data.consumption.monthly_available %}<span class="key load"></span>{{ _('Recorded consumption') }}{% endif %}</p>
+  </div>
+  {% endif %}
+  {% if loc.projection_chart %}
+  <div class="chart-panel">
+    <h2>{{ _('25-year cumulative net position') }}</h2>
+    <p class="chart-note">{{ _('Starts with the saved net investment and uses the validated annual cash-flow series.') }} {% if loc.projection_break_even_year is not none %}{{ _('Estimated break-even') }}: {{ loc.projection_break_even_year }} {{ _('years') }}.{% endif %}</p>
+    <table class="projection"><tr>{% for item in loc.projection_chart %}<td><div class="projection-stage"><span class="projection-value">₹{{ '{:,.0f}'.format(item.value) }}</span><span class="projection-bar{% if not item.positive %} negative{% endif %}" style="height:{{ [item.magnitude_pct, 4]|max }}%;"></span></div><strong>{{ _('Start') if item.year == 0 else _('Year') ~ ' ' ~ item.year }}</strong></td>{% endfor %}</tr></table>
+  </div>
+  {% endif %}
+  {% if loc.sensitivity_rows %}
+  <div class="chart-panel">
+    <h2>{{ _('Sensitivity (indicative)') }}</h2>
+    <p class="chart-note">{{ loc.sensitivity.note }}</p>
+    <table class="sensitivity"><thead><tr><th>{{ _('Driver') }}</th><th>{{ _('Downside payback') }}</th><th>{{ _('Base payback') }}</th><th>{{ _('Upside payback') }}</th></tr></thead><tbody>{% for row in loc.sensitivity_rows %}<tr><td>{{ row.driver }}</td><td>{{ row.low.simple_payback_years if row.low.simple_payback_years is not none else '—' }}</td><td>{{ row.base.simple_payback_years if row.base.simple_payback_years is not none else '—' }}</td><td>{{ row.high.simple_payback_years if row.high.simple_payback_years is not none else '—' }}</td></tr>{% endfor %}</tbody></table>
+  </div>
+  {% endif %}
+  {% endif %}
+
   <div class="page-break"></div>
 
   <p class="eyebrow">{{ _('Next steps') }}</p>
   <h1>{{ _('Before you decide') }}</h1>
   <div class="section" style="border-top:none;padding-top:0;">
-    <div class="row"><span>{{ _('Address') }}</span><span style="font-weight:600;">{{ loc.address }}</span></div>
-    {% if loc.coordinates_display %}<div class="row"><span>{{ _('Coordinates') }}</span><span>{{ loc.coordinates_display }}</span></div>{% endif %}
+    <div class="row"><span>{{ _(loc.location_label) }}</span><span style="font-weight:600;">{{ loc.location_display }}</span></div>
+    {% if loc.coordinates_display and not loc.address_is_fallback %}<div class="row"><span>{{ _('Coordinates') }}</span><span>{{ loc.coordinates_display }}</span></div>{% endif %}
     {% if loc.orientation_label %}
-    <div class="row"><span>{{ _('Roof orientation') }}</span><span>{{ loc.orientation_label }}</span></div>
+    <div class="row"><span>{{ _('Detected roof orientation') }}</span><span>{{ loc.orientation_label }}</span></div>
     {% endif %}
     {% if loc.battery_kwh and loc.battery_kwh > 0 %}
     <div class="row"><span>{{ _('Battery included') }}</span><span>{{ '%.1f'|format(loc.battery_kwh) }} kWh</span></div>
     {% endif %}
-    {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Subsidy (estimate)') }}</span><span>₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>{% endif %}
+    {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Subsidy (estimate)') }}</span><span>{% if loc.subsidy_value_available %}₹{{ '{:,.0f}'.format(loc.subsidy_amount) }}{% else %}{{ _('Amount unavailable') }}{% endif %}</span></div>{% endif %}
   </div>
 
   <div class="section">
     <h2>{{ _('Suggested next steps') }}</h2>
-    <p style="margin:0 0 8px;color:#333;">1. {{ _('Share this summary with site decision-makers.') if loc.planning_track == 'business' else _('Share this summary with your family or building society.') }}</p>
-    {% if loc.psg_guidance_allowed %}<p style="margin:0 0 8px;color:#333;">2. {{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</p>{% endif %}
-    <p style="margin:0 0 8px;color:#333;">{{ '3.' if loc.psg_guidance_allowed else '2.' }} {{ _('Ask installers for a site survey and a firm quote.') }}</p>
-    <p style="margin:0;color:#333;">{{ '4.' if loc.psg_guidance_allowed else '3.' }} {{ _('Download the full technical report if you need detailed assumptions.') }}</p>
+    <div class="step"><span class="step-num">1</span><span class="step-copy">{{ _('Share this summary with site decision-makers.') if loc.planning_track == 'business' else _('Share this summary with your family or building society.') }}</span></div>
+    {% if loc.psg_guidance_allowed %}<div class="step"><span class="step-num">2</span><span class="step-copy">{{ _('Confirm subsidy eligibility with your DISCOM / vendor.') }}</span></div>{% endif %}
+    <div class="step"><span class="step-num">{{ 3 if loc.psg_guidance_allowed else 2 }}</span><span class="step-copy">{{ _('Ask installers for a site survey and a firm quote.') }}</span></div>
+    <div class="step"><span class="step-num">{{ 4 if loc.psg_guidance_allowed else 3 }}</span><span class="step-copy">{{ _('Download the full technical report if you need detailed assumptions.') }}</span></div>
+  </div>
+
+  <div class="section">
+    <h2>{{ _('Glossary') }}</h2>
+    <table class="glossary">
+      <tr><td>{{ _('Net investment') }}</td><td>{{ _('Displayed project cost after the cost adjustments shown in this estimate.') }}</td></tr>
+      <tr><td>{{ _('Nominal payback') }}</td><td>{{ _('Break-even using the modelled annual cash flows, including the stated escalation assumptions.') }}</td></tr>
+      <tr><td>{{ _('Discounted payback') }}</td><td>{{ _('Break-even after discounting future cash flows at the stated planning rate.') }}</td></tr>
+      <tr><td>{{ _('kWp') }}</td><td>{{ _('Rated direct-current capacity of the solar array under standard test conditions.') }}</td></tr>
+    </table>
   </div>
 
   <div class="section">
     <h2>{{ _('Planning assumptions') }}</h2>
     <p class="disclaimer">{% if loc.planning_track == 'business' %}{{ _('Commercial operating-benefit assumptions are used. Demand-charge savings are not modelled.') }}{% else %}{{ _('Residential tariff, household-savings and eligibility-dependent subsidy assumptions are used.') }}{% endif %} {{ _('Confirm current DISCOM rules, vendor pricing and site conditions before procurement.') }}</p>
+    {% if loc.assumption_rows %}<table class="glossary">{% for item in loc.assumption_rows %}<tr><td>{{ _(item.label) }}</td><td>{{ item.value }}</td></tr>{% endfor %}</table>{% endif %}
+    {% for note in loc.source_notes %}<p class="disclaimer" style="margin:4px 0;">{{ note }}</p>{% endfor %}
   </div>
+
+  <div class="section">
+    <h2>{{ _('What this estimate excludes') }}</h2>
+    <p class="disclaimer">{{ _('Final structural, electrical and fire-safety design; a binding vendor quotation; and approval from a DISCOM or subsidy authority.') }}{% if loc.planning_track == 'business' %} {{ _('Demand-charge savings are not modelled.') }}{% endif %}</p>
+  </div>
+
+  {% if loc.map_svg_data_uri or loc.map_png_data_uri %}
+  <div class="section map-snapshot">
+    <h2 style="text-align:left;">{{ _('Rooftop reference') }}</h2>
+    <img style="height:42mm;" src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="Rooftop outline"/>
+    <p class="disclaimer" style="margin-top:4px;">{{ _('Rooftop outline — amber areas are marked obstructions') }}</p>
+  </div>
+  {% endif %}
 
   <p class="disclaimer">{{ monetary_disclaimer }}{% if loc.psg_guidance_allowed %}<br>{{ subsidy_caveat }}{% endif %}</p>
   <p class="footer">{{ _('Indicative planning aid only') }}</p>

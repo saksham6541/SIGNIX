@@ -1,248 +1,538 @@
-# SIGNIX
+# SIGNIX --- Rooftop Solar Planning & Estimation
 
-SIGNIX is a Flask application for preliminary rooftop-solar planning in India. Users can explore residential or business planning entry points, draw a roof boundary and obstructions, review an indicative estimate, and inspect a saved report.
+SIGNIX is a Flask-based rooftop solar planning application for India. It
+helps users define a rooftop footprint, mark obstructions, estimate
+solar generation, explore indicative financial outcomes, save estimates,
+compare scenarios, and export homeowner-friendly and technical PDF
+reports.
 
-SIGNIX is a planning aid. Its estimates are not a site survey, engineering design, vendor quotation, guaranteed saving, or government approval.
+> **Important:** SIGNIX provides planning estimates, not an engineering
+> certification, vendor quotation, subsidy approval, or guarantee of
+> savings. Results depend on roof geometry, shading, irradiance data,
+> tariffs, user inputs, assumptions, and local DISCOM/MNRE rules.
 
 ## Contents
 
-- [Project overview](#project-overview)
-- [Key features](#key-features)
-- [Demo and screenshots](#demo-and-screenshots)
-- [Technology stack](#technology-stack)
-- [Architecture and project structure](#architecture-and-project-structure)
-- [Prerequisites](#prerequisites)
-- [Local installation and setup](#local-installation-and-setup)
-- [Environment variables and API configuration](#environment-variables-and-api-configuration)
-- [Database setup](#database-setup)
-- [Running the application](#running-the-application)
-- [Testing and validation](#testing-and-validation)
-- [CI workflow](#ci-workflow)
-- [Estimation assumptions and limitations](#estimation-assumptions-and-limitations)
-- [Security and contributions](#security-and-contributions)
-- [Documentation](#documentation)
-- [License](#license)
+-   [Highlights](#highlights)
+-   [Residential and Commercial
+    tracks](#residential-and-commercial-tracks)
+-   [Architecture](#architecture)
+-   [End-to-end workflow](#end-to-end-workflow)
+-   [Repository map](#repository-map)
+-   [Technology stack](#technology-stack)
+-   [Local development](#local-development)
+-   [Configuration and secrets](#configuration-and-secrets)
+-   [Testing and quality checks](#testing-and-quality-checks)
+-   [PDF reporting](#pdf-reporting)
+-   [Data integrity and calculation
+    principles](#data-integrity-and-calculation-principles)
+-   [Deployment notes](#deployment-notes)
+-   [Known limitations](#known-limitations)
+-   [Contributing](#contributing)
 
-## Project overview
+## Highlights
 
-The application combines a server-rendered public landing page and planning-track pages with authenticated estimate creation, saved locations, and detailed reports. Its Python application factory is `create_app()` in `app/__init__.py`; `run.py` loads `.env`, exposes the Flask app as `run:app`, and initializes the local database and reference data when run directly.
+-   **Map-based roof planning:** locate a property, draw or edit a roof
+    boundary, and mark obstructions.
+-   **Geometry-aware sizing:** estimate roof area, usable area,
+    obstruction area, and indicative capacity.
+-   **Irradiance and generation estimates:** use available solar-data
+    providers with fallback behavior when a preferred source is
+    unavailable.
+-   **Financial planning:** estimate system costs, generation value,
+    savings, operating costs, payback, and other available financial
+    indicators.
+-   **Distinct planning tracks:** separate Residential and Commercial
+    calculation policies and report copy.
+-   **Saved estimates:** persist estimates for later review and
+    comparison.
+-   **Scenario comparison:** compare supported variants of an estimate
+    while preserving their shared roof grouping.
+-   **Report exports:** generate a homeowner-oriented summary PDF and a
+    detailed technical PDF.
+-   **Bilingual support:** English and Hindi content, including packaged
+    Devanagari font handling in PDF templates.
+-   **Rooftop visualization:** map-based roof drawings and a 3D rooftop
+    visualization workflow.
+-   **Testing:** regression tests cover estimation, authentication,
+    calculation tracks, report output, rooftop
+    geometry/design/ingestion, saved estimates, and other application
+    behavior.
 
-The supported planning entry points are:
+## Residential and Commercial tracks
 
-| Purpose | Route | Availability |
-| --- | --- | --- |
-| Public landing page | `/` | Public |
-| Residential planning entry | `/plan/home` | Public |
-| Business/commercial planning entry | `/plan/business` | Public |
-| Rooftop survey | `/survey/home` or `/survey/business` | Login required |
-| Saved estimate report | `/report/<location_id>` | Login required; owner only |
-| Consultation information | `/consultation` | Public |
+SIGNIX uses separate planning policies for Residential and Commercial
+estimates while reusing shared roof geometry and generation workflows.
 
-The business entry track exists, but it should not be interpreted as a production-grade commercial engineering, procurement, or EPC service. Industrial planning is marked as coming soon.
+  -----------------------------------------------------------------------
+  Area                    Residential             Commercial
+  ----------------------- ----------------------- -----------------------
+  Primary financial view  Household bill savings  Annual net operating
+                          and payback             benefit, ROI, and
+                                                  payback
 
-## Key features
+  Subsidy                 May show an indicative  Does not apply the PM
+                          residential subsidy     Surya Ghar residential
+                          when applicable; final  subsidy
+                          eligibility and amount  
+                          require official        
+                          verification            
 
-- **Roof-first estimate workflow:** locate a property, draw a roof boundary, and add obstructions in the survey map. The submitted boundary is authoritative for planning calculations.
-- **Rooftop designer:** inspect a Three.js model, roof classification areas, obstruction and setback handling, surface information, and proposed module placement. Planning-preview and conservative placement modes communicate different shade-validation requirements.
-- **Explicit layout acceptance:** preview interactions do not update a saved estimate. A proposed layout must pass server-side checks and be explicitly accepted before accepted panel capacity and related estimate results are saved.
-- **Estimate and energy report:** review indicative system sizing, annual and monthly energy forecasts, savings, payback, financial projections, and environmental estimates.
-- **Report tabs:** System Sizing, Energy Forecasting, Financing Options, CAPEX vs DPA, Environmental, and Next Steps. The report includes charts, assumptions, and downloadable PDF output. The CAPEX/DPA comparison is an assumption-based model; the PPA comparison is deferred.
-- **Financing exploration:** inspect indicative loan/EMI and cashflow outputs and, where a financing comparison is available, preview DPA assumptions without overwriting saved estimate inputs.
-- **PM Surya Ghar guidance:** display scheme information and eligibility caveats. Government-set rules, application steps, approvals, and subsidy amounts must be checked with the relevant official sources and DISCOM.
-- **Saved estimates and account pages:** account-scoped saved locations, scenarios, comparisons, settings, and English/Hindi localization.
-- **Optional provider-backed data:** NASA POWER and PVGIS generation inputs, optional Google Solar rooftop data, and optional Gemini assistant/roof-analysis features. Availability depends on configuration, provider coverage, and network access.
+  Tariff/cost assumptions Residential planning    Commercial planning
+                          assumptions             assumptions
 
-## Demo and screenshots
+  Demand-charge savings   Not presented as a      Demand-charge savings
+                          commercial benefit      are **not modelled**
+                                                  unless explicitly
+                                                  supported by validated
+                                                  inputs
 
-The repository does not currently provide a maintained public demo URL or an application screenshot set. Image files under `app/static/images/` are UI assets, not a substitute for a live demo or verified product screenshots.
+  Report copy             Homeowner-focused       Business-focused
+  -----------------------------------------------------------------------
+
+The selected track must be established and validated server-side.
+Client-supplied fields must not be allowed to switch a request into a
+different calculation policy.
+
+## Architecture
+
+SIGNIX follows a Flask application architecture with server-rendered
+Jinja templates, route modules, domain services, persisted estimate
+records, and external data providers.
+
+``` mermaid
+flowchart TD
+    U[User / Browser] --> UI[Flask + Jinja pages]
+    UI --> MAP[Leaflet map and roof editor]
+    MAP --> GEO[Roof geometry and obstruction data]
+    UI --> ROUTES[Page, auth and estimate routes]
+
+    ROUTES --> TRACK[Validate planning track and inputs]
+    TRACK --> EST[Estimation service]
+    GEO --> EST
+
+    EST --> SOLAR[Solar generation and financial modelling]
+    SOLAR --> PROVIDERS[Irradiance / weather providers]
+    PROVIDERS --> P1[NASA POWER, when configured/available]
+    PROVIDERS --> P2[PVGIS, when configured/available]
+    PROVIDERS --> P3[Fallback/mock data, where applicable]
+    P1 --> SOLAR
+    P2 --> SOLAR
+    P3 --> SOLAR
+
+    SOLAR --> POLICY{Planning track}
+    POLICY --> RES[Residential calculation policy]
+    POLICY --> COM[Commercial calculation policy]
+    RES --> SAVE[Persist estimate and provenance]
+    COM --> SAVE
+
+    SAVE --> DB[(SQLAlchemy-backed database)]
+    DB --> DASH[Dashboard, saved estimates and comparisons]
+    DB --> CTX[Report context service]
+    CTX --> WEBREPORT[HTML report]
+    CTX --> PDF[PDF report generator]
+    PDF --> W[WeasyPrint when available]
+    PDF --> R[ReportLab fallback]
+```
+
+### Main responsibilities
+
+-   **Flask application and blueprints:** initialize the app and
+    register page, authentication, and estimate endpoints.
+-   **Jinja templates:** render the public site, authenticated
+    workspace, dashboards, reports, and PDF documents.
+-   **Map and geometry workflow:** capture the user-selected roof
+    boundary and obstructions; saved user geometry remains
+    authoritative.
+-   **Estimation service:** validate the request, orchestrate
+    calculations, and persist the resulting estimate.
+-   **Solar and financial logic:** calculate generation and the
+    available financial metrics using the active planning policy.
+-   **Provider ingestion:** obtain solar/environmental inputs from
+    available providers and handle fallback/cache behavior.
+-   **Persistence layer:** store user and estimate records, roof
+    geometry, financial outputs, planning track, and relevant
+    provenance.
+-   **Report context and generator:** enrich saved estimates for
+    HTML/PDF reports and render the full technical or homeowner summary
+    output.
+
+## End-to-end workflow
+
+``` mermaid
+flowchart TD
+    A[Open SIGNIX] --> B{Planning track}
+    B -->|Residential| C[Residential entry / survey]
+    B -->|Commercial| D[Business entry / survey]
+    C --> E[Sign in or create account]
+    D --> E
+    E --> F[Locate property]
+    F --> G[Draw or confirm roof boundary]
+    G --> H[Mark obstructions]
+    H --> I[Configure system and bill / tariff inputs]
+    I --> J[Validate track and estimate inputs]
+    J --> K[Fetch available irradiance data]
+    K --> L[Calculate roof capacity and generation]
+    L --> M[Apply track-specific financial policy]
+    M --> N[Save estimate and provenance]
+    N --> O[Review report and dashboard]
+    O --> P[Compare supported scenarios]
+    O --> Q[Export homeowner summary PDF]
+    O --> R[Export full technical PDF]
+```
+
+### Estimate lifecycle
+
+1.  The user chooses a Residential or Commercial workflow.
+2.  The application authenticates the user where required and preserves
+    a safe return destination.
+3.  The user locates the property and draws/edits the roof boundary.
+4.  The user marks obstructions and supplies the available system/bill
+    inputs.
+5.  The server validates inputs and applies the authoritative planning
+    track.
+6.  The estimation workflow calculates geometry, generation, and
+    financial outputs.
+7.  The estimate and relevant track/provenance data are persisted.
+8.  The user reviews saved estimates, compares supported scenarios, and
+    exports reports.
+
+## Repository map
+
+The following are key modules and their responsibilities. The exact tree
+may evolve; use the current repository as the source of truth.
+
+``` text
+SIGNIX/
+├── app/
+│   ├── init.py                         # Flask app setup and blueprint registration
+│   ├── auth.py                         # Authentication, profile/settings routes
+│   ├── pages.py                        # Page routes, dashboards, reports and saved views
+│   ├── estimate.py                     # Estimate API and request handling
+│   ├── forms.py                        # WTForms definitions
+│   ├── models.py                       # SQLAlchemy models and persisted estimate data
+│   ├── solar_logic.py                  # Core solar calculations and data orchestration
+│   ├── report_generator.py             # PDF generation and renderer fallback
+│   ├── discom_lookup.py                # DISCOM-related lookup/guidance
+│   ├── application_checklist.py        # Subsidy/application guidance
+│   ├── services/
+│   │   ├── estimation_service.py       # Estimate orchestration and persistence
+│   │   ├── residential_calculation_service.py
+│   │   ├── commercial_calculation_service.py
+│   │   ├── location_service.py         # Location/report context enrichment
+│   │   ├── rooftop_ingestion_service.py
+│   │   ├── rooftop_design_service.py
+│   │   ├── report_chart_data.py
+│   │   └── ...                         # Other domain services
+│   ├── templates/                      # Jinja HTML pages and PDF templates
+│   │   ├── pdf_summary.html            # Homeowner/business summary PDF
+│   │   ├── pdf_report.html             # Full technical PDF
+│   │   ├── report.html                 # Interactive report
+│   │   ├── index.html                  # Map/estimate workspace
+│   │   └── ...
+│   └── static/
+│       ├── css/
+│       ├── js/
+│       ├── fonts/
+│       └── ...
+├── tests/
+│   ├── goldens/                        # Regression fixtures where applicable
+│   └── test_*.py                       # Unit/integration/regression tests
+├── translations/
+│   └── hi/LC_MESSAGES/                 # Hindi translation catalogue
+├── docs/                               # Project documentation, if present
+├── run.py                              # Local application entry point
+├── requirements.txt                    # Python dependencies, if present
+├── README.md
+└── ...
+```
 
 ## Technology stack
 
-- Python 3.11 in CI; the local development setup below uses Python 3.12.
-- Flask, Jinja2, Flask-Login, Flask-WTF, Flask-Babel, Flask-SQLAlchemy, and SQLAlchemy.
-- SQLite by default; PostgreSQL can be selected with `DATABASE_URL`.
-- Vanilla JavaScript, Leaflet for the survey map, vendored Three.js r128 for the 3D viewer, and vendored Chart.js for report charts.
-- WeasyPrint for PDF generation where its native libraries are available, with a ReportLab fallback.
-- pytest and Node.js's built-in test runner.
-- Docker and Docker Compose for containerized operation.
+  -----------------------------------------------------------------------
+  Layer                               Technologies
+  ----------------------------------- -----------------------------------
+  Backend                             Python, Flask
 
-Python dependencies are declared in the root [`requirements.txt`](requirements.txt). There is no JavaScript package manifest, frontend bundler, or separate frontend application.
+  HTML rendering                      Jinja2
 
-## Architecture and project structure
+  Forms and validation                WTForms / Flask-WTF
 
-```text
-app/
-  __init__.py           Flask application factory and extension/blueprint setup
-  auth.py               Authentication, profile, settings, and language routes
-  pages.py              Landing, survey pages, dashboard, reports, and exports
-  estimate.py           Estimate, orientation, financing, and context APIs
-  locations.py          Geocoding, saved locations, and scenarios APIs
-  rooftop_design.py     Design revisions and layout acceptance API
-  roof_model.py         Reconstructed roof model and provider layers
-  roof_ai.py            Optional rooftop imagery and analysis endpoints
-  assistant.py          Optional assistant endpoint
-  models.py             SQLAlchemy models
-  database.py           Schema initialization and compatibility updates
-  solar_logic.py        Sizing, energy, subsidy, and financial calculations
-  services/             Estimation, locations, reports, rooftop, and caching
-  templates/             Jinja pages and shared navigation
-  static/css/            Shared and responsive styles
-  static/js/             Survey, viewer, report, assistant, and chart behavior
-tests/                   Python tests, Node tests, and calculation goldens
-docs/                    Architecture, API, development, and limitation guides
-scripts/                 Documentation validation and maintainer utilities
-translations/            English and Hindi Babel catalogs
-run.py                   Local Flask entry point and reference-data initialization
-Dockerfile               Container image definition
-docker-entrypoint.sh     Container database initialization before startup
-docker-compose.yml       SQLite service and optional PostgreSQL profile
-.github/workflows/ci.yml GitHub Actions validation workflow
-```
+  Persistence                         Flask-SQLAlchemy / SQLAlchemy;
+                                      SQLite may be used for local
+                                      development
 
-The primary browser/API flow starts in the Jinja templates and static JavaScript, passes through Flask blueprints, and delegates business logic to `app/services/` and domain modules. Unsafe requests require CSRF protection; saved estimate data is scoped to the authenticated account.
+  Mapping                             Leaflet.js and Leaflet Draw
 
-Key page routes include `/`, `/plan/<planning_track>`, `/survey/<planning_track>`, `/dashboard`, `/properties`, `/compare`, `/savings`, and `/report/<location_id>`. Useful API route families include `/api/estimate`, `/api/locations`, `/api/roof-model`, `/api/locations/<location_id>/rooftop-design`, and `/api/locations/<location_id>/rooftop-layout/accept`. See [`docs/api-contracts.md`](docs/api-contracts.md) and the route blueprints for exact methods and response contracts.
+  Rooftop visualization               Three.js and supporting frontend
+                                      modules
 
-## Prerequisites
+  Charts                              Chart.js and existing report
+                                      chart-data utilities
 
-- Python 3.12 for the local virtual environment documented here. CI currently tests Python 3.11.
-- Node.js 24 for JavaScript syntax checks and Node regression tests.
-- Git.
-- Windows PowerShell for the commands below.
-- Optional: Docker Desktop and Docker Compose.
-- Optional provider credentials only for integrations that use them.
+  Solar/scientific calculations       Existing solar model and
+                                      numerical/geospatial dependencies
+                                      used by the project
 
-## Local installation and setup
+  External data                       NASA POWER, PVGIS, and
+                                      configured/fallback providers as
+                                      available
 
-From PowerShell, clone the repository and create the ignored local `.venv312` environment:
+  PDF                                 WeasyPrint where its native
+                                      dependencies are available;
+                                      ReportLab fallback
 
-```powershell
-git clone https://github.com/saksham6541/SIGNIX.git
-Set-Location SIGNIX
-if (-not (Test-Path .venv312)) { py -3.12 -m venv .venv312 }
+  Tests                               pytest
+
+  Localization                        English/Hindi translations and
+                                      packaged Devanagari font assets
+  -----------------------------------------------------------------------
+
+Provider availability depends on configuration, network access, and the
+relevant service response. Do not assume every provider is active in
+every environment.
+
+## Local development
+
+### Requirements
+
+-   Python version supported by the repository's dependency pins.
+-   Git.
+-   Windows users may use PowerShell.
+-   External provider API keys only if the chosen provider requires
+    them.
+-   WeasyPrint's native libraries if you want to use its PDF renderer
+    locally; ReportLab can serve as the fallback when supported by the
+    application.
+
+### Windows / PowerShell setup
+
+Use the project's compatible virtual environment if one already exists.
+In this workspace, Python 3.12 was used in `.venv312`.
+
+``` powershell
+# From the SIGNIX repository root
 .\.venv312\Scripts\Activate.ps1
-python -m pip install --upgrade pip
+
+# Install dependencies only if the environment has not already been set up
 python -m pip install -r requirements.txt
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-```
 
-`.venv312` is a local development environment and is ignored by Git; it is not included in the repository. Edit the local `.env` only if you need to set a non-default secret or optional integration. Do not commit it.
-
-If PowerShell blocks virtual-environment activation, use the Python executable directly instead:
-
-```powershell
-.\.venv312\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv312\Scripts\python.exe run.py
-```
-
-## Environment variables and API configuration
-
-`run.py` loads `.env` through `python-dotenv`. The Flask configuration is defined in `app/config.py`.
-
-| Variable | Purpose |
-| --- | --- |
-| `SECRET_KEY` | Flask session and security signing key. Set a private, unique value outside tests and local-only development. |
-| `DATABASE_URL` | SQLAlchemy connection URL. If unset, the local app uses `solar_app.db` in the repository root. |
-| `GEMINI_API_KEY` | Enables Gemini-backed assistant and optional rooftop analysis. Not required to run the core application. |
-| `GEMINI_MODEL` | Assistant model override; defaults to the model set in `app/config.py`. |
-| `GEMINI_ROOF_MODEL` | Rooftop-analysis model override; defaults to `GEMINI_MODEL`. |
-| `GOOGLE_SOLAR_API_KEY` / `GOOGLE_MAPS_API_KEY` | Optional Google rooftop-data provider credentials. Provider coverage and successful responses are not guaranteed. |
-| `NASA_POWER_URL` / `PVGIS_URL` | Optional endpoint overrides for the irradiance and modeled-yield sources. |
-| `NOMINATIM_URL` / `NOMINATIM_REVERSE_URL` | Optional forward- and reverse-geocoding endpoint overrides. |
-| `ROOFTOP_PROTOTYPE_FIXTURE` | Controls use of the prototype rooftop fixture when configured data is unavailable; defaults to enabled. |
-| `ROOFTOP_EXTERNAL_CACHE_DAYS` | Cache lifetime for reusable external rooftop data; defaults to 30 days. |
-
-The safe variable names and example placeholders are in [`.env.example`](.env.example). Never paste or publish actual credentials in documentation, issue reports, logs, tests, or commits. The Gemini assistant requires `GEMINI_API_KEY`; the rest of the application can run without it. External services also depend on network availability and provider policies.
-
-## Database setup
-
-For local development, running `python run.py` initializes the SQLAlchemy schema, performs the compatibility updates implemented in `app/database.py`, and seeds reference tariff and subsidy data when needed. The default SQLite database is `solar_app.db` in the repository root and is ignored by Git.
-
-Database evolution is handled by `db.create_all()` plus explicit compatibility logic in `app/database.py`; the repository does not use Alembic or maintain an Alembic migration history. This is not a general-purpose migration system. Review and test schema changes explicitly, especially when upgrading an existing database or using PostgreSQL.
-
-For Docker Compose, the default `web` service uses SQLite at `/app/data/solar_app.db` and persists it in the `solar_data` volume. An optional PostgreSQL Compose profile is defined in `docker-compose.yml`; configure deployment credentials securely rather than relying on development defaults.
-
-## Running the application
-
-Start the local development server from the repository root:
-
-```powershell
+# Start the application
 python run.py
 ```
 
-Open <http://127.0.0.1:5000/>. The local entry point initializes the database and reference data before starting Flask.
+If the virtual environment does not exist, create one using the Python
+version supported by the current dependency pins:
 
-To run the containerized SQLite service, create a private local `.env` from `.env.example`, configure `SECRET_KEY`, and run:
-
-```powershell
-docker compose up --build web
+``` powershell
+py -3.12 -m venv .venv312
+.\.venv312\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python run.py
 ```
 
-Open <http://127.0.0.1:8000/>. The container entrypoint initializes the schema and reference data before starting Gunicorn. For a production container command, the image uses `gunicorn --bind 0.0.0.0:8000 --workers 2 run:app`.
+If the repository's dependency file has a different name or setup
+instructions, follow the current checked-in project configuration rather
+than guessing package versions.
 
-## Testing and validation
+### Run tests
 
-Run these from the repository root. The commands assume the `.venv312` environment is active and Node.js is installed:
+Run the suite from the repository root:
 
-```powershell
+``` powershell
 python -m pytest tests -q
-python -m compileall -q app tests
-
-$javascriptFiles = Get-ChildItem app\static\js -Filter *.js -File | Sort-Object Name
-if ($javascriptFiles.Count -eq 0) { throw "No application JavaScript files were found under app/static/js." }
-$javascriptFiles | ForEach-Object { node --check $_.FullName }
-
-node --test tests\roof3d_geometry.test.js tests\assistant_voice.test.js tests\voice_mode.test.js
-node --test tests\report_tabs.test.js
-python scripts\validate_markdown_links.py
-git diff --check
 ```
 
-The report-tabs test is listed separately because the current CI Node invocation does not include `tests/report_tabs.test.js`. Python tests use isolated databases and mocked provider responses; they should not require real API credentials.
+Run focused tests while working on a specific area:
 
-## CI workflow
+``` powershell
+python -m pytest tests/test_calculation_tracks.py -q
+python -m pytest tests/test_report_generator.py -q
+```
 
-The [`CI workflow`](.github/workflows/ci.yml) runs on pushes and pull requests targeting `main`. It uses Ubuntu 24.04, Python 3.11, and Node.js 24. The job installs the PDF native libraries and Python requirements, verifies WeasyPrint and rasterio, runs the full Python test suite and Python compilation, runs Node syntax validation, runs the three configured Node regression suites, validates Markdown links and anchors, and checks patch whitespace.
+Other useful checks:
 
-JavaScript syntax validation discovers every top-level `*.js` file under `app/static/js` at runtime and runs `node --check` on each discovered file. CI does not depend on a fixed expected file count. The workflow does not build the Docker image, test PostgreSQL, run full browser visual regression, or deploy the application.
+``` powershell
+git diff --check
+python -m compileall app
+```
 
-## Estimation assumptions and limitations
+Some tests and PDF output can vary by operating system and installed
+native libraries. A local ReportLab PDF pass does not prove that
+WeasyPrint produces identical visual output in CI, and vice versa.
 
-- Generation, savings, subsidy, financing, payback, environmental impact, and comparison figures are indicative outputs based on persisted assumptions and available inputs. They are not guarantees or approvals.
-- Solar-resource paths can use NASA POWER, PVGIS modeled production, or a deterministic low-confidence offline fallback. These sources have different meanings and coverage; provider-modeled output must not be interpreted as a site measurement.
-- A drawn roof boundary constrains planning geometry; it does not establish the roof's structure, pitch, elevation, condition, or safe access.
-- Rooftop geometry may be simulated prototype geometry when no usable provider reconstruction is available. Provider coverage can be missing, stale, incomplete, malformed, or unavailable.
-- Planning-preview panels may overlap areas with unknown shade and are not shade-verified. Conservative placement requires compatible classifications and fails closed when validation data is missing.
-- Qualitative shade classes are not converted into a numeric generation loss. Panel placement does not constitute an electrical design, structural assessment, fire-code review, or installation plan.
-- Tariffs, export rules, installed costs, financing rates, consumption, degradation, operations and maintenance, and subsidy eligibility are assumptions that may differ from current local conditions.
-- PM Surya Ghar guidance is informational. SIGNIX is not affiliated with MNRE or a DISCOM and does not approve, submit, or track government applications.
-- Residential and business entry routes are implemented; the business track is not a validated commercial EPC design workflow. Industrial planning is not available.
+## Configuration and secrets
 
-See [`docs/known-limitations.md`](docs/known-limitations.md) for implementation-specific details.
+-   Keep secrets in environment variables or the local environment file
+    expected by the application.
+-   Never commit `.env`, API tokens, database credentials, private keys,
+    or real user data.
+-   Do not put provider keys into frontend JavaScript or templates.
+-   Keep `.env`, virtual environments, local databases, caches, and
+    generated artifacts excluded from version control as appropriate.
+-   Use a configured public application base URL for external report
+    links and QR codes. Do not publish localhost, loopback,
+    private-network, or intranet addresses in reports intended for
+    external users.
+-   If no valid public URL is configured, the report should omit the
+    external link/QR or clearly identify the link as local-only.
 
-## Security and contributions
+Consult the actual configuration module and environment template in the
+repository for the exact variable names. Do not assume a key or setting
+is enabled merely because a provider is mentioned in the documentation.
 
-- Do not commit `.env`, API keys, passwords, local databases, generated PDFs, or virtual environments.
-- Keep authentication, account ownership, and CSRF checks in place for protected routes and unsafe requests.
-- Use mocked provider responses in tests; do not make paid live provider calls from automated tests.
-- Before contributing, inspect `git status` and preserve unrelated working-tree changes. Keep changes scoped, add regression tests for behavioral fixes, and update relevant documentation.
-- For security concerns, do not include credentials or private user data in a public issue.
+## Testing and quality checks
 
-The project uses MIT licensing; see [`LICENSE`](LICENSE). Development and collaboration conventions are in [`docs/development.md`](docs/development.md).
+The test suite includes coverage for areas such as:
 
-## Documentation
+-   Authentication and account settings.
+-   Residential/Commercial calculation-track enforcement.
+-   Estimate routes and authorization.
+-   Saved estimates and scenario comparisons.
+-   Location discovery.
+-   Report chart data and PDF/report output.
+-   Rooftop geometry, reconstruction, design, ingestion, and layout
+    acceptance.
+-   Regression fixtures/golden outputs.
 
-- [Architecture and data flows](docs/architecture.md)
-- [Frontend guide](docs/frontend-guide.md)
-- [Backend guide](docs/backend-guide.md)
-- [Verified API contracts](docs/api-contracts.md)
-- [Development, testing, and CI](docs/development.md)
-- [Known limitations](docs/known-limitations.md)
-- [Product principles](PRODUCT.md)
-- [Design system](DESIGN.md)
+Before a release or a large merge:
 
-`PERFORMANCE_BASELINE.md` and `PRD_TECH_STACK_MIGRATION.md` are historical references, not current setup or architecture instructions.
+1.  Review the diff and ensure unrelated work is not staged.
+2.  Run focused tests for the changed area.
+3.  Run the full test suite.
+4.  Run `git diff --check`.
+5.  Generate a Residential summary and full report.
+6.  Generate a Commercial summary and full report.
+7.  Inspect page breaks, financial reconciliation, track-specific copy,
+    Unicode/Hindi text, chart readability, and QR/public-link behavior.
+8.  Check CI, especially if it uses a different PDF renderer or
+    operating system.
 
-## License
+## PDF reporting
 
-SIGNIX is distributed under the MIT License. See [`LICENSE`](LICENSE).
+SIGNIX provides two report levels:
+
+### Homeowner / business summary
+
+A concise decision-support document intended to explain the estimate in
+plain language. It may include KPI cards, cost breakdown, payback
+scenarios, suitability, generation/financial visuals, assumptions,
+limitations, and next steps when supported by available data.
+
+### Full technical report
+
+A detailed supporting document that can include roof geometry,
+obstruction areas, system sizing, suitability factors, performance
+indicators, monthly generation, financial outputs, environmental
+estimates, assumptions, and limitations.
+
+### PDF rendering
+
+-   **WeasyPrint** is used when it is available and its required native
+    dependencies load correctly.
+-   **ReportLab** provides a fallback path.
+-   Templates and styles must work across the renderers where the
+    application supports both.
+-   Hindi PDF output relies on the packaged Devanagari font path and
+    should be tested explicitly.
+-   Keep financial headings with their associated tables where
+    practical, avoid split rows and orphaned headings, and check actual
+    rendered pages after layout changes.
+
+PDFs are planning documents. Financial values, subsidy amounts,
+generation, and savings must be derived from the estimate data and
+labelled with assumptions. Do not copy values from example PDFs into
+production logic.
+
+## Data integrity and calculation principles
+
+-   The user-drawn rooftop footprint is authoritative. Provider or
+    AI-derived geometry must not silently overwrite the saved user
+    boundary.
+-   Preserve coordinate conventions: GeoJSON coordinates use
+    longitude/latitude order; Leaflet APIs commonly use
+    latitude/longitude order.
+-   Validate the planning track server-side; do not rely on a
+    client-provided `property_type` alone to determine calculation
+    policy.
+-   Keep Residential and Commercial financial policies separate while
+    reusing shared geometry and generation components.
+-   Preserve provenance and uncertainty where available. A fallback/mock
+    result must not be presented as a verified provider result.
+-   Do not imply subsidy approval, guaranteed bill reduction, guaranteed
+    payback, or a firm EPC quote.
+-   If a cost component is missing, label it unavailable rather than
+    treating it as zero.
+-   Clearly distinguish simple/nominal payback, subsidy-adjusted
+    payback, and discounted payback.
+-   Commercial demand-charge savings are not modelled unless validated
+    data and an implemented calculation explicitly support them.
+
+## Deployment notes
+
+Before deploying:
+
+-   Set a secure secret key and production configuration.
+-   Use a production WSGI server appropriate for the hosting platform.
+-   Configure a persistent database and backups appropriate for the
+    deployment.
+-   Ensure the instance has access to required static assets, packaged
+    fonts, and PDF dependencies.
+-   Configure the public application URL for links and QR codes.
+-   Keep debug mode disabled in production.
+-   Check allowed hosts, HTTPS, secure cookies, authentication
+    redirects, and authorization on estimate/report routes.
+-   Review logs for provider failures and PDF-renderer fallback
+    behavior.
+-   Verify the production build with both Residential and Commercial
+    flows.
+-   Do not expose local file paths, internal IP addresses, secrets, or
+    debugging details to end users.
+
+Deployment commands and environment variables vary by hosting provider;
+use the actual deployment configuration in the repository.
+
+## Known limitations
+
+-   Estimates depend on the quality and completeness of roof, shading,
+    weather/irradiance, tariff, and user-input data.
+-   A remote solar-data provider may be unavailable or return incomplete
+    data; fallback behavior may be used.
+-   Shading from nearby buildings/trees and detailed site conditions may
+    require a site survey.
+-   Net-metering, sanctioned load, tariff slabs, subsidy rules, and
+    local incentives require confirmation with the relevant DISCOM and
+    official sources.
+-   Demand-charge and time-of-use savings are not modelled unless
+    explicitly supported by validated inputs and implementation.
+-   PDF appearance can differ between WeasyPrint and ReportLab.
+    WeasyPrint may require operating-system native libraries that are
+    not installed by default.
+-   Sensitivity analysis should be shown only when the application can
+    calculate it from available inputs; unsupported values must not be
+    fabricated.
+-   SIGNIX is not a substitute for structural review, electrical design,
+    installer assessment, official subsidy approval, or a binding vendor
+    quotation.
+
+## Contributing
+
+1.  Create a branch for the change.
+2.  Keep changes scoped to the intended feature.
+3.  Preserve the existing Residential/Commercial calculation policies
+    and saved-estimate behavior.
+4.  Add or update regression tests for behavior changes.
+5.  Run focused tests and the full suite where practical.
+6.  Review `git diff --check` and inspect staged changes before
+    committing.
+7.  Never commit secrets, local databases, virtual environments, or
+    generated preview files.
+
+## License and project details
+
+Confirm the repository's current license file before redistributing this
+project. If no license is present, do not assume the code is open-source
+licensed.
+
+Project repository: <https://github.com/saksham6541/SIGNIX>
