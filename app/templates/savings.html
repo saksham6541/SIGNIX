@@ -43,7 +43,7 @@
           </svg>
         </span>
         <span class="stat-label">{{ _('CO2 reduction') }}</span>
-        <strong>{{ "%.2f"|format(co2_reduction_tons) }} tons</strong>
+        <strong>{{ "%.2f"|format(co2_reduction_tons) }} {{ _("tons") }}</strong>
         <small class="stat-meta">{{ _('Across %(count)s saved estimate(s)', count=locations|length) }}</small>
       </div>
 

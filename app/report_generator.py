@@ -16,7 +16,8 @@ from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlparse
 from flask import current_app, render_template
-from flask_babel import get_locale, gettext as _
+from flask_babel import force_locale, format_date, get_locale, gettext as _
+from app.localization import ui_label
 
 
 def _packaged_devanagari_font_uri():
@@ -108,7 +109,7 @@ def _format_report_date(value):
             parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
         except (TypeError, ValueError):
             return None
-    return parsed.strftime("%d %b %Y")
+    return format_date(parsed, "dd MMM yyyy")
 
 
 def _enrich_location_data(location):
@@ -227,9 +228,9 @@ def _enrich_location_data(location):
         annual_savings - annual_om if annual_savings is not None else None
     )
     data["payback_unavailable_reason"] = (
-        "Unavailable because year-one net savings are not positive."
+        _("Unavailable because year-one net savings are not positive.")
         if net_annual_savings is not None and net_annual_savings <= 0
-        else "Not available in this saved estimate."
+        else _("Not available in this saved estimate.")
     )
 
     system_cost = _finite_number(data.get("system_cost"))
@@ -255,13 +256,13 @@ def _enrich_location_data(location):
         and (not data["psg_guidance_allowed"] or subsidy is not None)
     )
     expected_net = None
-    equation_parts = ["PV cost"]
+    equation_parts = [_("PV cost")]
     if battery_included:
-        equation_parts.append("battery cost")
+        equation_parts.append(_("battery cost"))
     equation = " + ".join(equation_parts)
     if data["psg_guidance_allowed"]:
-        equation += " - applicable subsidy"
-    equation += " = net investment"
+        equation += " - " + _("applicable subsidy")
+    equation += " = " + _("net investment")
     if components_available:
         expected_net = system_cost
         if battery_included:
@@ -322,20 +323,20 @@ def _enrich_location_data(location):
             resolved_address = cleaned_address
             break
     data["address_is_fallback"] = resolved_address is None
-    data["location_label"] = "Address" if resolved_address else "Location coordinates"
+    data["location_label"] = _("Address") if resolved_address else _("Location coordinates")
     data["location_display"] = (
         resolved_address
         or data["coordinates_display"]
-        or "Location not provided"
+        or _("Location not provided")
     )
     data["address"] = data["location_display"]
     data["customer_name"] = _safe_report_text(
-        data.get("customer_name") or extras.get("customer_name"), "Not provided"
+        data.get("customer_name") or extras.get("customer_name"), _("Not provided")
     )
     data["estimate_reference"] = (
-        f"Estimate #{data['id']}" if data.get("id") is not None else "Not assigned"
+        _("Estimate #%(reference)s", reference=data['id']) if data.get("id") is not None else _("Not assigned")
     )
-    data["report_date"] = date.today().strftime("%d %b %Y")
+    data["report_date"] = format_date(date.today(), "dd MMM yyyy")
     data["estimate_date"] = _format_report_date(data.get("created_at"))
     # monthly_data may be None on old rows
     if not data.get("monthly_data"):
@@ -411,14 +412,16 @@ def _enrich_location_data(location):
     )
     data["headline_payback_years"] = headline_payback
     if data["planning_track"] == "business":
-        data["report_verdict"] = (
-            f"A {float(data.get('system_size') or 0):.1f} kW commercial planning case "
-            f"with estimated annual generation of {float(data.get('annual_generation') or 0):,.0f} kWh."
+        data["report_verdict"] = _(
+            "A %(capacity)s kW commercial planning case with estimated annual generation of %(generation)s kWh.",
+            capacity=f"{float(data.get('system_size') or 0):.1f}",
+            generation=f"{float(data.get('annual_generation') or 0):,.0f}",
         )
     else:
-        data["report_verdict"] = (
-            f"A {float(data.get('system_size') or 0):.1f} kW residential planning case "
-            f"with estimated annual generation of {float(data.get('annual_generation') or 0):,.0f} kWh."
+        data["report_verdict"] = _(
+            "A %(capacity)s kW residential planning case with estimated annual generation of %(generation)s kWh.",
+            capacity=f"{float(data.get('system_size') or 0):.1f}",
+            generation=f"{float(data.get('annual_generation') or 0):,.0f}",
         )
 
     data["assumption_rows"] = []
@@ -448,7 +451,7 @@ def _enrich_location_data(location):
         }
         source_value = str(data["irradiance_source"])
         data["source_notes"].append(
-            f"Solar resource source: {source_names.get(source_value.lower(), source_value)}."
+            _("Solar resource source: %(source)s.", source=source_names.get(source_value.lower(), source_value))
         )
     provenance = data.get("financial_provenance") or {}
     environmental_factor = (
@@ -458,7 +461,7 @@ def _enrich_location_data(location):
     )
     if isinstance(environmental_factor, dict) and environmental_factor.get("source"):
         data["source_notes"].append(
-            f"Emissions factor source: {environmental_factor['source']}."
+            _("Emissions factor source: %(source)s.", source=environmental_factor['source'])
         )
 
     return data
@@ -551,6 +554,14 @@ def _pdf_assets(location, data, mode="full"):
 
 
 def generate_pdf_report(location, locale=None, mode="full"):
+    # The PDF locale must also own gettext calls during enrichment and fallback
+    # rendering; passing pdf_locale to the template alone only selects its font.
+    active_locale = str(locale or get_locale() or "en")
+    with force_locale(active_locale):
+        return _generate_pdf_report(location, locale=active_locale, mode=mode)
+
+
+def _generate_pdf_report(location, locale=None, mode="full"):
     """
     location: UserLocation model instance (or dict).
     mode: "full" (technical report) or "summary" (2-page homeowner snapshot).
@@ -693,13 +704,13 @@ def _draw_reportlab_footer(canvas, doc):
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import mm
 
-    font_name, _ = _register_pdf_fonts()
+    font_name, unused_bold_font = _register_pdf_fonts()
     canvas.saveState()
     canvas.setFillColor(HexColor("#777777"))
     canvas.setFont(font_name, 7.5)
-    canvas.drawString(doc.leftMargin, 8 * mm, "SIGNIX · Indicative planning estimate")
+    canvas.drawString(doc.leftMargin, 8 * mm, "SIGNIX · " + _("Indicative planning estimate"))
     canvas.drawRightString(
-        A4[0] - doc.rightMargin, 8 * mm, f"Page {canvas.getPageNumber()}"
+        A4[0] - doc.rightMargin, 8 * mm, _("Page %(number)s", number=canvas.getPageNumber())
     )
     canvas.restoreState()
 
@@ -842,19 +853,19 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
                     if loc.get("address_is_fallback")
                     else loc.get("location_display")
                 )
-                or "Location not provided"
+                or _("Location not provided")
             )),
             styles["Muted"],
         )
     )
     meta = Table(
         [
-            ["Customer", "Estimate reference", "Report date", "Planning track"],
+            [_("Customer"), _("Estimate reference"), _("Report date"), _("Planning track")],
             [
-                escape(str(loc.get("customer_name") or "Not provided")),
-                escape(str(loc.get("estimate_reference") or "Not assigned")),
-                escape(str(loc.get("report_date") or "Not available")),
-                "Commercial" if loc.get("planning_track") == "business" else "Residential",
+                escape(str(loc.get("customer_name") or _("Not provided"))),
+                escape(str(loc.get("estimate_reference") or _("Not assigned"))),
+                escape(str(loc.get("report_date") or _("Not available"))),
+                _("Commercial") if loc.get("planning_track") == "business" else _("Residential"),
             ],
         ],
         colWidths=[42 * mm] * 4,
@@ -879,7 +890,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     ):
         site_cells = [
             Paragraph(
-                f"<b>Location:</b> {escape(str(loc.get('coordinates_display') or loc.get('location_display') or 'Not available'))}",
+                f"<b>Location:</b> {escape(str(loc.get('coordinates_display') or loc.get('location_display') or _('Not available')))}",
                 styles["Muted"],
             )
         ]
@@ -908,7 +919,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
         map_image._restrictSize(160 * mm, 56 * mm)
         story.append(map_image)
         story.append(Paragraph(
-            "Rooftop outline (purple boundary; amber patches = obstructions)",
+            _("Rooftop outline (purple boundary; amber patches = obstructions)"),
             styles["Muted"],
         ))
         story.append(Spacer(1, 4))
@@ -1046,7 +1057,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
                 height_pct = float(item.get("magnitude_pct") or 0)
                 bar_width = 8 * mm
                 color = HexColor("#2f6b53") if item.get("positive") else HexColor("#c89139")
-                label = "Start" if item.get("year") == 0 else f"Year {item.get('year')}"
+                label = _("Start") if item.get("year") == 0 else _("Year %(year)s", year=item.get("year"))
             else:
                 height_pct = float(item.get("generation_pct") or 0)
                 bar_width = 2.5 * mm
@@ -1063,19 +1074,19 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     # Overview cards
     section("1. System overview")
     benefit_card = (
-        ["Annual net benefit", _inr(loc.get("annual_net_benefit"))]
+        [_("Annual net benefit"), _inr(loc.get("annual_net_benefit"))]
         if loc.get("planning_track") == "business"
-        else ["Monthly savings", _inr(loc.get("monthly_savings"))]
+        else [_("Monthly savings"), _inr(loc.get("monthly_savings"))]
     )
     cards = [
-        ["System size", f"{loc.get('system_size', '—')} kW"],
-        ["Annual generation", f"{loc.get('annual_generation', '—')} kWh"],
+        [_("System size"), f"{loc.get('system_size', '—')} kW"],
+        [_("Annual generation"), f"{loc.get('annual_generation', '—')} kWh"],
         benefit_card,
         [
-            "Payback",
+            _("Payback"),
             f"{loc.get('payback_years')} yrs"
             if loc.get("payback_years") is not None
-            else "Unavailable",
+            else _("Unavailable"),
         ],
     ]
     ct = Table(cards, colWidths=[42 * mm] * 4)
@@ -1118,53 +1129,53 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
 
     kv_table(
         [
-            ("Total roof area", f"{loc.get('roof_area_sqm', '—')} m²"),
-            ("Obstructed area", f"{loc.get('obstructed_area_sqm') or 0} m²"),
-            ("Usable area", f"{loc.get('usable_area_sqm', '—')} m²"),
+            (_("Total roof area"), f"{loc.get('roof_area_sqm', '—')} m²"),
+            (_("Obstructed area"), f"{loc.get('obstructed_area_sqm') or 0} m²"),
+            (_("Usable area"), f"{loc.get('usable_area_sqm', '—')} m²"),
             (
                 "Roof capacity",
                 f"{loc.get('roof_capacity_kw') or loc.get('system_size')} kW",
             ),
-            ("Sizing method", loc.get("sizing_method") or "roof_area"),
+            (_("Sizing method"), loc.get("sizing_method") or "roof_area"),
         ]
     )
 
     bs = loc.get("bill_sizing")
     if bs:
-        section("Bill-based sizing")
+        section(_("Bill-based sizing"))
         kv_table(
             [
-                ("Monthly bill (input)", _inr(bs.get("monthly_bill"))),
-                ("Tariff used", f"{_inr_prefix()}{bs.get('tariff_per_kwh')}/unit"),
-                ("Estimated monthly units", f"{bs.get('monthly_units')} units"),
+                (_("Monthly bill (input)"), _inr(bs.get("monthly_bill"))),
+                (_("Tariff used"), f"{_inr_prefix()}{bs.get('tariff_per_kwh')}/unit"),
+                (_("Estimated monthly units"), f"{bs.get('monthly_units')} units"),
                 (
-                    "Recommended range",
+                    _("Recommended range"),
                     f"{bs.get('recommended_min_kw')}–{bs.get('recommended_max_kw')} kW",
                 ),
-                ("Design size used", f"{loc.get('system_size')} kW"),
+                (_("Design size used"), f"{loc.get('system_size')} kW"),
             ]
         )
 
     rating = loc.get("suitability_rating")
     if rating:
-        section("Suitability rating")
+        section(_("Suitability rating"))
         viability = rating.get("overall_viability") or {}
         confidence = rating.get("data_confidence") or {}
-        conf_tier = irr_conf or confidence.get("tier") or "Unknown"
+        conf_tier = irr_conf or confidence.get("tier") or _("Unknown")
         conf_score = confidence.get("score", 0)
         rating_summary = [
             [
-                "Overall viability",
-                f"{str(viability.get('tier') or 'Unknown').title()} — {viability.get('score', 0)}/100",
+                _("Overall viability"),
+                f"{str(viability.get('tier') or _('Unknown')).title()} — {viability.get('score', 0)}/100",
             ],
             [
-                "Estimate confidence",
+                _("Estimate confidence"),
                 f"{str(conf_tier).title()} ({conf_score}/100)",
             ],
         ]
         if rating.get("user_priority"):
             rating_summary.append(
-                ["Priority", str(rating["user_priority"]).replace("_", " ").title()]
+                [_("Priority"), str(rating["user_priority"]).replace("_", " ").title()]
             )
         summary_table = Table(rating_summary, colWidths=[48 * mm, 122 * mm])
         summary_table.setStyle(
@@ -1184,14 +1195,14 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
         )
         story.append(summary_table)
         factor_labels = {
-            "payback": "Payback",
-            "financial_viability": "Financial viability",
-            "roof_fit": "Roof fit",
+            "payback": _("Payback"),
+            "financial_viability": _("Financial viability"),
+            "roof_fit": _("Roof fit"),
             "orientation": "Orientation yield factor",
-            "co2_reduction": "CO2 reduction",
-            "backup_capability": "Backup capability",
+            "co2_reduction": _("CO2 reduction"),
+            "backup_capability": _("Backup capability"),
         }
-        factor_rows = [["Factor", "Score", "Tier / detail"]]
+        factor_rows = [[_("Factor"), _("Score"), _("Tier / detail")]]
         for key, label in factor_labels.items():
             factor = (rating.get("factors") or {}).get(key)
             if not factor:
@@ -1199,7 +1210,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
             if key == "roof_fit":
                 detail = f"{factor.get('usable_area_per_kw')} m² usable area per kW"
             elif key == "orientation":
-                detected = loc.get("orientation_label") or "not detected"
+                detected = loc.get("orientation_label") or _("not detected")
                 detail = (
                     f"Detected orientation: {detected}; relative yield factor "
                     f"{factor.get('factor')}"
@@ -1214,7 +1225,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
             elif key == "backup_capability":
                 detail = f"{factor.get('score', 0)}/100 backup capability"
             else:
-                detail = str(factor.get("tier") or "Unavailable").title()
+                detail = str(factor.get("tier") or _("Unavailable")).title()
             tier = str(factor.get("tier") or "fair").lower()
             factor_rows.append(
                 [
@@ -1225,7 +1236,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
                     ],
                     Paragraph(
                         escape(
-                            f"{str(factor.get('tier') or 'Unavailable').title()} — {detail}"
+                            f"{str(factor.get('tier') or _('Unavailable')).title()} — {detail}"
                         ),
                         styles["BodySmall"],
                     ),
@@ -1259,9 +1270,9 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     section("2. Performance indicators")
     perf = []
     if loc.get("specific_yield"):
-        perf.append(("Specific yield", f"{loc['specific_yield']:,.0f} kWh/kWp/year"))
+        perf.append((_("Specific yield"), f"{loc['specific_yield']:,.0f} kWh/kWp/year"))
     if loc.get("capacity_factor") is not None:
-        perf.append(("Capacity factor", f"{loc['capacity_factor']}%"))
+        perf.append((_("Capacity factor"), f"{loc['capacity_factor']}%"))
     if loc.get("orientation_factor") is not None:
         perf.append(
             (
@@ -1270,20 +1281,20 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
             )
         )
     if loc.get("recommended_tilt_deg") is not None:
-        perf.append(("Recommended tilt", f"{loc['recommended_tilt_deg']}°"))
+        perf.append((_("Recommended tilt"), f"{loc['recommended_tilt_deg']}°"))
     if loc.get("performance_ratio") is not None:
-        perf.append(("Performance ratio (assumed)", str(loc["performance_ratio"])))
+        perf.append((_("Performance ratio (assumed)"), str(loc["performance_ratio"])))
     if loc.get("peak_sun_hours_assumed") is not None:
         perf.append(
-            ("Peak sun hours (assumed)", f"{loc['peak_sun_hours_assumed']} h/day")
+            (_("Peak sun hours (assumed)"), f"{loc['peak_sun_hours_assumed']} h/day")
         )
     if loc.get("lcoe") is not None:
-        perf.append(("Discounted LCOE (25 yr)", f"{_inr_prefix()}{loc['lcoe']}/kWh"))
+        perf.append((_("Discounted LCOE (25 yr)"), f"{_inr_prefix()}{loc['lcoe']}/kWh"))
     if loc.get("lifetime_kwh"):
-        perf.append(("Lifetime energy (25 yr)", f"{loc['lifetime_kwh']:,.0f} kWh"))
+        perf.append((_("Lifetime energy (25 yr)"), f"{loc['lifetime_kwh']:,.0f} kWh"))
     if loc.get("self_consumption_frac") is not None:
         perf.append(
-            ("Self-consumption share", f"{int(loc['self_consumption_frac'] * 100)}%")
+            (_("Self-consumption share"), f"{int(loc['self_consumption_frac'] * 100)}%")
         )
     if perf:
         kv_table(perf)
@@ -1302,15 +1313,15 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
         story.append(Paragraph(legend, styles["Muted"]))
 
     if loc.get("projection_chart"):
-        projection_note = "Validated saved cash-flow series; starts with net investment."
+        projection_note = _("Validated saved cash-flow series; starts with net investment.")
         if loc.get("projection_break_even_year") is not None:
             projection_note += f" Estimated break-even: {loc['projection_break_even_year']} years."
         story.append(KeepTogether([
-            Paragraph("25-year cumulative net position", styles["H2Purple"]),
+            Paragraph(_("25-year cumulative net position"), styles["H2Purple"]),
             Paragraph(projection_note, styles["Muted"]),
             compact_bar_chart(loc["projection_chart"], projection=True),
             Paragraph(
-                "Amber bars are below break-even; green bars are at or above break-even.",
+                _("Amber bars are below break-even; green bars are at or above break-even."),
                 styles["Muted"],
             ),
         ]))
@@ -1323,47 +1334,47 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
 
     story.append(Paragraph(MONETARY_DISCLAIMER, styles["Muted"]))
     fin = [
-        ("PV system cost (mid)", _inr(loc.get("system_cost"))),
+        (_("PV system cost (mid)"), _inr(loc.get("system_cost"))),
     ]
     if loc.get("system_cost_low") and loc.get("system_cost_high"):
         fin.append(
             (
-                "Typical cost band",
+                _("Typical cost band"),
                 f"{_inr(loc['system_cost_low'])} – {_inr(loc['system_cost_high'])}",
             )
         )
     if loc.get("battery_cost_included") and loc.get("battery_cost_available"):
-        battery_label = "Battery storage"
+        battery_label = _("Battery storage")
         if (_finite_number(loc.get("battery_kwh")) or 0) > 0:
             battery_label += f" ({loc.get('battery_kwh')} kWh)"
         fin.append(
             (battery_label, _inr(loc.get("battery_cost")))
         )
     elif loc.get("battery_cost_included"):
-        battery_label = "Battery storage"
+        battery_label = _("Battery storage")
         if (_finite_number(loc.get("battery_kwh")) or 0) > 0:
             battery_label += f" ({loc.get('battery_kwh')} kWh)"
-        fin.append((battery_label, "Cost unavailable"))
+        fin.append((battery_label, _("Cost unavailable")))
     if loc.get("psg_guidance_allowed"):
         fin.append((
-            "PM Surya Ghar subsidy",
+            _("PM Surya Ghar subsidy"),
             f"-{_inr(loc.get('subsidy_amount'))}"
             if loc.get("subsidy_value_available")
-            else "Amount unavailable",
+            else _("Amount unavailable"),
         ))
         from app.assumptions import SUBSIDY_CAVEAT, SUBSIDY_ELIGIBILITY_ASSUMPTION
         fin.append((SUBSIDY_CAVEAT, ""))
         fin.append((SUBSIDY_ELIGIBILITY_ASSUMPTION, ""))
-    fin.append(("Net investment", _inr(loc.get("net_investment"))))
+    fin.append((_("Net investment"), _inr(loc.get("net_investment"))))
     if loc.get("costs_reconcile"):
-        fin.append(("Cost check", loc.get("cost_reconciliation_equation")))
+        fin.append((_("Cost check"), loc.get("cost_reconciliation_equation")))
     elif loc.get("cost_reconciliation_note"):
-        fin.append(("Cost check", loc["cost_reconciliation_note"]))
+        fin.append((_("Cost check"), loc["cost_reconciliation_note"]))
     if loc.get("planning_track") == "business":
         fin.extend([
-            ("Year-one net operating benefit", _inr(loc.get("annual_net_benefit"))),
-            ("Year-one ROI", f"{loc.get('annual_roi_pct'):.2f}%" if loc.get("annual_roi_pct") is not None else "—"),
-            ("25-year net benefit", _inr(loc.get("lifetime_net_benefit"))),
+            (_("Year-one net operating benefit"), _inr(loc.get("annual_net_benefit"))),
+            (_("Year-one ROI"), f"{loc.get('annual_roi_pct'):.2f}%" if loc.get("annual_roi_pct") is not None else "—"),
+            (_("25-year net benefit"), _inr(loc.get("lifetime_net_benefit"))),
             ("Demand-charge savings are not modelled", ""),
             (
                 "Commercial payback (tariff escalation assumed)",
@@ -1373,17 +1384,17 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
             ),
         ])
     else:
-        fin.append(("Estimated monthly savings", _inr(loc.get("monthly_savings"))))
+        fin.append((_("Estimated monthly savings"), _inr(loc.get("monthly_savings"))))
         fin.extend([
             (
                 "Payback without subsidy (simple, flat tariff)",
-                f"{loc.get('payback_without_subsidy_years')} years"
+                _("%(years)s years", years=loc.get("payback_without_subsidy_years"))
                 if loc.get("payback_without_subsidy_years") is not None
                 else loc.get("payback_unavailable_reason"),
             ),
             (
                 "Subsidy-adjusted payback (simple, flat tariff)",
-                f"{loc.get('subsidy_adjusted_payback_years')} years"
+                _("%(years)s years", years=loc.get("subsidy_adjusted_payback_years"))
                 if loc.get("subsidy_adjusted_payback_years") is not None
                 else loc.get("payback_unavailable_reason"),
             ),
@@ -1391,15 +1402,15 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     lifecycle = loc.get("lifecycle_projection") or {}
     if lifecycle:
         fin.append((
-            "25-year net operating savings",
+            _("25-year net operating savings"),
             _inr(lifecycle.get("lifetime_net_savings_before_upfront")),
         ))
         fin.append((
-            "Discounted payback",
+            _("Discounted payback"),
             (
                 f"{loc.get('discounted_payback_years')} years"
                 if loc.get("discounted_payback_years") is not None
-                else "No break-even in 25 years"
+                else _("No break-even in 25 years")
             ),
         ))
         fin.append((
@@ -1422,9 +1433,9 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
             )
         if loc.get("psg_guidance_allowed"):
             elig = (
-                "Eligible, subject to official verification"
+                _("Eligible, subject to official verification")
                 if inv.get("subsidy_eligible")
-                else "Not confirmed"
+                else _("Not confirmed")
             )
             story.append(
                 Paragraph(f"<b>Scheme eligibility:</b> {elig}", styles["BodySmall"])
@@ -1435,7 +1446,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
             story.append(Paragraph(f"• {escape(str(a))}", styles["Muted"]))
 
     section("6. Environmental impact")
-    env_rows = [("CO₂ reduction / year", f"{loc.get('co2_reduction_tons')} tons")]
+    env_rows = [(_("CO₂ reduction / year"), f"{loc.get('co2_reduction_tons')} tons")]
     emissions = (loc.get("financial_provenance") or {}).get("environmental_factor") or {}
     if emissions:
         env_rows.append((
@@ -1444,14 +1455,14 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
         ))
     eq = loc.get("environmental_equivalents") or {}
     if eq:
-        env_rows.append(("Equivalent trees planted", f"~{eq.get('trees_planted')}"))
+        env_rows.append((_("Equivalent trees planted"), f"~{eq.get('trees_planted')}"))
         env_rows.append(
             (
-                "Equivalent km not driven",
+                _("Equivalent km not driven"),
                 f"~{eq.get('km_not_driven'):,} km" if eq.get("km_not_driven") else "—",
             )
         )
-        env_rows.append(("Equivalent fuel saved", f"~{eq.get('fuel_liters_saved')} L"))
+        env_rows.append((_("Equivalent fuel saved"), f"~{eq.get('fuel_liters_saved')} L"))
     kv_table(env_rows)
 
     story.append(Spacer(1, 8))
@@ -1481,7 +1492,7 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     if notes:
         story.append(Spacer(1, 6))
         story.append(
-            Paragraph("<b>Important practical points</b>", styles["BodySmall"])
+            Paragraph(_("<b>Important practical points</b>"), styles["BodySmall"])
         )
         for n in notes:
             if loc.get("planning_track") == "business" and (
@@ -1496,8 +1507,8 @@ def _generate_pdf_reportlab(loc, locale=None, mode="full"):
     story.append(HRFlowable(width="100%", thickness=0.5, color=HexColor("#dddddd")))
     story.append(
         Paragraph(
-            "Generated by SIGNIX. Indicative planning estimates only. "
-            "Confirm MNRE / National Rooftop Solar Portal / local DISCOM rules and vendor quotations before procurement.",
+            _("Generated by SIGNIX. Indicative planning estimates only. "
+            "Confirm MNRE / National Rooftop Solar Portal / local DISCOM rules and vendor quotations before procurement."),
             styles["Footer"],
         )
     )
@@ -1537,8 +1548,8 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         )
     except Exception:
         MONETARY_DISCLAIMER = "Indicative only — verify with DISCOM / vendor"
-        SUBSIDY_CAVEAT = "Central subsidy estimate — final amount subject to MNRE / DISCOM approval"
-        SUBSIDY_ELIGIBILITY_ASSUMPTION = "Assumes residential, grid-connected system"
+        SUBSIDY_CAVEAT = _("Central subsidy estimate — final amount subject to MNRE / DISCOM approval")
+        SUBSIDY_ELIGIBILITY_ASSUMPTION = _("Assumes residential, grid-connected system")
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -1655,7 +1666,7 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
             bar_height = plot_height * float(item.get("magnitude_pct") or 0) / 100
             color = HexColor("#2f6b53") if item.get("positive") else HexColor("#c89139")
             chart.add(Rect(x, base_y, 8 * mm, max(bar_height, 1.2 * mm), fillColor=color, strokeColor=None))
-            label = "Start" if item.get("year") == 0 else f"Year {item.get('year')}"
+            label = _("Start") if item.get("year") == 0 else _("Year %(year)s", year=item.get("year"))
             chart.add(String(x, 7 * mm, label, fontName=font_name, fontSize=7, fillColor=HexColor("#6b646c")))
         return chart
 
@@ -1667,7 +1678,7 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         chart.add(String(0, 15 * mm, "Gross displayed cost", fontName=font_name, fontSize=7.5, fillColor=HexColor("#6b646c")))
         chart.add(Rect(38 * mm, 14 * mm, 105 * mm, 3 * mm, fillColor=HexColor("#e59a2f"), strokeColor=None))
         chart.add(String(146 * mm, 14.5 * mm, _inr(gross_value), fontName=font_bold, fontSize=7.5, fillColor=HexColor("#2a1733")))
-        chart.add(String(0, 6 * mm, "Net investment", fontName=font_name, fontSize=7.5, fillColor=HexColor("#6b646c")))
+        chart.add(String(0, 6 * mm, _("Net investment"), fontName=font_name, fontSize=7.5, fillColor=HexColor("#6b646c")))
         chart.add(Rect(38 * mm, 5 * mm, 105 * mm * min(net_value / gross_value, 1.0), 3 * mm, fillColor=HexColor("#2a1733"), strokeColor=None))
         chart.add(String(146 * mm, 5.5 * mm, _inr(net_value), fontName=font_bold, fontSize=7.5, fillColor=HexColor("#2a1733")))
         return chart
@@ -1687,9 +1698,9 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         styles["SumEyebrow"],
     ))
     story.append(Paragraph(
-        "Your commercial rooftop solar plan"
+        _("Your commercial rooftop solar plan")
         if loc.get("planning_track") == "business"
-        else "Your residential rooftop solar plan",
+        else _("Your residential rooftop solar plan"),
         styles["SumTitle"],
     ))
     story.append(Paragraph(
@@ -1699,17 +1710,17 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
                 if loc.get("address_is_fallback")
                 else loc.get("location_display")
             )
-            or "Location not provided"
+            or _("Location not provided")
         )),
         styles["SumBody"],
     ))
     meta_rows = [
-        ["Customer", "Estimate reference", "Report date", "Planning track"],
+        [_("Customer"), _("Estimate reference"), _("Report date"), _("Planning track")],
         [
-            escape(str(loc.get("customer_name") or "Not provided")),
-            escape(str(loc.get("estimate_reference") or "Not assigned")),
-            escape(str(loc.get("report_date") or "Not available")),
-            "Commercial" if loc.get("planning_track") == "business" else "Residential",
+            escape(str(loc.get("customer_name") or _("Not provided"))),
+            escape(str(loc.get("estimate_reference") or _("Not assigned"))),
+            escape(str(loc.get("report_date") or _("Not available"))),
+            _("Commercial") if loc.get("planning_track") == "business" else _("Residential"),
         ],
     ]
     meta = Table(meta_rows, colWidths=[42 * mm] * 4)
@@ -1735,7 +1746,7 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
 
     hero_data = [[
         card(
-            "Recommended system",
+            _("Recommended system"),
             f"{float(loc.get('system_size') or 0):.1f}",
             (
                 f"kW · approx. {int(loc['panel_count'])} panels"
@@ -1743,16 +1754,16 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
                 else "kW"
             ),
         ),
-        card("Yearly generation", f"{float(loc.get('annual_generation') or 0):,.0f}", "kWh / year"),
+        card(_("Yearly generation"), f"{float(loc.get('annual_generation') or 0):,.0f}", _("kWh / year")),
         card(
-            "Annual net benefit" if loc.get("planning_track") == "business" else "Monthly savings",
+            _("Annual net benefit") if loc.get("planning_track") == "business" else _("Monthly savings"),
             _inr((loc.get("annual_net_benefit") if loc.get("planning_track") == "business" else loc.get("monthly_savings")) or 0),
-            "indicative",
+            _("indicative"),
         ),
         card(
-            "Commercial payback" if loc.get("planning_track") == "business" else "Nominal payback",
+            _("Commercial payback") if loc.get("planning_track") == "business" else _("Nominal payback"),
             loc.get("headline_payback_years") if loc.get("headline_payback_years") is not None else "—",
-            "years" if loc.get("headline_payback_years") is not None else "unavailable",
+            _("years") if loc.get("headline_payback_years") is not None else _("unavailable"),
         ),
     ]]
     hero = Table(hero_data, colWidths=[42 * mm] * 4)
@@ -1771,10 +1782,10 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     story.append(hero)
     story.append(Spacer(1, 12))
     story.append(HRFlowable(width="100%", thickness=0.5, color=HexColor("#dddddd")))
-    story.append(Paragraph("What it costs", styles["SumH2"]))
-    cost_rows = [["PV system cost (mid)", _inr(loc.get("system_cost") or 0)]]
+    story.append(Paragraph(_("What it costs"), styles["SumH2"]))
+    cost_rows = [[_("PV system cost (mid)"), _inr(loc.get("system_cost") or 0)]]
     if loc.get("battery_cost_included") and loc.get("battery_cost_available"):
-        battery_label = "Battery storage"
+        battery_label = _("Battery storage")
         if (_finite_number(loc.get("battery_kwh")) or 0) > 0:
             battery_label += f" ({float(loc.get('battery_kwh')):.1f} kWh)"
         cost_rows.append([
@@ -1782,27 +1793,27 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
             _inr(loc.get("battery_cost")),
         ])
     elif loc.get("battery_cost_included"):
-        battery_label = "Battery storage"
+        battery_label = _("Battery storage")
         if (_finite_number(loc.get("battery_kwh")) or 0) > 0:
             battery_label += f" ({float(loc.get('battery_kwh')):.1f} kWh)"
         cost_rows.append([
             battery_label,
-            "Cost unavailable",
+            _("Cost unavailable"),
         ])
     if loc.get("psg_guidance_allowed"):
         cost_rows.append(
             [
-                "Central subsidy (estimate)",
+                _("Central subsidy (estimate)"),
                 f"-{_inr(loc.get('subsidy_amount'))}"
                 if loc.get("subsidy_value_available")
-                else "Amount unavailable",
+                else _("Amount unavailable"),
             ]
         )
-    cost_rows.append(["Net investment", _inr(loc.get("net_investment") or 0)])
+    cost_rows.append([_("Net investment"), _inr(loc.get("net_investment") or 0)])
     if loc.get("costs_reconcile"):
-        cost_rows.append(["Cost check", loc.get("cost_reconciliation_equation")])
+        cost_rows.append([_("Cost check"), loc.get("cost_reconciliation_equation")])
     elif loc.get("cost_reconciliation_note"):
-        cost_rows.append(["Cost check", loc["cost_reconciliation_note"]])
+        cost_rows.append([_("Cost check"), loc["cost_reconciliation_note"]])
     ct = Table(cost_rows, colWidths=[100 * mm, 70 * mm])
     ct.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (0, -1), font_name),
@@ -1821,38 +1832,38 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     if loc.get("psg_guidance_allowed"):
         story.append(Paragraph(f"{SUBSIDY_CAVEAT} · {SUBSIDY_ELIGIBILITY_ASSUMPTION}", styles["SumMuted"]))
 
-    story.append(Paragraph("When it pays back", styles["SumH2"]))
+    story.append(Paragraph(_("When it pays back"), styles["SumH2"]))
     if loc.get("planning_track") == "business":
         pb_rows = [
-            ["Year-one net operating benefit", _inr(loc.get("annual_net_benefit") or 0)],
-            ["Year-one ROI", f"{loc.get('annual_roi_pct'):.2f}%" if loc.get("annual_roi_pct") is not None else "—"],
-            ["25-year net benefit", _inr(loc.get("lifetime_net_benefit"))],
+            [_("Year-one net operating benefit"), _inr(loc.get("annual_net_benefit") or 0)],
+            [_("Year-one ROI"), f"{loc.get('annual_roi_pct'):.2f}%" if loc.get("annual_roi_pct") is not None else "—"],
+            [_("25-year net benefit"), _inr(loc.get("lifetime_net_benefit"))],
             [
                 "Commercial payback (tariff escalation assumed)",
-                f"{nominal} years" if nominal is not None else loc.get("payback_unavailable_reason"),
+                _("%(years)s years", years=nominal) if nominal is not None else loc.get("payback_unavailable_reason"),
             ],
             ["Demand-charge savings", "Not modelled"],
         ]
     else:
         pb_rows = [
-            ["Nominal payback (tariff may rise)", f"{nominal} years" if nominal is not None else loc.get("payback_unavailable_reason")],
+            ["Nominal payback (tariff may rise)", _("%(years)s years", years=nominal) if nominal is not None else loc.get("payback_unavailable_reason")],
             [
                 "Payback without subsidy (simple, flat tariff)",
-                f"{loc.get('payback_without_subsidy_years')} years"
+                _("%(years)s years", years=loc.get("payback_without_subsidy_years"))
                 if loc.get("payback_without_subsidy_years") is not None
                 else loc.get("payback_unavailable_reason"),
             ],
             [
                 "Subsidy-adjusted payback (simple, flat tariff)",
-                f"{loc.get('subsidy_adjusted_payback_years')} years"
+                _("%(years)s years", years=loc.get("subsidy_adjusted_payback_years"))
                 if loc.get("subsidy_adjusted_payback_years") is not None
                 else loc.get("payback_unavailable_reason"),
             ],
         ]
     if loc.get("discounted_payback_years") is not None:
-        pb_rows.append(["Discounted payback", f"{loc['discounted_payback_years']} years"])
+        pb_rows.append([_("Discounted payback"), _("%(years)s years", years=loc["discounted_payback_years"])])
     elif loc.get("lifecycle_projection"):
-        pb_rows.append(["Discounted payback", "No break-even in 25 years"])
+        pb_rows.append([_("Discounted payback"), _("No break-even in 25 years")])
     pt = Table(pb_rows, colWidths=[100 * mm, 70 * mm])
     pt.setStyle(TableStyle([
         ("FONTNAME", (0, 0), (0, -1), font_name),
@@ -1863,7 +1874,7 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     ]))
     story.append(pt)
 
-    story.append(Paragraph("How suitable is this roof?", styles["SumH2"]))
+    story.append(Paragraph(_("How suitable is this roof?"), styles["SumH2"]))
     suit_text = str(tier).replace("_", " ").title()
     if score is not None:
         suit_text += f"  ·  Score {score}/100"
@@ -1872,23 +1883,23 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     story.append(Spacer(1, 6))
     story.append(Paragraph(MONETARY_DISCLAIMER, styles["SumMuted"]))
     story.append(Paragraph(
-        "Business planning summary — not a formal quote"
+        _("Business planning summary — not a formal quote")
         if loc.get("planning_track") == "business"
-        else "Summary for homeowners — not a formal quote",
+        else _("Summary for homeowners — not a formal quote"),
         styles["SumMuted"],
     ))
 
     if loc.get("monthly_chart") or loc.get("projection_chart"):
         story.append(PageBreak())
-        story.append(Paragraph("ENERGY AND VALUE OVER TIME", styles["SumEyebrow"]))
-        story.append(Paragraph("How the estimate develops", styles["SumTitle"]))
+        story.append(Paragraph(_("ENERGY AND VALUE OVER TIME"), styles["SumEyebrow"]))
+        story.append(Paragraph(_("How the estimate develops"), styles["SumTitle"]))
         if loc.get("monthly_chart"):
-            story.append(Paragraph("Monthly solar generation", styles["SumH2"]))
+            story.append(Paragraph(_("Monthly solar generation"), styles["SumH2"]))
             consumption_note = ""
             if not (loc.get("chart_data") or {}).get("consumption", {}).get("monthly_available"):
                 consumption_note = " " + str(loc.get("monthly_consumption_note") or "")
             story.append(Paragraph(
-                "Estimated generation by month in kWh." + escape(consumption_note),
+                _("Estimated generation by month in kWh.") + escape(consumption_note),
                 styles["SumMuted"],
             ))
             story.append(monthly_chart_drawing(loc["monthly_chart"]))
@@ -1897,7 +1908,7 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
                 legend += " &nbsp;&nbsp; <font color='#8e8391'>■</font> Recorded consumption"
             story.append(Paragraph(legend, styles["SumMuted"]))
         if loc.get("projection_chart"):
-            story.append(Paragraph("25-year cumulative net position", styles["SumH2"]))
+            story.append(Paragraph(_("25-year cumulative net position"), styles["SumH2"]))
             break_even = loc.get("projection_break_even_year")
             projection_note = "Starts with saved net investment and uses the validated annual cash-flow series."
             if break_even is not None:
@@ -1905,13 +1916,13 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
             story.append(Paragraph(projection_note, styles["SumMuted"]))
             story.append(projection_chart_drawing(loc["projection_chart"]))
             story.append(Paragraph(
-                "Amber bars are below break-even; green bars are at or above break-even.",
+                _("Amber bars are below break-even; green bars are at or above break-even."),
                 styles["SumMuted"],
             ))
         sensitivity_rows = loc.get("sensitivity_rows") or []
         if sensitivity_rows:
-            story.append(Paragraph("Sensitivity (indicative)", styles["SumH2"]))
-            sensitivity_data = [["Driver", "Downside", "Base", "Upside"]]
+            story.append(Paragraph(_("Sensitivity (indicative)"), styles["SumH2"]))
+            sensitivity_data = [[_("Driver"), "Downside", "Base", "Upside"]]
             for row in sensitivity_rows:
                 sensitivity_data.append([
                     str(row.get("driver") or ""),
@@ -1932,62 +1943,62 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
             story.append(sensitivity_table)
 
     story.append(PageBreak())
-    story.append(Paragraph("NEXT STEPS", styles["SumEyebrow"]))
-    story.append(Paragraph("Before you decide", styles["SumTitle"]))
+    story.append(Paragraph(_("NEXT STEPS"), styles["SumEyebrow"]))
+    story.append(Paragraph(_("Before you decide"), styles["SumTitle"]))
     story.append(Paragraph(
-        f"{escape(str(loc.get('location_label') or 'Location'))}: "
-        f"{escape(str(loc.get('location_display') or 'Location not provided'))}",
+        f"{escape(str(loc.get('location_label') or _('Location')))}: "
+        f"{escape(str(loc.get('location_display') or _('Location not provided')))}",
         styles["SumBody"],
     ))
     if loc.get("coordinates_display") and not loc.get("address_is_fallback"):
         story.append(Paragraph(
-            f"Coordinates: {escape(str(loc['coordinates_display']))}", styles["SumBody"]
+            _("Coordinates: %(coordinates)s", coordinates=escape(str(loc["coordinates_display"]))), styles["SumBody"]
         ))
     if loc.get("orientation_label"):
         story.append(Paragraph(
-            f"Detected roof orientation: {escape(str(loc.get('orientation_label')))}",
+            _("Detected roof orientation: %(orientation)s", orientation=escape(str(loc.get("orientation_label")))),
             styles["SumBody"],
         ))
     if float(loc.get("battery_kwh") or 0) > 0:
-        story.append(Paragraph(f"Battery included: {float(loc.get('battery_kwh')):.1f} kWh", styles["SumBody"]))
+        story.append(Paragraph(_("Battery included: %(capacity)s kWh", capacity=f"{float(loc.get('battery_kwh')):.1f}"), styles["SumBody"]))
     if loc.get("psg_guidance_allowed"):
         subsidy_text = (
             _inr(loc.get("subsidy_amount"))
             if loc.get("subsidy_value_available")
-            else "Amount unavailable"
+            else _("Amount unavailable")
         )
         story.append(Paragraph(
-            f"Subsidy (estimate): {subsidy_text}", styles["SumBody"]
+            _("Subsidy (estimate): %(amount)s", amount=subsidy_text), styles["SumBody"]
         ))
-    story.append(Paragraph("Suggested next steps", styles["SumH2"]))
+    story.append(Paragraph(_("Suggested next steps"), styles["SumH2"]))
     next_steps = [
         (
-            "Share this summary with site decision-makers."
+            _("Share this summary with site decision-makers.")
             if loc.get("planning_track") == "business"
-            else "Share this summary with your family or building society."
+            else _("Share this summary with your family or building society.")
         )
     ]
     if loc.get("psg_guidance_allowed"):
-        next_steps.append("Confirm subsidy eligibility with your DISCOM / vendor.")
+        next_steps.append(_("Confirm subsidy eligibility with your DISCOM / vendor."))
     next_steps.extend([
-        "Ask installers for a site survey and a firm quote.",
-        "Download the full technical report if you need detailed assumptions.",
+        _("Ask installers for a site survey and a firm quote."),
+        _("Download the full technical report if you need detailed assumptions."),
     ])
     for index, line in enumerate(next_steps, 1):
         story.append(Paragraph(f"{index}. {line}", styles["SumBody"]))
-    story.append(Paragraph("Planning assumptions", styles["SumH2"]))
+    story.append(Paragraph(_("Planning assumptions"), styles["SumH2"]))
     track_assumption = (
-        "Commercial operating-benefit assumptions are used. Demand-charge savings are not modelled."
+        _("Commercial operating-benefit assumptions are used. Demand-charge savings are not modelled.")
         if loc.get("planning_track") == "business"
-        else "Residential tariff, household-savings and eligibility-dependent subsidy assumptions are used."
+        else _("Residential tariff, household-savings and eligibility-dependent subsidy assumptions are used.")
     )
     story.append(Paragraph(
-        f"{track_assumption} Confirm current DISCOM rules, vendor pricing and site conditions before procurement.",
+        track_assumption + " " + _("Confirm current DISCOM rules, vendor pricing and site conditions before procurement."),
         styles["SumMuted"],
     ))
     if loc.get("assumption_rows"):
         assumption_table = Table(
-            [[item["label"], item["value"]] for item in loc["assumption_rows"]],
+            [[ui_label(item["label"]), item["value"]] for item in loc["assumption_rows"]],
             colWidths=[70 * mm, 98 * mm],
         )
         assumption_table.setStyle(TableStyle([
@@ -2004,15 +2015,15 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     if map_bytes:
         from reportlab.platypus import Image as RLImage
 
-        story.append(Paragraph("Rooftop reference", styles["SumH2"]))
+        story.append(Paragraph(_("Rooftop reference"), styles["SumH2"]))
         map_image = RLImage(io.BytesIO(map_bytes))
         map_image._restrictSize(160 * mm, 38 * mm)
         story.append(map_image)
         story.append(Paragraph(
-            "Rooftop outline (drawn boundary; amber = obstructions)",
+            _("Rooftop outline (drawn boundary; amber = obstructions)"),
             styles["SumMuted"],
         ))
-    story.append(Paragraph("What this estimate excludes", styles["SumH2"]))
+    story.append(Paragraph(_("What this estimate excludes"), styles["SumH2"]))
     exclusions = [
         "Final structural, electrical and fire-safety design.",
         "A binding vendor quotation or approval from a DISCOM or subsidy authority.",
@@ -2021,12 +2032,12 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
         exclusions.append("Demand-charge savings, unless separately modelled outside this estimate.")
     for line in exclusions:
         story.append(Paragraph(f"• {escape(line)}", styles["SumMuted"]))
-    story.append(Paragraph("Glossary", styles["SumH2"]))
+    story.append(Paragraph(_("Glossary"), styles["SumH2"]))
     glossary = Table(
         [
-            ["Net investment", "Displayed project cost after the adjustments shown in this estimate."],
-            ["Nominal payback", "Break-even using modelled annual cash flows and stated escalation assumptions."],
-            ["Discounted payback", "Break-even after discounting future cash flows at the stated planning rate."],
+            [_("Net investment"), "Displayed project cost after the adjustments shown in this estimate."],
+            [_("Nominal payback"), "Break-even using modelled annual cash flows and stated escalation assumptions."],
+            [_("Discounted payback"), _("Break-even after discounting future cash flows at the stated planning rate.")],
             ["kWp", "Rated DC capacity of the solar array under standard test conditions."],
         ],
         colWidths=[45 * mm, 123 * mm],
@@ -2056,7 +2067,7 @@ def _generate_pdf_reportlab_summary(loc, locale=None):
     story.append(Paragraph(MONETARY_DISCLAIMER, styles["SumMuted"]))
     if loc.get("psg_guidance_allowed"):
         story.append(Paragraph(SUBSIDY_CAVEAT, styles["SumMuted"]))
-    story.append(Paragraph("Indicative planning aid only", styles["SumMuted"]))
+    story.append(Paragraph(_("Indicative planning aid only"), styles["SumMuted"]))
 
     doc.build(
         story,

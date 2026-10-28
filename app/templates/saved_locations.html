@@ -33,7 +33,7 @@
       </div>
       <div>
         <dt>{{ _('Generation') }}</dt>
-        <dd>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} kWh/yr</dd>
+        <dd>{{ '{:,.0f}'.format(loc.annual_generation or 0) }} {{ _("kWh/yr") }}</dd>
       </div>
     </dl>
     <a class="saved-location-link" href="{{ url_for('pages.report', location_id=loc.id) }}">{{ _('Open report') }} <span aria-hidden="true">→</span></a>

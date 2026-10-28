@@ -116,6 +116,38 @@ Check imports, scripts, Docker, report generation, and tests before removing a p
 - Root performance/PRD documents are historical records.
 - Update affected documentation and verify relative links with every structural or contract change.
 
+## English and Hindi localization
+
+Flask-Babel owns the selected locale. A valid session choice takes precedence,
+then the signed-in account preference, then English. `/language/en` and
+`/language/hi` save the selection; authenticated choices are also saved to the
+account. AJAX requests use the same session.
+
+Use `_('English message')` in Jinja/Python and `window.SignixI18n.t('English message',
+{name: value})` in browser JavaScript. Use named `%(name)s` placeholders for dynamic
+text. The base template serializes the active compiled catalog safely using
+`tojson` before application scripts load. Translate application labels explicitly;
+never translate addresses, user-entered names, stored enum keys, or map-provider labels.
+Known saved enum labels use the `ui_label` Jinja filter. `app/localization.py`
+registers these messages with the `N_` extraction marker.
+
+After changing UI copy, use the project's virtual environment:
+
+```powershell
+pybabel extract -F babel.cfg -k t -k roofText -k N_ -o translations/messages.pot .
+pybabel update -i translations/messages.pot -d translations --no-fuzzy-matching
+# Review and translate every new/fuzzy entry in the Hindi PO before compiling.
+pybabel compile -d translations --statistics
+python scripts/validate_translations.py
+```
+
+Commit both the reviewed PO and compiled MO when publishing a translation change.
+Vendor JavaScript is excluded from extraction; Leaflet controls are localized
+through their supported locale configuration in `map.js`. Packaged Devanagari
+fonts are used for Hindi UI and PDFs. PDF generation forces the selected Babel
+locale for both rendering paths. Proper names, external map data, and user text
+are intentionally retained as supplied.
+
 ## Deployment changes
 
 Validate `Dockerfile`, `docker-entrypoint.sh`, and Compose paths together. The image build context is the repository root. CI validates source and tests but does not build the image or deploy it. No Render manifest currently exists.

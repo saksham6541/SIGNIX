@@ -84,8 +84,8 @@
     }
     if (empty) {
       const messageTarget = empty.querySelector('[data-chart-empty-message]');
-      if (messageTarget) messageTarget.textContent = message;
-      else empty.textContent = message;
+      if (messageTarget) messageTarget.textContent = window.SignixI18n.t(message);
+      else empty.textContent = window.SignixI18n.t(message);
       empty.classList.remove('hidden');
     }
     const visual = (canvas || empty)?.closest('.report-visual');
@@ -109,7 +109,7 @@
       ['financingComparisonChart', 'financing-chart-empty'],
     ];
     states.forEach(([canvasId, messageId]) => {
-      if (messageId) unavailable(canvasId, messageId, 'Chart rendering is temporarily unavailable.');
+      if (messageId) unavailable(canvasId, messageId, window.SignixI18n.t('Chart rendering is temporarily unavailable.'));
       else document.getElementById(canvasId)?.parentElement?.classList.add('chart-frame-unavailable');
     });
   }
@@ -135,9 +135,9 @@
       replace('monthly', 'monthlyGenerationChart', {
         type: 'bar',
         data: {
-          labels: monthly.map(item => item.month),
+          labels: monthly.map(item => window.SignixI18n.t(item.month)),
           datasets: [{
-            label: 'Solar generation',
+            label: window.SignixI18n.t('Solar generation'),
             data: monthly.map(item => item.generation_kwh),
             backgroundColor: palette.amber,
             borderRadius: 5,
@@ -147,7 +147,7 @@
         options: baseOptions({ plugins: { legend: { display: false }, tooltip: tooltip('kWh') } }),
       });
     } else {
-      unavailable('monthlyGenerationChart', 'monthly-chart-empty', 'Monthly generation data is unavailable for this estimate.');
+      unavailable('monthlyGenerationChart', 'monthly-chart-empty', window.SignixI18n.t('Monthly generation data is unavailable for this estimate.'));
     }
 
     const generation = energy.generation_25yr || [];
@@ -155,15 +155,15 @@
       available('generation25yrChart', 'gen25-chart-empty');
       replace('generation25', 'generation25yrChart', {
         data: {
-          labels: generation.map((_, index) => `Year ${index + 1}`),
+          labels: generation.map((_, index) => window.SignixI18n.t('Year %(year)s', { year: index + 1 })),
           datasets: [
             {
-              type: 'bar', label: 'Annual generation', data: generation,
+              type: 'bar', label: window.SignixI18n.t('Annual generation'), data: generation,
               borderColor: palette.amber, backgroundColor: palette.amberSoft,
               borderWidth: 1, borderRadius: 3, yAxisID: 'y',
             },
             {
-              type: 'line', label: 'Cumulative generation',
+              type: 'line', label: window.SignixI18n.t('Cumulative generation'),
               data: energy.cumulative_generation_25yr || [], borderColor: palette.green,
               pointRadius: 1.5, pointHoverRadius: 5, tension: .18, yAxisID: 'y1',
             },
@@ -173,13 +173,13 @@
           plugins: { legend: { position: 'bottom' }, tooltip: tooltip('kWh') },
           scales: {
             x: { grid: { display: false }, ticks: { maxTicksLimit: 13 } },
-            y: { beginAtZero: false, position: 'left', grid: { color: palette.grid }, title: { display: true, text: 'Annual kWh' } },
-            y1: { beginAtZero: true, position: 'right', grid: { display: false }, title: { display: true, text: 'Cumulative kWh' } },
+            y: { beginAtZero: false, position: 'left', grid: { color: palette.grid }, title: { display: true, text: window.SignixI18n.t('Annual kWh') } },
+            y1: { beginAtZero: true, position: 'right', grid: { display: false }, title: { display: true, text: window.SignixI18n.t('Cumulative kWh') } },
           },
         }),
       });
     } else {
-      unavailable('generation25yrChart', 'gen25-chart-empty', 'The 25-year generation series is unavailable.');
+      unavailable('generation25yrChart', 'gen25-chart-empty', window.SignixI18n.t('The 25-year generation series is unavailable.'));
     }
 
     const flow = data.energy_flow || {};
@@ -188,9 +188,9 @@
       replace('flow', 'energyFlowChart', {
         type: 'bar',
         data: {
-          labels: ['Solar generated', 'Self-consumed', 'Grid export', 'Grid import'],
+          labels: [window.SignixI18n.t('Solar generated'), window.SignixI18n.t('Self-consumed'), window.SignixI18n.t('Grid export'), window.SignixI18n.t('Grid import')],
           datasets: [{
-            label: 'Annual energy',
+            label: window.SignixI18n.t('Annual energy'),
             data: [flow.solar_generation_kwh, flow.self_consumed_kwh, flow.grid_export_kwh, flow.grid_import_kwh],
             backgroundColor: [palette.amber, palette.green, palette.violet, palette.coral],
             borderRadius: 5,
@@ -202,7 +202,7 @@
         }),
       });
     } else {
-      unavailable('energyFlowChart', 'energy-flow-empty', flow.reason || 'Energy-flow data is unavailable.');
+      unavailable('energyFlowChart', 'energy-flow-empty', flow.reason || window.SignixI18n.t('Energy-flow data is unavailable.'));
     }
 
     const consumption = data.consumption || {};
@@ -211,16 +211,16 @@
       replace('consumption', 'consumptionGenerationChart', {
         type: 'bar',
         data: {
-          labels: monthly.map(item => item.month),
+          labels: monthly.map(item => window.SignixI18n.t(item.month)),
           datasets: [
-            { label: 'Solar generation', data: monthly.map(item => item.generation_kwh), backgroundColor: palette.amber, borderRadius: 4 },
-            { label: 'Consumption', data: consumption.monthly_consumption, backgroundColor: palette.violet, borderRadius: 4 },
+            { label: window.SignixI18n.t('Solar generation'), data: monthly.map(item => item.generation_kwh), backgroundColor: palette.amber, borderRadius: 4 },
+            { label: window.SignixI18n.t('Consumption'), data: consumption.monthly_consumption, backgroundColor: palette.violet, borderRadius: 4 },
           ],
         },
         options: baseOptions({ plugins: { legend: { position: 'bottom' }, tooltip: tooltip('kWh') } }),
       });
     } else {
-      unavailable('consumptionGenerationChart', 'consumption-chart-empty', consumption.unavailable_reason || 'A monthly consumption profile is unavailable.');
+      unavailable('consumptionGenerationChart', 'consumption-chart-empty', consumption.unavailable_reason || window.SignixI18n.t('A monthly consumption profile is unavailable.'));
     }
 
     const bill = data.monthly_bill_impact || {};
@@ -229,9 +229,9 @@
       replace('bill', 'monthlyBillChart', {
         type: 'bar',
         data: {
-          labels: ['Current bill', 'With solar', 'Savings'],
+          labels: [window.SignixI18n.t('Current bill'), window.SignixI18n.t('With solar'), window.SignixI18n.t('Savings')],
           datasets: [{
-            label: 'Representative month',
+            label: window.SignixI18n.t('Representative month'),
             data: [bill.current_bill, bill.estimated_bill_with_solar, bill.savings],
             backgroundColor: [palette.coral, palette.ink, palette.green],
             borderRadius: 5,
@@ -240,7 +240,7 @@
         options: baseOptions({ plugins: { legend: { display: false }, tooltip: tooltip('', money) } }),
       });
     } else {
-      unavailable('monthlyBillChart', 'monthly-bill-empty', bill.reason || 'Monthly bill impact is unavailable.');
+      unavailable('monthlyBillChart', 'monthly-bill-empty', bill.reason || window.SignixI18n.t('Monthly bill impact is unavailable.'));
     }
   }
 
@@ -250,10 +250,10 @@
     replace('roof', 'roofUtilizationChart', {
       type: 'bar',
       data: {
-        labels: ['Selected roof'],
+        labels: [window.SignixI18n.t('Selected roof')],
         datasets: [
-          { label: 'Usable area', data: [roof.usable_area_sqm], backgroundColor: palette.green, borderRadius: 5 },
-          { label: 'Manual obstructions', data: [roof.obstruction_area_sqm], backgroundColor: palette.coral, borderRadius: 5 },
+          { label: window.SignixI18n.t('Usable area'), data: [roof.usable_area_sqm], backgroundColor: palette.green, borderRadius: 5 },
+          { label: window.SignixI18n.t('Manual obstructions'), data: [roof.obstruction_area_sqm], backgroundColor: palette.coral, borderRadius: 5 },
         ],
       },
       options: baseOptions({
@@ -270,13 +270,13 @@
   function renderFinancial(data) {
     const financial = data.financial || {};
     if (financial.available === false || !financial.cumulative_cashflow) {
-      unavailable('cashflowChart', 'cashflow-chart-empty', financial.reason || 'Cashflow data is unavailable.');
-      unavailable('annualSavingsChart', 'annual-savings-empty', financial.reason || 'Annual savings data is unavailable.');
+      unavailable('cashflowChart', 'cashflow-chart-empty', financial.reason || window.SignixI18n.t('Cashflow data is unavailable.'));
+      unavailable('annualSavingsChart', 'annual-savings-empty', financial.reason || window.SignixI18n.t('Annual savings data is unavailable.'));
       return;
     }
     available('cashflowChart', 'cashflow-chart-empty');
     available('annualSavingsChart', 'annual-savings-empty');
-    const labels = ['Year 0', ...(financial.years || []).map(year => `Year ${year}`)];
+    const labels = [window.SignixI18n.t('Year 0'), ...(financial.years || []).map(year => window.SignixI18n.t('Year %(year)s', { year }))];
     const cashflow = [-financial.initial_investment, ...financial.cumulative_cashflow];
     const breakEvenIndex = cashflow.findIndex(value => value >= 0);
     replace('cashflow', 'cashflowChart', {
@@ -284,7 +284,7 @@
       data: {
         labels,
         datasets: [{
-          label: 'Cumulative cashflow',
+          label: window.SignixI18n.t('Cumulative cashflow'),
           data: cashflow,
           borderColor: palette.green,
           backgroundColor: palette.greenSoft,
@@ -305,10 +305,10 @@
 
     replace('annualSavings', 'annualSavingsChart', {
       data: {
-        labels: financial.years.map(year => `Y${year}`),
+        labels: financial.years.map(year => window.SignixI18n.t('Year %(year)s', { year })),
         datasets: [
-          { type: 'bar', label: 'Annual operating benefit after O&M', data: financial.annual_savings, backgroundColor: palette.amberSoft, borderColor: palette.amber, borderWidth: 1, borderRadius: 3, yAxisID: 'y' },
-          { type: 'line', label: 'Cumulative operating benefit after O&M', data: financial.cumulative_savings, borderColor: palette.green, pointRadius: 1.5, tension: .2, yAxisID: 'y1' },
+          { type: 'bar', label: window.SignixI18n.t('Annual operating benefit after O&M'), data: financial.annual_savings, backgroundColor: palette.amberSoft, borderColor: palette.amber, borderWidth: 1, borderRadius: 3, yAxisID: 'y' },
+          { type: 'line', label: window.SignixI18n.t('Cumulative operating benefit after O&M'), data: financial.cumulative_savings, borderColor: palette.green, pointRadius: 1.5, tension: .2, yAxisID: 'y1' },
         ],
       },
       options: baseOptions({
@@ -322,13 +322,13 @@
     });
 
     const donutValues = [Number(typeof NET_INVESTMENT !== 'undefined' ? NET_INVESTMENT : 0)];
-    const donutLabels = ['Net investment'];
+    const donutLabels = [window.SignixI18n.t('Net investment')];
     if (typeof PSG_GUIDANCE_ALLOWED !== 'undefined' && PSG_GUIDANCE_ALLOWED) {
       donutValues.push(Number(typeof SUBSIDY_AMOUNT !== 'undefined' ? SUBSIDY_AMOUNT : 0));
-      donutLabels.push('Subsidy');
+      donutLabels.push(window.SignixI18n.t('Subsidy'));
     }
     if (typeof BATTERY_COST !== 'undefined' && BATTERY_COST > 0) {
-      donutLabels.push('Battery');
+      donutLabels.push(window.SignixI18n.t('Battery'));
       donutValues.push(BATTERY_COST);
     }
     replace('donut', 'financialDonutChart', {
@@ -340,19 +340,19 @@
     const cost = data.electricity_cost || {};
     if (cost.available) {
       available('electricityCostChart', 'electricity-cost-empty');
-      const labelsCost = ['Grid only', 'Solar + CAPEX'];
+      const labelsCost = [window.SignixI18n.t('Grid only'), window.SignixI18n.t('Solar + CAPEX')];
       const values = [cost.grid_only_lifetime_cost, cost.solar_capex_lifetime_cost];
       if (cost.solar_dpa_lifetime_cost != null) {
-        labelsCost.push('Solar + DPA');
+        labelsCost.push(window.SignixI18n.t('Solar + DPA'));
         values.push(cost.solar_dpa_lifetime_cost);
       }
       replace('cost', 'electricityCostChart', {
         type: 'bar',
-        data: { labels: labelsCost, datasets: [{ label: '25-year cost', data: values, backgroundColor: [palette.coral, palette.green, palette.violet], borderRadius: 5 }] },
+        data: { labels: labelsCost, datasets: [{ label: window.SignixI18n.t('25-year cost'), data: values, backgroundColor: [palette.coral, palette.green, palette.violet], borderRadius: 5 }] },
         options: baseOptions({ plugins: { legend: { display: false }, tooltip: tooltip('', money) } }),
       });
     } else {
-      unavailable('electricityCostChart', 'electricity-cost-empty', cost.reason || 'Electricity-cost comparison is unavailable.');
+      unavailable('electricityCostChart', 'electricity-cost-empty', cost.reason || window.SignixI18n.t('Electricity-cost comparison is unavailable.'));
     }
 
     const financing = data.financing || {};
@@ -361,16 +361,16 @@
       replace('financing', 'financingComparisonChart', {
         type: 'line',
         data: {
-          labels: financing.years.map(year => `Y${year}`),
+          labels: financing.years.map(year => window.SignixI18n.t('Year %(year)s', { year })),
           datasets: [
-            { label: 'CAPEX cumulative position', data: financing.capex.cumulative_cashflow, borderColor: palette.green, pointRadius: 1.5, tension: .2 },
-            { label: 'DPA cumulative position', data: financing.dpa.cumulative_cashflow, borderColor: palette.violet, pointRadius: 1.5, tension: .2 },
+            { label: window.SignixI18n.t('CAPEX cumulative position'), data: financing.capex.cumulative_cashflow, borderColor: palette.green, pointRadius: 1.5, tension: .2 },
+            { label: window.SignixI18n.t('DPA cumulative position'), data: financing.dpa.cumulative_cashflow, borderColor: palette.violet, pointRadius: 1.5, tension: .2 },
           ],
         },
         options: baseOptions({ plugins: { legend: { position: 'bottom' }, tooltip: tooltip('', money) }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 13 } }, y: { grid: { color: palette.grid }, ticks: { callback: money } } } }),
       });
     } else {
-      unavailable('financingComparisonChart', 'financing-chart-empty', financing.reason || 'Financing comparison data is unavailable.');
+      unavailable('financingComparisonChart', 'financing-chart-empty', financing.reason || window.SignixI18n.t('Financing comparison data is unavailable.'));
     }
   }
 
@@ -416,7 +416,7 @@
   }
 
   function formatYears(value) {
-    return value == null ? '—' : `${number(value, 1)} yrs`;
+    return value == null ? '—' : window.SignixI18n.t('%(years)s yrs', { years: number(value, 1) });
   }
 
   function updateFinancingValues(comparison, chartData) {
@@ -425,7 +425,7 @@
     setText('fc-capex-dp', money(capex.down_payment));
     setText('fc-dpa-dp', money(dpa.down_payment));
     setText('fc-dpa-loan', money(dpa.loan_amount));
-    setText('fc-dpa-tenure', `${number(dpa.tenure_years)} years`);
+    setText('fc-dpa-tenure', window.SignixI18n.t('%(years)s years', { years: number(dpa.tenure_years) }));
     setText('fc-dpa-rate', `${number(dpa.annual_rate_pct, 1)}% p.a.`);
     setText('fc-dpa-emi', money(dpa.monthly_emi));
     setText('fc-dpa-annual', money(dpa.annual_emi));
@@ -486,13 +486,13 @@
           body: JSON.stringify(payload),
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Financing preview failed');
+        if (!response.ok) throw new Error(result.error || window.SignixI18n.t('Financing preview failed'));
         if (sequence !== requestSequence) return;
         updateFinancingValues(result.financing_comparison, result.chart_data);
         window.SIGNIX_REPORT_CHARTS.update(result.chart_data);
-        statusText('Preview updated — estimate inputs unchanged', 'success');
+        statusText(window.SignixI18n.t('Preview updated — estimate inputs unchanged'), 'success');
       } catch (error) {
-        if (sequence === requestSequence) statusText(error.message || 'Unable to update financing preview', 'error');
+        if (sequence === requestSequence) statusText(error.message || window.SignixI18n.t('Unable to update financing preview'), 'error');
       }
     }
 

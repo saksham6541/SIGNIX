@@ -1,4 +1,28 @@
 /* SIGNIX design system — SIH 2026 */
+@font-face {
+  font-family: "SIGNIX Devanagari";
+  src: url("../fonts/NotoSansDevanagari-Regular.ttf") format("truetype");
+  font-display: swap;
+  font-weight: 400;
+}
+html[lang="hi"] body {
+  font-family: "SIGNIX Devanagari", "Segoe UI", sans-serif;
+}
+html[lang="hi"] .roof3d-viewbar button,
+html[lang="hi"] .roof3d-inspector-action,
+html[lang="hi"] .roof3d-layer,
+html[lang="hi"] .roof3d-layout-mode-field select {
+  font-family: inherit;
+  line-height: 1.65;
+}
+html[lang="hi"] .roof3d-inspector-label,
+html[lang="hi"] .scenario-card-index {
+  letter-spacing: normal;
+}
+html[lang="hi"] .map-toolbar,
+html[lang="hi"] .compare-picker-actions {
+  flex-wrap: wrap;
+}
 :root {
   --indigo: #2A1733;
   --indigo-deep: #1D1A20;

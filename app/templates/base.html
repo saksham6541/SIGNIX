@@ -17,6 +17,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script type="application/json" id="signix-translations">{{ client_translations|tojson }}</script>
+  <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
   {% block head %}{% endblock %}
 </head>
 <body class="ignix-body {% block body_class %}{% endblock %}">
@@ -119,9 +121,9 @@
         {% block top_bar_nav %}{% endblock %}
         <div class="top-bar-right">
           <span class="language-switcher" aria-label="{{ _('Language') }}">
-            <a href="{{ url_for('auth.set_language', language='en') }}" class="auth-link {% if get_locale() == 'en' %}active{% endif %}">EN</a>
+            <a href="{{ url_for('auth.set_language', language='en') }}" class="auth-link {% if get_locale()|string == 'en' %}active{% endif %}">EN</a>
             <span aria-hidden="true">/</span>
-            <a href="{{ url_for('auth.set_language', language='hi') }}" class="auth-link {% if get_locale() == 'hi' %}active{% endif %}">हिंदी</a>
+            <a href="{{ url_for('auth.set_language', language='hi') }}" class="auth-link {% if get_locale()|string == 'hi' %}active{% endif %}">हिंदी</a>
           </span>
           {% if current_user.is_authenticated %}
           <div class="user-chip">

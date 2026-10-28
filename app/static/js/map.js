@@ -22,13 +22,25 @@ const SignixMapStore = {
 };
 
 function initMap() {
+  const t = window.SignixI18n.t;
+  // Leaflet.Draw reads its locale when each drawing controller is created.
+  L.drawLocal.draw.toolbar.actions = { title: t('Cancel drawing'), text: t('Cancel') };
+  L.drawLocal.draw.toolbar.finish = { title: t('Finish drawing'), text: t('Finish') };
+  L.drawLocal.draw.toolbar.undo = { title: t('Delete last point'), text: t('Delete last point') };
+  L.drawLocal.draw.handlers.polygon.tooltip = {
+    start: t('Click to start drawing the roof boundary.'),
+    cont: t('Click to continue drawing the boundary.'),
+    end: t('Click the first point to finish the boundary.'),
+  };
+  L.drawLocal.draw.handlers.polyline.error = t('Boundary edges must not cross.');
   // maxZoom 21 for Google satellite (often has detail past Esri's limit in
   // Indian cities). Esri is capped at 19 so it never requests the grey
   // "Map data not yet available" placeholder tiles.
-  SignixMapStore.map = L.map('map', { maxZoom: 21, minZoom: 3 }).setView(
+  SignixMapStore.map = L.map('map', { maxZoom: 21, minZoom: 3, zoomControl: false }).setView(
     [SignixMapStore.currentCenter.lat, SignixMapStore.currentCenter.lng],
     18
   );
+  L.control.zoom({ zoomInTitle: t('Zoom in'), zoomOutTitle: t('Zoom out') }).addTo(SignixMapStore.map);
 
   const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 21,
@@ -84,10 +96,10 @@ function initMap() {
 
   L.control.layers(
     {
-      'Satellite (Google)': googleSat,
-      'Hybrid (Google)': googleHybrid,
-      'Satellite (Esri)': esriSatellite,
-      'Street Map': streetLayer
+      [t('Satellite (Google)')]: googleSat,
+      [t('Hybrid (Google)')]: googleHybrid,
+      [t('Satellite (Esri)')]: esriSatellite,
+      [t('Street Map')]: streetLayer
     },
     {},
     { position: 'topright', collapsed: false }
@@ -161,15 +173,15 @@ function initMap() {
     recalculateAreas();
     setMapFeedback(
       SignixMapStore.currentMode === 'roof'
-        ? 'Roof boundary saved for this estimate. You can now mark obstructions.'
-        : 'Obstruction added and excluded from the usable-area readout.',
+        ? t('Roof boundary saved for this estimate. You can now mark obstructions.')
+        : window.SignixI18n.t('Obstruction added and excluded from the usable-area readout.'),
       'success'
     );
   });
 
   SignixMapStore.map.on(L.Draw.Event.DRAWSTART, function () {
     document.getElementById('cancel-draw-btn')?.classList.remove('hidden');
-    setMapFeedback('Click each roof corner, then click the first point to finish.', 'neutral');
+    setMapFeedback(window.SignixI18n.t('Click each roof corner, then click the first point to finish.'), 'neutral');
   });
   SignixMapStore.map.on(L.Draw.Event.DRAWSTOP, function () {
     document.getElementById('cancel-draw-btn')?.classList.add('hidden');
@@ -295,8 +307,8 @@ function recalculateAreas() {
   const status = document.getElementById('estimate-action-status');
   if (status) {
     status.textContent = SignixMapStore.roofPolygonLatLngs
-      ? 'Roof boundary ready. Review the assumptions, then start the estimate.'
-      : 'Draw a roof boundary to enable the estimate.';
+      ? window.SignixI18n.t('Roof boundary ready. Review the assumptions, then start the estimate.')
+      : window.SignixI18n.t('Draw a roof boundary to enable the estimate.');
     status.className = `estimate-action-status is-${SignixMapStore.roofPolygonLatLngs ? 'ready' : 'neutral'}`;
   }
 }
@@ -305,10 +317,10 @@ function updateAreaReadout(roofArea, obstructedArea, usableArea, systemSizeKw) {
   const el = document.getElementById('area-readout');
   if (!el) return;
   el.innerHTML =
-    `Total roof: <strong>${roofArea.toFixed(2)} m²</strong> &nbsp;-&nbsp; ` +
-    `Obstructed: <strong>${obstructedArea.toFixed(2)} m²</strong> &nbsp;=&nbsp; ` +
-    `Usable: <strong>${usableArea.toFixed(2)} m²</strong> &nbsp;|&nbsp; ` +
-    `Est. system size: <strong>${systemSizeKw.toFixed(2)} kW</strong>`;
+    `${window.SignixI18n.t('Total roof')}: <strong>${roofArea.toFixed(2)} m²</strong> &nbsp;-&nbsp; ` +
+    `${window.SignixI18n.t('Obstructed')}: <strong>${obstructedArea.toFixed(2)} m²</strong> &nbsp;=&nbsp; ` +
+    `${window.SignixI18n.t('Usable')}: <strong>${usableArea.toFixed(2)} m²</strong> &nbsp;|&nbsp; ` +
+    `${window.SignixI18n.t('Est. system size')}: <strong>${systemSizeKw.toFixed(2)} kW</strong>`;
 }
 
 function setMode(mode) {
@@ -335,7 +347,7 @@ function startDrawing() {
     SignixMapStore.roofDrawer.enable();
   } else {
     if (!SignixMapStore.roofPolygonLatLngs) {
-      setMapFeedback('Draw the rooftop boundary first, then mark obstructions inside it.', 'error');
+      setMapFeedback(window.SignixI18n.t('Draw the rooftop boundary first, then mark obstructions inside it.'), 'error');
       setMode('roof');
       return;
     }
@@ -347,14 +359,14 @@ function cancelDrawing() {
   SignixMapStore.roofDrawer?.disable();
   SignixMapStore.obstructionDrawer?.disable();
   document.getElementById('cancel-draw-btn')?.classList.add('hidden');
-  setMapFeedback('Drawing cancelled. Existing roof and obstruction markings were kept.', 'neutral');
+  setMapFeedback(window.SignixI18n.t('Drawing cancelled. Existing roof and obstruction markings were kept.'), 'neutral');
 }
 
 function clearObstructions() {
   SignixMapStore.obstructionLayerGroup.clearLayers();
   SignixMapStore.obstructionPolygons = [];
   recalculateAreas();
-  setMapFeedback('All obstruction markings were cleared.', 'neutral');
+  setMapFeedback(window.SignixI18n.t('All obstruction markings were cleared.'), 'neutral');
 }
 
 function clearAll() {
@@ -363,7 +375,7 @@ function clearAll() {
   SignixMapStore.roofPolygonLatLngs = null;
   SignixMapStore.obstructionPolygons = [];
   recalculateAreas();
-  setMapFeedback('Roof boundary and obstruction markings were cleared.', 'neutral');
+  setMapFeedback(window.SignixI18n.t('Roof boundary and obstruction markings were cleared.'), 'neutral');
 }
 
 // NASA GIBS imagery typically lags ~1-2 days behind real time; step back a
@@ -397,13 +409,13 @@ function setMapCenter(lat, lng, zoom, address) {
     SignixMapStore.locationMarker.setLatLng([lat, lng]);
   } else {
     SignixMapStore.locationMarker = L.marker([lat, lng], {
-      title: 'Selected location',
+      title: window.SignixI18n.t('Selected location'),
       riseOnHover: true,
     }).addTo(SignixMapStore.map);
   }
   const popup = document.createElement('div');
   const popupTitle = document.createElement('strong');
-  popupTitle.textContent = address || 'Selected location';
+  popupTitle.textContent = address || window.SignixI18n.t('Selected location');
   const popupCoords = document.createElement('span');
   popupCoords.className = 'map-popup-coordinates';
   popupCoords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;

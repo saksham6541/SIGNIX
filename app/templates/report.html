@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_suitability_rating.html" import rating_display %}
-{% block title %}SIGNIX — Detailed Report{% endblock %}
+{% block title %}{{ _("SIGNIX — Detailed Report") }}{% endblock %}
 
 {% block content %}
 <section class="rpt-header" aria-labelledby="rpt-title">
@@ -14,8 +14,8 @@
           {% set source_label = 'NASA POWER' if loc.irradiance_source == 'nasa_power' else 'PVGIS' if loc.irradiance_source == 'pvgis' else _('Mock data') if loc.irradiance_source in ('mock', 'mock_fallback') else loc.irradiance_source %}
           {{ _('Data source: %(source)s', source=source_label) }}
         {% endif %}
-        {% if loc.orientation_label %} · {{ _('Orientation: %(orientation)s', orientation=loc.orientation_label) }}{% endif %}
-        {% if loc.inverter_type %} · {{ _('Inverter: %(inverter)s', inverter=loc.inverter_type) }}{% endif %}
+        {% if loc.orientation_label %} · {{ _('Orientation: %(orientation)s', orientation=loc.orientation_label|ui_label) }}{% endif %}
+        {% if loc.inverter_type %} · {{ _('Inverter: %(inverter)s', inverter=loc.inverter_type|ui_label) }}{% endif %}
       </p>
     </div>
     <a class="rpt-primary-download" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='summary') }}">
@@ -74,81 +74,81 @@
     </div>
 
     <div class="roof3d-workspace">
-      <aside class="roof3d-inspector" aria-label="Rooftop model information">
+      <aside class="roof3d-inspector" aria-label="{{ _('Rooftop model information') }}">
         <section>
-          <span class="roof3d-inspector-label">ROOF SURFACES</span>
-          <div id="roof3d-surface-list"><p class="roof3d-empty">Loading roof surfaces…</p></div>
+          <span class="roof3d-inspector-label">{{ _("ROOF SURFACES") }}</span>
+          <div id="roof3d-surface-list"><p class="roof3d-empty">{{ _("Loading roof surfaces…") }}</p></div>
         </section>
         <section>
-          <span class="roof3d-inspector-label">DETECTED STRUCTURES</span>
-          <div id="roof3d-structure-list"><p class="roof3d-empty">Loading structures…</p></div>
+          <span class="roof3d-inspector-label">{{ _("DETECTED STRUCTURES") }}</span>
+          <div id="roof3d-structure-list"><p class="roof3d-empty">{{ _("Loading structures…") }}</p></div>
         </section>
         <section>
-          <span class="roof3d-inspector-label">ORIENTATION</span>
-          <div class="roof3d-north-row"><span>True north</span><strong>0° N</strong></div>
-          <label class="roof3d-azimuth-field" for="roof3d-panel-azimuth"><span>Panel orientation</span><span><input id="roof3d-panel-azimuth" type="number" min="0" max="359" step="1" value="{{ loc.orientation_deg if loc.orientation_deg is not none else 180 }}">°</span></label>
-          <button type="button" id="roof3d-orientation-apply" class="roof3d-inspector-action" disabled>Apply orientation</button>
-          <button type="button" id="roof3d-orientation-undo" class="roof3d-inspector-action secondary">Reset orientation</button>
+          <span class="roof3d-inspector-label">{{ _("ORIENTATION") }}</span>
+          <div class="roof3d-north-row"><span>{{ _("True north") }}</span><strong>{{ _("0° N") }}</strong></div>
+          <label class="roof3d-azimuth-field" for="roof3d-panel-azimuth"><span>{{ _("Panel orientation") }}</span><span><input id="roof3d-panel-azimuth" type="number" min="0" max="359" step="1" value="{{ loc.orientation_deg if loc.orientation_deg is not none else 180 }}">°</span></label>
+          <button type="button" id="roof3d-orientation-apply" class="roof3d-inspector-action" disabled>{{ _("Apply orientation") }}</button>
+          <button type="button" id="roof3d-orientation-undo" class="roof3d-inspector-action secondary">{{ _("Reset orientation") }}</button>
         </section>
         <section>
-          <span class="roof3d-inspector-label">PANEL LAYOUT POLICY</span>
+          <span class="roof3d-inspector-label">{{ _("PANEL LAYOUT POLICY") }}</span>
           <label class="roof3d-layout-mode-field" for="roof3d-layout-mode">
-            <span>Placement mode</span>
+            <span>{{ _("Placement mode") }}</span>
             <select id="roof3d-layout-mode">
-              <option value="planning_preview">Planning preview</option>
-              <option value="conservative">Conservative layout</option>
+              <option value="planning_preview">{{ _("Planning preview") }}</option>
+              <option value="conservative">{{ _("Conservative layout") }}</option>
             </select>
           </label>
-          <small class="roof3d-layout-help">Switching mode changes only the preview. Only explicit acceptance can update the saved estimate.</small>
-          <button type="button" id="roof3d-layout-accept" class="roof3d-inspector-action" disabled>Accept visible layout</button>
-          <small id="roof3d-layout-acceptance-status" class="roof3d-layout-help" role="status" aria-live="polite">Preview only — not accepted.</small>
+          <small class="roof3d-layout-help">{{ _("Switching mode changes only the preview. Only explicit acceptance can update the saved estimate.") }}</small>
+          <button type="button" id="roof3d-layout-accept" class="roof3d-inspector-action" disabled>{{ _("Accept visible layout") }}</button>
+          <small id="roof3d-layout-acceptance-status" class="roof3d-layout-help" role="status" aria-live="polite">{{ _("Preview only — not accepted.") }}</small>
           {% if loc.extras and loc.extras.surface_generation_status == 'stale' %}
-          <small class="roof3d-layout-help">Per-surface generation is stale because rooftop or shade inputs changed. Accept a current layout before using it.</small>
+          <small class="roof3d-layout-help">{{ _("Per-surface generation is stale because rooftop or shade inputs changed. Accept a current layout before using it.") }}</small>
           {% elif loc.extras and loc.extras.surface_generation %}
-          <small class="roof3d-layout-help">Generation: {{ loc.extras.surface_generation.surface_count }} accepted surface{% if loc.extras.surface_generation.surface_count != 1 %}s{% endif %} · {{ (loc.extras.surface_generation.model or 'fallback')|replace('_', ' ') }}. Qualitative shade is not converted to a numeric loss.</small>
+          <small class="roof3d-layout-help">{{ _('Generation: %(count)s accepted surfaces', count=loc.extras.surface_generation.surface_count) }} · {{ (loc.extras.surface_generation.model or 'fallback')|replace('_', ' ') }}{{ _(". Qualitative shade is not converted to a numeric loss.") }}</small>
           {% endif %}
         </section>
         <section>
-          <span class="roof3d-inspector-label">LAYERS</span>
-          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="roof-planes" checked> Roof planes</label>
-          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="shade-overlay" checked> Roof classification</label>
-          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="panels" checked> Panels</label>
-          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="structures" checked> Structures</label>
-          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="boundary" checked> Boundary</label>
-          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="context" checked> Ground context</label>
-          <div class="roof3d-shade-legend" aria-label="Roof classification legend">
-            <span><i class="usable"></i>Usable</span><span><i class="shaded"></i>Shaded</span>
-            <span><i class="setback"></i>Setback</span><span><i class="obstruction"></i>Obstruction</span>
-            <span><i class="unknown"></i>Unknown</span>
-            <span><i class="verified-panel"></i>Verified panel</span><span><i class="preview-panel"></i>Preview panel</span>
+          <span class="roof3d-inspector-label">{{ _("LAYERS") }}</span>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="roof-planes" checked> {{ _("Roof planes") }}</label>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="shade-overlay" checked> {{ _("Roof classification") }}</label>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="panels" checked> {{ _("Panels") }}</label>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="structures" checked> {{ _("Structures") }}</label>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="boundary" checked> {{ _("Boundary") }}</label>
+          <label class="roof3d-layer"><input type="checkbox" data-roof3d-layer="context" checked> {{ _("Ground context") }}</label>
+          <div class="roof3d-shade-legend" aria-label="{{ _('Roof classification legend') }}">
+            <span><i class="usable"></i>{{ _("Usable") }}</span><span><i class="shaded"></i>{{ _("Shaded") }}</span>
+            <span><i class="setback"></i>{{ _("Setback") }}</span><span><i class="obstruction"></i>{{ _("Obstruction") }}</span>
+            <span><i class="unknown"></i>{{ _("Unknown") }}</span>
+            <span><i class="verified-panel"></i>{{ _("Verified panel") }}</span><span><i class="preview-panel"></i>{{ _("Preview panel") }}</span>
           </div>
         </section>
       </aside>
 
       <div class="roof3d-stage" id="roof3d-stage">
-        <div class="roof3d-viewbar" role="group" aria-label="Rooftop view mode">
-          <button type="button" class="active" data-roof3d-view="3d" aria-pressed="true">3D Model</button>
-          <button type="button" data-roof3d-view="satellite" aria-pressed="false" disabled>Satellite</button>
-          <button type="button" data-roof3d-view="top" aria-pressed="false">Top View</button>
-          <button type="button" data-roof3d-view="wireframe" aria-pressed="false">Wireframe</button>
-          <button type="button" id="roof3d-reset-view" class="roof3d-reset-view">Reset view</button>
+        <div class="roof3d-viewbar" role="group" aria-label="{{ _('Rooftop view mode') }}">
+          <button type="button" class="active" data-roof3d-view="3d" aria-pressed="true">{{ _("3D Model") }}</button>
+          <button type="button" data-roof3d-view="satellite" aria-pressed="false" disabled>{{ _("Satellite") }}</button>
+          <button type="button" data-roof3d-view="top" aria-pressed="false">{{ _("Top View") }}</button>
+          <button type="button" data-roof3d-view="wireframe" aria-pressed="false">{{ _("Wireframe") }}</button>
+          <button type="button" id="roof3d-reset-view" class="roof3d-reset-view">{{ _("Reset view") }}</button>
         </div>
         <div id="roof-3d-container" class="roof3d-canvas-wrap">
-          <div class="roof3d-compass" aria-label="True north and panel orientation">
-            <span class="roof3d-true-north">TRUE NORTH</span>
-            <div class="roof3d-compass-ring" role="slider" tabindex="0" aria-label="Solar panel orientation" aria-valuemin="0" aria-valuemax="359" aria-valuenow="{{ loc.orientation_deg if loc.orientation_deg is not none else 180 }}">
-              <span class="c-n">N</span><span class="c-ne">NE</span><span class="c-e">E</span>
-              <span class="c-se">SE</span><span class="c-s">S</span><span class="c-sw">SW</span>
-              <span class="c-w">W</span><span class="c-nw">NW</span>
+          <div class="roof3d-compass" aria-label="{{ _('True north and panel orientation') }}">
+            <span class="roof3d-true-north">{{ _("TRUE NORTH") }}</span>
+            <div class="roof3d-compass-ring" role="slider" tabindex="0" aria-label="{{ _('Solar panel orientation') }}" aria-valuemin="0" aria-valuemax="359" aria-valuenow="{{ loc.orientation_deg if loc.orientation_deg is not none else 180 }}">
+              <span class="c-n">{{ _("N") }}</span><span class="c-ne">{{ _("NE") }}</span><span class="c-e">{{ _("E") }}</span>
+              <span class="c-se">{{ _("SE") }}</span><span class="c-s">{{ _("S") }}</span><span class="c-sw">{{ _("SW") }}</span>
+              <span class="c-w">{{ _("W") }}</span><span class="c-nw">{{ _("NW") }}</span>
               <i class="roof3d-sun" aria-hidden="true">●</i>
             </div>
           </div>
-          <div class="roof3d-orientation-pill"><strong id="roof3d-orientation">Panel orientation</strong><span id="roof3d-orientation-detail">Panels follow each reconstructed roof plane</span><small id="roof3d-orientation-factor"></small><small id="roof3d-orientation-delta"></small></div>
-          <div id="roof3d-shade-badge" class="roof3d-shade-badge" aria-live="polite">Shade analysis · waiting</div>
-          <div id="roof3d-layout-mode-badge" class="roof3d-layout-mode-badge is-preview" aria-live="polite">Planning preview — shade unverified</div>
-          <div id="roof-3d-fallback" class="hidden roof3d-fallback">3D preview unavailable on this device. Your roof geometry and system metrics remain available.</div>
+          <div class="roof3d-orientation-pill"><strong id="roof3d-orientation">{{ _("Panel orientation") }}</strong><span id="roof3d-orientation-detail">{{ _("Panels follow each reconstructed roof plane") }}</span><small id="roof3d-orientation-factor"></small><small id="roof3d-orientation-delta"></small></div>
+          <div id="roof3d-shade-badge" class="roof3d-shade-badge" aria-live="polite">{{ _("Shade analysis · waiting") }}</div>
+          <div id="roof3d-layout-mode-badge" class="roof3d-layout-mode-badge is-preview" aria-live="polite">{{ _("Planning preview — shade unverified") }}</div>
+          <div id="roof-3d-fallback" class="hidden roof3d-fallback">{{ _("3D preview unavailable on this device. Your roof geometry and system metrics remain available.") }}</div>
         </div>
-        <div class="roof3d-instruction"><span>Drag to orbit</span><span>Shift + drag to pan</span><span>Scroll to zoom</span><span class="roof3d-azimuth-help">Drag compass to orient modules</span></div>
+        <div class="roof3d-instruction"><span>{{ _("Drag to orbit") }}</span><span>{{ _("Shift + drag to pan") }}</span><span>{{ _("Scroll to zoom") }}</span><span class="roof3d-azimuth-help">{{ _("Drag compass to orient modules") }}</span></div>
       </div>
     </div>
 
@@ -159,21 +159,21 @@
       <span>{{ _('Setbacks') }} <strong id="roof3d-area-setback">—</strong></span>
       <span>{{ _('Unknown') }} <strong id="roof3d-area-unknown">—</strong></span>
     </div>
-    <p id="roof3d-shade-note" class="roof3d-shade-note">Shade classification is loading.</p>
+    <p id="roof3d-shade-note" class="roof3d-shade-note">{{ _("Shade classification is loading.") }}</p>
 
     <div class="roof3d-metrics">
-      <div class="roof3d-metric"><span>Roof area</span><strong>{% if roof_area %}{{ '%.1f'|format(roof_area|float) }} <small>m²</small>{% else %}Unavailable{% endif %}</strong></div>
-      <div class="roof3d-metric"><span>Usable area</span><strong>{% if usable_area %}{{ '%.1f'|format(usable_area|float) }} <small>m²</small>{% else %}Unavailable{% endif %}</strong></div>
-      <div class="roof3d-metric"><span>Visible layout</span><strong id="roof3d-module-count">{{ pc if pc is not none else 'Unavailable' }}{% if pc is not none %} <small>modules</small>{% endif %}</strong></div>
-      <div class="roof3d-metric"><span>Visible layout DC</span><strong id="roof3d-layout-capacity">{% if pc is not none and module_wattage %}{{ '%.2f'|format((pc|float * module_wattage|float) / 1000) }} <small>kWp</small>{% else %}Unavailable{% endif %}</strong></div>
-      <div class="roof3d-metric"><span>Selected estimate</span><strong>{% if loc.system_size %}{{ loc.system_size }} <small>kW</small>{% else %}Unavailable{% endif %}</strong></div>
-      <div class="roof3d-metric"><span>Max roof capacity</span><strong>{% if loc.roof_capacity_kw %}{{ loc.roof_capacity_kw }} <small>kW</small>{% else %}Unavailable{% endif %}</strong></div>
-      <div class="roof3d-metric"><span>Annual generation</span><strong>{% if loc.annual_generation %}<span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation) }}</span> <small>kWh/yr</small>{% else %}Unavailable{% endif %}</strong></div>
-      <div class="roof3d-metric roof3d-metric-accent"><span>Specific yield</span><strong>{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }} <small>kWh/kWp</small>{% else %}Unavailable{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Roof area") }}</span><strong>{% if roof_area %}{{ '%.1f'|format(roof_area|float) }} <small>m²</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Usable area") }}</span><strong>{% if usable_area %}{{ '%.1f'|format(usable_area|float) }} <small>m²</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Visible layout") }}</span><strong id="roof3d-module-count">{{ pc if pc is not none else 'Unavailable' }}{% if pc is not none %} <small>{{ _("modules") }}</small>{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Visible layout DC") }}</span><strong id="roof3d-layout-capacity">{% if pc is not none and module_wattage %}{{ '%.2f'|format((pc|float * module_wattage|float) / 1000) }} <small>kWp</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Selected estimate") }}</span><strong>{% if loc.system_size %}{{ loc.system_size }} <small>kW</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Max roof capacity") }}</span><strong>{% if loc.roof_capacity_kw %}{{ loc.roof_capacity_kw }} <small>kW</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
+      <div class="roof3d-metric"><span>{{ _("Annual generation") }}</span><strong>{% if loc.annual_generation %}<span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation) }}</span> <small>{{ _("kWh/yr") }}</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
+      <div class="roof3d-metric roof3d-metric-accent"><span>{{ _("Specific yield") }}</span><strong>{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }} <small>kWh/kWp</small>{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
     </div>
 
     <p class="roof3d-disclaimer">{{ _('The rooftop view is an illustrative planning aid. Your saved estimate changes only when you explicitly accept a layout.') }}</p>
-    <div class="roof3d-secondary-actions"><button type="button" class="btn btn-secondary roof3d-ai-button" id="roof-ai-btn">AI analyze structures</button><button type="button" class="btn btn-secondary roof3d-apply-button" id="roof-ai-apply-btn" disabled>Apply detected structures</button><button type="button" class="btn btn-secondary roof3d-site-button" id="roof-site-btn">Recompute roof classification</button><button type="button" class="btn btn-secondary roof3d-undo-button" id="roof-undo-btn">Reset exploration</button></div>
+    <div class="roof3d-secondary-actions"><button type="button" class="btn btn-secondary roof3d-ai-button" id="roof-ai-btn">{{ _("AI analyze structures") }}</button><button type="button" class="btn btn-secondary roof3d-apply-button" id="roof-ai-apply-btn" disabled>{{ _("Apply detected structures") }}</button><button type="button" class="btn btn-secondary roof3d-site-button" id="roof-site-btn">{{ _("Recompute roof classification") }}</button><button type="button" class="btn btn-secondary roof3d-undo-button" id="roof-undo-btn">{{ _("Reset exploration") }}</button></div>
   </div>
   <details class="rpt-accordion">
     <summary>{{ _('Technical details') }}</summary>
@@ -187,9 +187,9 @@
       <p id="roof-ai-details">{{ _('Reconstruction source and prototype details appear here when available.') }}</p>
       <div class="roof3d-classification-metrics" aria-label="{{ _('Panel layout details') }}">
         <span>{{ _('Preview panels') }} <strong id="roof3d-preview-module-count">0</strong></span>
-        <span>{{ _('Preview DC') }} <strong id="roof3d-preview-capacity">0.00 kWp</strong></span>
+        <span>{{ _('Preview DC') }} <strong id="roof3d-preview-capacity">{{ _("0.00 kWp") }}</strong></span>
         <span>{{ _('Confirmed panels') }} <strong id="roof3d-confirmed-module-count">0</strong></span>
-        <span>{{ _('Confirmed DC') }} <strong id="roof3d-confirmed-capacity">0.00 kWp</strong></span>
+        <span>{{ _('Confirmed DC') }} <strong id="roof3d-confirmed-capacity">{{ _("0.00 kWp") }}</strong></span>
         <span>{{ _('Accepted panels') }} <strong id="roof3d-accepted-module-count">—</strong></span>
         <span>{{ _('Accepted DC') }} <strong id="roof3d-accepted-capacity">—</strong></span>
       </div>
@@ -206,128 +206,128 @@
 <section class="rpt-section" id="rpt-sizing" aria-labelledby="rpt-sizing-title">
   <div class="report-section-heading"><h2 id="rpt-sizing-title">{{ _('System sizing and energy') }}</h2></div>
   <div class="dial-panel" id="dial-panel">
-    <h3 style="margin:0 0 12px;font-size:15px;color:var(--purple-dark);">Customize inputs</h3>
-    <p class="emi-help" style="margin-top:0;">Adjust dials to explore impact on system size and indicative generation. Values scale from this saved estimate (indicative).</p>
+    <h3 style="margin:0 0 12px;font-size:15px;color:var(--purple-dark);">{{ _("Customize inputs") }}</h3>
+    <p class="emi-help" style="margin-top:0;">{{ _("Adjust dials to explore impact on system size and indicative generation. Values scale from this saved estimate (indicative).") }}</p>
     <div class="dial-grid">
       <div class="dial-card" data-dial="system_size">
-        <span class="dial-title">System Size</span>
+        <span class="dial-title">{{ _("System Size") }}</span>
         <div class="dial-control">
-          <button type="button" class="dial-btn dial-minus" aria-label="Decrease">−</button>
+          <button type="button" class="dial-btn dial-minus" aria-label="{{ _('Decrease') }}">−</button>
           <div class="dial-readout"><strong id="dial-system-size">{{ loc.system_size }}</strong><small>kW</small></div>
-          <button type="button" class="dial-btn dial-plus" aria-label="Increase">+</button>
+          <button type="button" class="dial-btn dial-plus" aria-label="{{ _('Increase') }}">+</button>
         </div>
         <input type="range" class="dial-range" id="range-system-size" min="1" max="{{ [(loc.roof_capacity_kw or loc.system_size or 10)|float * 1.2, (loc.system_size or 5)|float * 1.5, 15]|max|int }}" step="0.5" value="{{ loc.system_size }}">
       </div>
       <div class="dial-card" data-dial="roof_area">
-        <span class="dial-title">Roof Area</span>
+        <span class="dial-title">{{ _("Roof Area") }}</span>
         <div class="dial-control">
-          <button type="button" class="dial-btn dial-minus" aria-label="Decrease">−</button>
+          <button type="button" class="dial-btn dial-minus" aria-label="{{ _('Decrease') }}">−</button>
           <div class="dial-readout"><strong id="dial-roof-area">{{ loc.usable_area_sqm or loc.roof_area_sqm or 0 }}</strong><small>m²</small></div>
-          <button type="button" class="dial-btn dial-plus" aria-label="Increase">+</button>
+          <button type="button" class="dial-btn dial-plus" aria-label="{{ _('Increase') }}">+</button>
         </div>
         <input type="range" class="dial-range" id="range-roof-area" min="10" max="{{ [((loc.usable_area_sqm or loc.roof_area_sqm or 50)|float * 1.5)|int, 200]|max }}" step="5" value="{{ loc.usable_area_sqm or loc.roof_area_sqm or 50 }}">
       </div>
       <div class="dial-card" data-dial="daytime_pct">
-        <span class="dial-title">Daytime Consumption</span>
+        <span class="dial-title">{{ _("Daytime Consumption") }}</span>
         <div class="dial-control">
-          <button type="button" class="dial-btn dial-minus" aria-label="Decrease">−</button>
+          <button type="button" class="dial-btn dial-minus" aria-label="{{ _('Decrease') }}">−</button>
           <div class="dial-readout"><strong id="dial-daytime-pct">{{ ((loc.self_consumption_frac or 0.75) * 100)|int }}</strong><small>%</small></div>
-          <button type="button" class="dial-btn dial-plus" aria-label="Increase">+</button>
+          <button type="button" class="dial-btn dial-plus" aria-label="{{ _('Increase') }}">+</button>
         </div>
         <input type="range" class="dial-range" id="range-daytime-pct" min="20" max="100" step="5" value="{{ ((loc.self_consumption_frac or 0.75) * 100)|int }}">
       </div>
       <div class="dial-card" data-dial="shading">
-        <span class="dial-title">Shading loss</span>
+        <span class="dial-title">{{ _("Shading loss") }}</span>
         <div class="dial-control">
-          <button type="button" class="dial-btn dial-minus" aria-label="Decrease">−</button>
+          <button type="button" class="dial-btn dial-minus" aria-label="{{ _('Decrease') }}">−</button>
           <div class="dial-readout"><strong id="dial-shading">0</strong><small>%</small></div>
-          <button type="button" class="dial-btn dial-plus" aria-label="Increase">+</button>
+          <button type="button" class="dial-btn dial-plus" aria-label="{{ _('Increase') }}">+</button>
         </div>
         <input type="range" class="dial-range" id="range-shading" min="0" max="40" step="5" value="0">
       </div>
       {% if loc.bill_sizing %}
       <div class="dial-card" data-dial="units">
-        <span class="dial-title">Units Consumed</span>
+        <span class="dial-title">{{ _("Units Consumed") }}</span>
         <div class="dial-control">
-          <button type="button" class="dial-btn dial-minus" aria-label="Decrease">−</button>
+          <button type="button" class="dial-btn dial-minus" aria-label="{{ _('Decrease') }}">−</button>
           <div class="dial-readout"><strong id="dial-units">{{ loc.bill_sizing.monthly_units }}</strong><small>kWh</small></div>
-          <button type="button" class="dial-btn dial-plus" aria-label="Increase">+</button>
+          <button type="button" class="dial-btn dial-plus" aria-label="{{ _('Increase') }}">+</button>
         </div>
         <input type="range" class="dial-range" id="range-units" min="50" max="{{ [(loc.bill_sizing.monthly_units|float * 2)|int, 500]|max }}" step="10" value="{{ loc.bill_sizing.monthly_units }}">
       </div>
       <div class="dial-card" data-dial="tariff">
-        <span class="dial-title">Tariff</span>
+        <span class="dial-title">{{ _("Tariff") }}</span>
         <div class="dial-control">
-          <button type="button" class="dial-btn dial-minus" aria-label="Decrease">−</button>
-          <div class="dial-readout"><strong id="dial-tariff">{{ loc.bill_sizing.tariff_per_kwh }}</strong><small>₹/u</small></div>
-          <button type="button" class="dial-btn dial-plus" aria-label="Increase">+</button>
+          <button type="button" class="dial-btn dial-minus" aria-label="{{ _('Decrease') }}">−</button>
+          <div class="dial-readout"><strong id="dial-tariff">{{ loc.bill_sizing.tariff_per_kwh }}</strong><small>{{ _("₹/u") }}</small></div>
+          <button type="button" class="dial-btn dial-plus" aria-label="{{ _('Increase') }}">+</button>
         </div>
         <input type="range" class="dial-range" id="range-tariff" min="3" max="15" step="0.25" value="{{ loc.bill_sizing.tariff_per_kwh }}">
       </div>
       {% endif %}
     </div>
     <div class="dial-impact stat-grid" style="margin-top:14px;">
-      <div class="stat-card"><span class="label">Indicative annual gen.</span><span class="value" id="dial-impact-gen"><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> kWh</span></div>
-      <div class="stat-card"><span class="label">Indicative monthly savings</span><span class="value" id="dial-impact-savings">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
-      <div class="stat-card"><span class="label">Approx. panels</span><span class="value" id="dial-impact-panels">{% set pc = loc.panel_count or (loc.extras.panel_estimate.panel_count if loc.extras and loc.extras.panel_estimate else none) %}{{ pc or '—' }}</span></div>
+      <div class="stat-card"><span class="label">{{ _("Indicative annual gen.") }}</span><span class="value" id="dial-impact-gen"><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> kWh</span></div>
+      <div class="stat-card"><span class="label">{{ _("Indicative monthly savings") }}</span><span class="value" id="dial-impact-savings">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
+      <div class="stat-card"><span class="label">{{ _("Approx. panels") }}</span><span class="value" id="dial-impact-panels">{% set pc = loc.panel_count or (loc.extras.panel_estimate.panel_count if loc.extras and loc.extras.panel_estimate else none) %}{{ pc or '—' }}</span></div>
     </div>
-    <p class="monetary-disclaimer" style="margin-top:8px;">Indicative only — dial changes scale from this estimate; run a new estimate for a full DISCOM-grade recalculation.</p>
+    <p class="monetary-disclaimer" style="margin-top:8px;">{{ _("Indicative only — dial changes scale from this estimate; run a new estimate for a full DISCOM-grade recalculation.") }}</p>
   </div>
 
 
   <div class="area-breakdown-card">
-    <div class="area-row"><span>Total Roof Area</span><span>{{ loc.roof_area_sqm }} m²</span></div>
-    <div class="area-row obstructed"><span>Obstructed Area (tanks, rooms, coverings)</span><span>-{{ loc.obstructed_area_sqm or 0 }} m²</span></div>
-    <div class="area-row total"><span>Usable Area</span><span>{{ loc.usable_area_sqm }} m²</span></div>
+    <div class="area-row"><span>{{ _("Total Roof Area") }}</span><span>{{ loc.roof_area_sqm }} m²</span></div>
+    <div class="area-row obstructed"><span>{{ _("Obstructed Area (tanks, rooms, coverings)") }}</span><span>-{{ loc.obstructed_area_sqm or 0 }} m²</span></div>
+    <div class="area-row total"><span>{{ _("Usable Area") }}</span><span>{{ loc.usable_area_sqm }} m²</span></div>
   </div>
 
   <div class="report-visual-grid report-visual-grid-overview">
     <article class="report-visual report-visual-wide">
       <div class="report-visual-heading">
-        <div><span class="report-eyebrow">PHYSICAL FEASIBILITY</span><h3>Roof utilization</h3></div>
-        <strong>{{ loc.chart_data.roof_utilization.usable_pct if loc.chart_data.roof_utilization.usable_pct is not none else '—' }}% usable</strong>
+        <div><span class="report-eyebrow">{{ _("PHYSICAL FEASIBILITY") }}</span><h3>{{ _("Roof utilization") }}</h3></div>
+        <strong>{{ loc.chart_data.roof_utilization.usable_pct if loc.chart_data.roof_utilization.usable_pct is not none else '—' }}% {{ _("usable") }}</strong>
       </div>
       <div class="chart-frame chart-frame-compact"><canvas id="roofUtilizationChart"></canvas></div>
-      <p class="chart-note">Panel-covered and setback areas are shown as unavailable until a validated physical layout exists.</p>
+      <p class="chart-note">{{ _("Panel-covered and setback areas are shown as unavailable until a validated physical layout exists.") }}</p>
     </article>
     <article class="report-visual">
-      <div class="report-visual-heading"><div><span class="report-eyebrow">SYSTEM OUTPUT</span><h3>Capacity to generation</h3></div></div>
+      <div class="report-visual-heading"><div><span class="report-eyebrow">{{ _("SYSTEM OUTPUT") }}</span><h3>{{ _("Capacity to generation") }}</h3></div></div>
       <div class="system-output-link">
-        <strong>{{ loc.system_size }} <small>kWp</small></strong><span>→</span><strong><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> <small>kWh/year</small></strong>
+        <strong>{{ loc.system_size }} <small>kWp</small></strong><span>→</span><strong><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> <small>{{ _("kWh/year") }}</small></strong>
       </div>
       <div class="orientation-meter"><span style="width:{{ ((loc.orientation_factor or 0) * 100)|round|int }}%"></span></div>
-      <p class="chart-note">Orientation factor: {{ ((loc.orientation_factor or 0) * 100)|round|int }}% · Azimuth {{ loc.orientation_deg if loc.orientation_deg is not none else 'unavailable' }}{% if loc.orientation_deg is not none %}°{% endif %} · Recommended tilt {{ loc.recommended_tilt_deg if loc.recommended_tilt_deg is not none else 'unavailable' }}{% if loc.recommended_tilt_deg is not none %}°{% endif %}</p>
+      <p class="chart-note">{{ _("Orientation factor:") }} {{ ((loc.orientation_factor or 0) * 100)|round|int }}% · {{ _("Azimuth") }} {{ loc.orientation_deg if loc.orientation_deg is not none else 'unavailable' }}{% if loc.orientation_deg is not none %}°{% endif %} {{ _("· Recommended tilt") }} {{ loc.recommended_tilt_deg if loc.recommended_tilt_deg is not none else 'unavailable' }}{% if loc.recommended_tilt_deg is not none %}°{% endif %}</p>
     </article>
   </div>
 
 
   {% if loc.bill_sizing %}
   <div class="area-breakdown-card" style="margin-top:14px;">
-    <div class="area-row"><span>Monthly bill (input)</span><span>₹{{ '{:,.0f}'.format(loc.bill_sizing.monthly_bill) }}</span></div>
-    <div class="area-row"><span>Est. consumption @ ₹{{ loc.bill_sizing.tariff_per_kwh }}/unit</span><span>{{ loc.bill_sizing.monthly_units }} units</span></div>
-    <div class="area-row"><span>Bill-based recommendation</span><span>{{ loc.bill_sizing.recommended_min_kw }}–{{ loc.bill_sizing.recommended_max_kw }} kW</span></div>
-    <div class="area-row"><span>Roof capacity (from drawing)</span><span>{{ loc.roof_capacity_kw or loc.system_size }} kW</span></div>
-    <div class="area-row total"><span>Final system size</span><span>{{ loc.system_size }} kW</span></div>
+    <div class="area-row"><span>{{ _("Monthly bill (input)") }}</span><span>₹{{ '{:,.0f}'.format(loc.bill_sizing.monthly_bill) }}</span></div>
+    <div class="area-row"><span>{{ _("Est. consumption @ ₹") }}{{ loc.bill_sizing.tariff_per_kwh }}{{ _("/unit") }}</span><span>{{ loc.bill_sizing.monthly_units }} {{ _("units") }}</span></div>
+    <div class="area-row"><span>{{ _("Bill-based recommendation") }}</span><span>{{ loc.bill_sizing.recommended_min_kw }}–{{ loc.bill_sizing.recommended_max_kw }} kW</span></div>
+    <div class="area-row"><span>{{ _("Roof capacity (from drawing)") }}</span><span>{{ loc.roof_capacity_kw or loc.system_size }} kW</span></div>
+    <div class="area-row total"><span>{{ _("Final system size") }}</span><span>{{ loc.system_size }} kW</span></div>
   </div>
   {% endif %}
 
   <div class="stat-grid" style="margin-top:14px;">
-    <div class="stat-card"><span class="label">System Size</span><span class="value">{{ loc.system_size }} kW</span>
+    <div class="stat-card"><span class="label">{{ _("System Size") }}</span><span class="value">{{ loc.system_size }} kW</span>
       {% set pc = loc.panel_count or (loc.extras.panel_estimate.panel_count if loc.extras and loc.extras.panel_estimate else none) %}
-      {% if pc %}<span class="metric-sub">approximately {{ pc }} panels</span>{% endif %}
+      {% if pc %}<span class="metric-sub">{{ _("approximately") }} {{ pc }} {{ _("panels") }}</span>{% endif %}
     </div>
-    <div class="stat-card"><span class="label">Annual Generation</span><span class="value"><span data-orientation-annual-generation>{{ loc.annual_generation }}</span> kWh</span></div>
-    <div class="stat-card"><span class="label">Monthly Savings</span><span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span><span class="monetary-disclaimer">{{ monetary_disclaimer }}</span></div>
+    <div class="stat-card"><span class="label">{{ _("Annual Generation") }}</span><span class="value"><span data-orientation-annual-generation>{{ loc.annual_generation }}</span> kWh</span></div>
+    <div class="stat-card"><span class="label">{{ _("Monthly Savings") }}</span><span class="value">₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span><span class="monetary-disclaimer">{{ monetary_disclaimer }}</span></div>
     <div class="stat-card">
-      <span class="label">{{ _('Nominal payback') }} <small style="font-weight:500;color:var(--gray);">(tariff escalates)</small></span>
+      <span class="label">{{ _('Nominal payback') }} <small style="font-weight:500;color:var(--gray);">{{ _("(tariff escalates)") }}</small></span>
       <span class="value">
         {% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}
-        {% if nom %}{{ nom }} yrs{% else %}—{% endif %}
+        {% if nom %}{{ nom }} {{ _("yrs") }}{% else %}—{% endif %}
       </span>
       <span class="metric-sub">
-        {{ _('Simple payback') }} (flat tariff):
+        {{ _('Simple payback') }} {{ _("(flat tariff):") }}
         {% set simp = (loc.extras or {}).get('simple_payback_years') %}
-        {% if simp %}{{ simp }} yrs{% elif loc.payback_years %}{{ loc.payback_years }} yrs{% else %}—{% endif %}
+        {% if simp %}{{ simp }} {{ _("yrs") }}{% elif loc.payback_years %}{{ loc.payback_years }} {{ _("yrs") }}{% else %}—{% endif %}
       </span>
       <span class="monetary-disclaimer">{{ monetary_disclaimer }}</span>
     </div>
@@ -353,30 +353,30 @@
   <div class="kpi-row">
     <div class="kpi-card">
       <span class="kpi-value">{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }}{% else %}—{% endif %}</span>
-      <span class="kpi-label">Specific Yield<br>kWh/kWp/year</span>
+      <span class="kpi-label">{{ _("Specific Yield") }}<br>{{ _("kWh/kWp/year") }}</span>
     </div>
     <div class="kpi-card">
       <span class="kpi-value">{% if loc.capacity_factor %}{{ loc.capacity_factor }}%{% else %}—{% endif %}</span>
-      <span class="kpi-label">Capacity Factor</span>
+      <span class="kpi-label">{{ _("Capacity Factor") }}</span>
     </div>
     <div class="kpi-card">
       <span class="kpi-value">{% if loc.orientation_factor %}{{ (loc.orientation_factor * 100)|round|int }}%{% else %}—{% endif %}</span>
-      <span class="kpi-label">Orientation Factor<br>vs South</span>
+      <span class="kpi-label">{{ _("Orientation Factor") }}<br>{{ _("vs South") }}</span>
     </div>
     <div class="kpi-card">
       <span class="kpi-value">{% if loc.recommended_tilt_deg %}{{ loc.recommended_tilt_deg }}°{% else %}—{% endif %}</span>
-      <span class="kpi-label">Recommended Tilt<br>(≈ latitude)</span>
+      <span class="kpi-label">{{ _("Recommended Tilt") }}<br>{{ _("(≈ latitude)") }}</span>
     </div>
     {% if loc.lcoe %}
     <div class="kpi-card">
       <span class="kpi-value">₹{{ loc.lcoe }}</span>
-      <span class="kpi-label">Discounted LCOE<br>₹/kWh (25 yr)</span>
+      <span class="kpi-label">{{ _("Discounted LCOE") }}<br>{{ _("₹/kWh (25 yr)") }}</span>
     </div>
     {% endif %}
     {% if loc.lifetime_kwh %}
     <div class="kpi-card">
       <span class="kpi-value">{{ '{:,.0f}'.format(loc.lifetime_kwh) }}</span>
-      <span class="kpi-label">Lifetime Energy<br>kWh (25 yr)</span>
+      <span class="kpi-label">{{ _("Lifetime Energy") }}<br>{{ _("kWh (25 yr)") }}</span>
     </div>
     {% endif %}
   </div>
@@ -385,9 +385,9 @@
 
   {% if loc.battery_kwh and loc.battery_kwh > 0 %}
   <div class="area-breakdown-card" style="margin-top:16px;">
-    <div class="area-row"><span>Battery Capacity</span><span>{{ loc.battery_kwh }} kWh</span></div>
-    <div class="area-row"><span>Battery Cost (est.)</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost or 0) }}</span></div>
-    <div class="area-row total"><span>Self-consumption share</span><span>{{ ((loc.self_consumption_frac or 0.55) * 100)|int }}%</span></div>
+    <div class="area-row"><span>{{ _("Battery Capacity") }}</span><span>{{ loc.battery_kwh }} kWh</span></div>
+    <div class="area-row"><span>{{ _("Battery Cost (est.)") }}</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost or 0) }}</span></div>
+    <div class="area-row total"><span>{{ _("Self-consumption share") }}</span><span>{{ ((loc.self_consumption_frac or 0.55) * 100)|int }}%</span></div>
   </div>
   {% endif %}
 
@@ -400,36 +400,36 @@
 <section class="rpt-section" id="rpt-energy" aria-labelledby="rpt-energy-title">
   <div class="report-section-heading"><h2 id="rpt-energy-title">{{ _('Energy forecast') }}</h2><p>{{ _('Year-one monthly output and the saved 25-year generation forecast.') }}</p></div>
   <p style="font-size:13px;color:var(--gray);margin-top:0;">
-    {% if loc.orientation_factor is not none %}Adjusted for roof orientation{% else %}Provider-modeled PV energy; no additional orientation derate applied{% endif %}
-    {% if loc.orientation_label %}({{ loc.orientation_label }}){% endif %}
-    {% if loc.orientation_factor %} · factor {{ loc.orientation_factor }}{% endif %}.
+    {% if loc.orientation_factor is not none %}{{ _("Adjusted for roof orientation") }}{% else %}{{ _("Provider-modeled PV energy; no additional orientation derate applied") }}{% endif %}
+    {% if loc.orientation_label %}({{ loc.orientation_label|ui_label }}){% endif %}
+    {% if loc.orientation_factor %} {{ _("· factor") }} {{ loc.orientation_factor }}{% endif %}.
   </p>
   {% if loc.calculation_status == 'stale_assumptions' %}
-  <p class="status-banner status-banner-warning">Calculation assumptions changed after this estimate was saved. Recalculate before treating these figures as current.</p>
+  <p class="status-banner status-banner-warning">{{ _("Calculation assumptions changed after this estimate was saved. Recalculate before treating these figures as current.") }}</p>
   {% elif loc.calculation_status == 'legacy_unversioned' %}
-  <p class="status-banner status-banner-warning">Legacy estimate — calculation assumptions were not versioned when this result was saved.</p>
+  <p class="status-banner status-banner-warning">{{ _("Legacy estimate — calculation assumptions were not versioned when this result was saved.") }}</p>
   {% endif %}
   {% if loc.extras and loc.extras.generation_provenance %}
   <p style="font-size:13px;color:var(--gray);">
-    Source model: {{ (loc.extras.generation_provenance.profile_kind or 'unknown')|replace('_', ' ') }}
-    · units {{ (loc.extras.generation_provenance.profile_units or 'unknown')|replace('_', '/') }}
-    {% if loc.extras.generation_provenance.provider_system_loss_percent is not none %}· provider-modeled system loss {{ loc.extras.generation_provenance.provider_system_loss_percent }}%{% endif %}
+    {{ _("Source model:") }} {{ (loc.extras.generation_provenance.profile_kind or 'unknown')|replace('_', ' ') }}
+    {{ _("· units") }} {{ (loc.extras.generation_provenance.profile_units or 'unknown')|replace('_', '/') }}
+    {% if loc.extras.generation_provenance.provider_system_loss_percent is not none %}{{ _("· provider-modeled system loss") }} {{ loc.extras.generation_provenance.provider_system_loss_percent }}%{% endif %}
   </p>
   {% endif %}
   <div class="stat-grid" style="margin-bottom:14px;">
-    <div class="stat-card"><span class="label">Annual generation</span><span class="value"><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> kWh</span></div>
-    <div class="stat-card"><span class="label">System size</span><span class="value">{{ loc.system_size }} kW</span></div>
-    <div class="stat-card"><span class="label">Specific yield</span><span class="value">{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }}{% else %}—{% endif %} kWh/kWp</span></div>
-    <div class="stat-card"><span class="label">Lifetime energy (25 yr)</span><span class="value">{% if loc.chart_data.energy.lifetime_generation %}{{ '{:,.0f}'.format(loc.chart_data.energy.lifetime_generation) }}{% else %}—{% endif %} kWh</span></div>
+    <div class="stat-card"><span class="label">{{ _("Annual generation") }}</span><span class="value"><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> kWh</span></div>
+    <div class="stat-card"><span class="label">{{ _("System size") }}</span><span class="value">{{ loc.system_size }} kW</span></div>
+    <div class="stat-card"><span class="label">{{ _("Specific yield") }}</span><span class="value">{% if loc.specific_yield %}{{ '{:,.0f}'.format(loc.specific_yield) }}{% else %}—{% endif %} kWh/kWp</span></div>
+    <div class="stat-card"><span class="label">{{ _("Lifetime energy (25 yr)") }}</span><span class="value">{% if loc.chart_data.energy.lifetime_generation %}{{ '{:,.0f}'.format(loc.chart_data.energy.lifetime_generation) }}{% else %}—{% endif %} kWh</span></div>
   </div>
   <div class="report-visual-grid energy-grid">
   <article class="report-visual report-visual-wide">
-    <div class="report-visual-heading"><h3>Monthly generation</h3><strong><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.chart_data.energy.annual_generation or 0) }}</span> kWh/year</strong></div>
+    <div class="report-visual-heading"><h3>{{ _("Monthly generation") }}</h3><strong><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.chart_data.energy.annual_generation or 0) }}</span> {{ _("kWh/year") }}</strong></div>
     <div class="chart-frame"><canvas id="monthlyGenerationChart"></canvas></div>
-    <p id="monthly-chart-empty" class="hidden" style="font-size:13px;color:var(--gray);padding:12px 0;">Monthly breakdown not available for this estimate.</p>
+    <p id="monthly-chart-empty" class="hidden" style="font-size:13px;color:var(--gray);padding:12px 0;">{{ _("Monthly breakdown not available for this estimate.") }}</p>
   </article>
   <article class="report-visual">
-    <div class="report-visual-heading"><h3>Annual energy flow</h3></div>
+    <div class="report-visual-heading"><h3>{{ _("Annual energy flow") }}</h3></div>
     <div class="chart-frame"><canvas id="energyFlowChart"></canvas></div>
     <p id="energy-flow-empty" class="chart-empty hidden"></p>
   </article>
@@ -438,7 +438,7 @@
   {% set monthly_consumption_available = loc.chart_data.consumption.monthly_available %}
   <div class="report-visual-grid report-energy-comparison-grid{% if not monthly_consumption_available %} is-consumption-unavailable{% endif %}">
     <article class="report-visual report-visual-wide{% if not monthly_consumption_available %} is-chart-unavailable{% endif %}">
-      <div class="report-visual-heading"><h3>Consumption vs solar</h3></div>
+      <div class="report-visual-heading"><h3>{{ _("Consumption vs solar") }}</h3></div>
       <div class="chart-frame{% if not monthly_consumption_available %} chart-frame-unavailable{% endif %}"><canvas id="consumptionGenerationChart"{% if not monthly_consumption_available %} class="hidden"{% endif %}></canvas></div>
       <div id="consumption-chart-empty" class="chart-empty chart-empty-compact{% if monthly_consumption_available %} hidden{% endif %}" role="status">
         <strong>{{ _('Monthly consumption profile needed') }}</strong>
@@ -447,20 +447,20 @@
       </div>
     </article>
     <article class="report-visual">
-      <div class="report-visual-heading"><h3>Representative monthly bill impact</h3></div>
+      <div class="report-visual-heading"><h3>{{ _("Representative monthly bill impact") }}</h3></div>
       <div class="chart-frame chart-frame-compact"><canvas id="monthlyBillChart"></canvas></div>
       <p id="monthly-bill-empty" class="chart-empty hidden"></p>
     </article>
   </div>
 
-  <h2 style="margin-top:28px;">25-Year Generation Forecast</h2>
+  <h2 style="margin-top:28px;">{{ _("25-Year Generation Forecast") }}</h2>
   <p style="font-size:13px;color:var(--gray);margin-top:0;">
-    Includes the estimator's {{ loc.chart_data.energy.degradation_pct }}% annual module degradation assumption.
+    {{ _("Includes the estimator's") }} {{ loc.chart_data.energy.degradation_pct }}% {{ _("annual module degradation assumption.") }}
   </p>
   <article class="report-visual">
-    <div class="report-visual-heading"><h3>25-year generation</h3><strong>{% if loc.chart_data.energy.lifetime_generation %}{{ '{:,.0f}'.format(loc.chart_data.energy.lifetime_generation) }} kWh lifetime{% else %}Unavailable{% endif %}</strong></div>
+    <div class="report-visual-heading"><h3>{{ _("25-year generation") }}</h3><strong>{% if loc.chart_data.energy.lifetime_generation %}{{ '{:,.0f}'.format(loc.chart_data.energy.lifetime_generation) }} {{ _("kWh lifetime") }}{% else %}{{ _("Unavailable") }}{% endif %}</strong></div>
     <div class="chart-frame chart-frame-tall"><canvas id="generation25yrChart"></canvas></div>
-    <p id="gen25-chart-empty" class="hidden" style="font-size:13px;color:var(--gray);padding:12px 0;">25-year series will appear after charts load.</p>
+    <p id="gen25-chart-empty" class="hidden" style="font-size:13px;color:var(--gray);padding:12px 0;">{{ _("25-year series will appear after charts load.") }}</p>
   </article>
 </section>
 
@@ -472,62 +472,62 @@
 <section class="rpt-section" id="rpt-financing" aria-labelledby="rpt-financing-title">
   <div class="report-section-heading"><h2 id="rpt-financing-title">{{ _('Financing') }}</h2><p>{{ _('Cashflow and savings use the saved SIGNIX financial model.') }}</p></div>
   {% if loc.financial_status and loc.financial_status != 'current' %}
-  <p class="status-banner status-banner-warning">Financial projection status: {{ loc.financial_status|replace('_', ' ') }}. Recalculate before using it for a decision.</p>
+  <p class="status-banner status-banner-warning">{{ _("Financial projection status:") }} {{ loc.financial_status|replace('_', ' ') }}{{ _(". Recalculate before using it for a decision.") }}</p>
   {% endif %}
   <div class="report-visual-grid">
     <article class="report-visual report-visual-wide">
-      <div class="report-visual-heading"><h3>Payback and cumulative cashflow</h3><strong>{% if loc.chart_data.financial.payback_year %}Break-even {{ loc.chart_data.financial.payback_year }} years{% else %}No break-even in series{% endif %}</strong></div>
+      <div class="report-visual-heading"><h3>{{ _("Payback and cumulative cashflow") }}</h3><strong>{% if loc.chart_data.financial.payback_year %}{{ _("Break-even") }} {{ loc.chart_data.financial.payback_year }} {{ _("years") }}{% else %}{{ _("No break-even in series") }}{% endif %}</strong></div>
       <div class="chart-frame chart-frame-tall"><canvas id="cashflowChart"></canvas></div>
       <p id="cashflow-chart-empty" class="chart-empty hidden"></p>
     </article>
     <article class="report-visual">
-      <div class="report-visual-heading"><h3>Investment composition</h3></div>
+      <div class="report-visual-heading"><h3>{{ _("Investment composition") }}</h3></div>
       <div class="chart-frame"><canvas id="financialDonutChart"></canvas></div>
     </article>
   </div>
   <div class="report-visual-grid">
     <article class="report-visual report-visual-wide">
-      <div class="report-visual-heading"><h3>Annual and cumulative operating benefit after O&amp;M</h3></div>
+      <div class="report-visual-heading"><h3>{{ _("Annual and cumulative operating benefit after O&M") }}</h3></div>
       <div class="chart-frame chart-frame-tall"><canvas id="annualSavingsChart"></canvas></div>
       <p id="annual-savings-empty" class="chart-empty hidden"></p>
     </article>
     <article class="report-visual">
-      <div class="report-visual-heading"><h3>25-year electricity cost</h3></div>
+      <div class="report-visual-heading"><h3>{{ _("25-year electricity cost") }}</h3></div>
       <div class="chart-frame"><canvas id="electricityCostChart"></canvas></div>
       <p id="electricity-cost-empty" class="chart-empty hidden"></p>
-      {% if loc.chart_data.electricity_cost.available %}<p class="chart-note">Starts at ₹{{ loc.chart_data.electricity_cost.starting_grid_tariff_per_kwh }}/kWh with {{ loc.chart_data.electricity_cost.tariff_escalation_pct }}% annual escalation{% if loc.chart_data.electricity_cost.includes_annual_om %}; includes the persisted annual O&amp;M reserve{% endif %}. Effective solar cost: {% if loc.chart_data.electricity_cost.effective_solar_cost_per_kwh is not none %}₹{{ loc.chart_data.electricity_cost.effective_solar_cost_per_kwh }}/kWh{% else %}unavailable{% endif %}.</p>{% endif %}
+      {% if loc.chart_data.electricity_cost.available %}<p class="chart-note">{{ _("Starts at ₹") }}{{ loc.chart_data.electricity_cost.starting_grid_tariff_per_kwh }}{{ _("/kWh with") }} {{ loc.chart_data.electricity_cost.tariff_escalation_pct }}% {{ _("annual escalation") }}{% if loc.chart_data.electricity_cost.includes_annual_om %}{{ _("; includes the persisted annual O&M reserve") }}{% endif %}{{ _(". Effective solar cost:") }} {% if loc.chart_data.electricity_cost.effective_solar_cost_per_kwh is not none %}₹{{ loc.chart_data.electricity_cost.effective_solar_cost_per_kwh }}/kWh{% else %}{{ _("unavailable") }}{% endif %}.</p>{% endif %}
     </article>
   </div>
   <div class="financial-summary-box" style="margin-top:14px;">
-    <div class="fin-row"><span>PV System Cost (mid estimate)</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
+    <div class="fin-row"><span>{{ _("PV System Cost (mid estimate)") }}</span><span>₹{{ '{:,.0f}'.format(loc.system_cost or 0) }}</span></div>
     {% if loc.system_cost_low and loc.system_cost_high %}
-    <div class="fin-row"><span>Typical cost band</span><span>₹{{ '{:,.0f}'.format(loc.system_cost_low) }} – ₹{{ '{:,.0f}'.format(loc.system_cost_high) }}</span></div>
+    <div class="fin-row"><span>{{ _("Typical cost band") }}</span><span>₹{{ '{:,.0f}'.format(loc.system_cost_low) }} – ₹{{ '{:,.0f}'.format(loc.system_cost_high) }}</span></div>
     {% endif %}
     {% if loc.battery_cost and loc.battery_cost > 0 %}
-    <div class="fin-row"><span>Battery Storage Cost</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>
+    <div class="fin-row"><span>{{ _("Battery Storage Cost") }}</span><span>₹{{ '{:,.0f}'.format(loc.battery_cost) }}</span></div>
     {% endif %}
     {% if psg_guidance_allowed %}
     <div class="fin-row"><span>{{ _('PM Surya Ghar subsidy estimate') }}</span><span>-₹{{ '{:,.0f}'.format(loc.subsidy_amount or 0) }}</span></div>
     <p class="subsidy-caveat">{{ subsidy_caveat }}</p>
     <p class="subsidy-eligibility-assumption">{{ subsidy_eligibility_assumption }}</p>
     {% endif %}
-    <div class="fin-row total"><span>Net Investment</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
+    <div class="fin-row total"><span>{{ _("Net Investment") }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
     {% if loc.planning_track == 'business' %}
-    <div class="fin-row"><span>Year-one net operating benefit</span><span>₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</span></div>
-    <div class="fin-row"><span>Year-one ROI</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
-    <div class="fin-row"><span>25-year net benefit</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
-    <p class="monetary-disclaimer">Demand-charge savings are not modelled.</p>
+    <div class="fin-row"><span>{{ _("Year-one net operating benefit") }}</span><span>₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</span></div>
+    <div class="fin-row"><span>{{ _("Year-one ROI") }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _("25-year net benefit") }}</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
+    <p class="monetary-disclaimer">{{ _("Demand-charge savings are not modelled.") }}</p>
     {% else %}
-    <div class="fin-row"><span>Payback without subsidy</span><span>{% if loc.payback_without_subsidy_years %}{{ loc.payback_without_subsidy_years }} yrs{% else %}—{% endif %}</span></div>
-    <div class="fin-row"><span>Subsidy-adjusted payback</span><span>{% if loc.subsidy_adjusted_payback_years %}{{ loc.subsidy_adjusted_payback_years }} yrs{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _("Payback without subsidy") }}</span><span>{% if loc.payback_without_subsidy_years %}{{ loc.payback_without_subsidy_years }} {{ _("yrs") }}{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _("Subsidy-adjusted payback") }}</span><span>{% if loc.subsidy_adjusted_payback_years %}{{ loc.subsidy_adjusted_payback_years }} {{ _("yrs") }}{% else %}—{% endif %}</span></div>
     {% endif %}
-    <div class="fin-row"><span>{{ _('Nominal payback') }} <small>(escalating tariff)</small></span><span>{% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}{% if nom %}{{ nom }} yrs{% else %}—{% endif %}</span></div>
-    <div class="fin-row"><span>{{ _('Simple payback') }} <small>(year-one net savings)</small></span><span>{% set simp = (loc.extras or {}).get('simple_payback_years') %}{% if simp %}{{ simp }} yrs{% else %}—{% endif %}</span></div>
-    <div class="fin-row"><span>{{ _('Discounted payback') }} <small>({{ (loc.extras or {}).get('discount_rate_pct', 8) }}% nominal discount rate)</small></span><span>{% set disc = (loc.extras or {}).get('discounted_payback_years') %}{% if disc %}{{ disc }} yrs{% else %}No break-even in 25 yrs{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _('Nominal payback') }} <small>{{ _("(escalating tariff)") }}</small></span><span>{% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) %}{% if nom %}{{ nom }} {{ _("yrs") }}{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _('Simple payback') }} <small>{{ _("(year-one net savings)") }}</small></span><span>{% set simp = (loc.extras or {}).get('simple_payback_years') %}{% if simp %}{{ simp }} {{ _("yrs") }}{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _('Discounted payback') }} <small>({{ (loc.extras or {}).get('discount_rate_pct', 8) }}% {{ _("nominal discount rate)") }}</small></span><span>{% set disc = (loc.extras or {}).get('discounted_payback_years') %}{% if disc %}{{ disc }} {{ _("yrs") }}{% else %}{{ _("No break-even in 25 yrs") }}{% endif %}</span></div>
     <div class="fin-row"><span>{{ _('Net present value') }}</span><span>{% if (loc.extras or {}).get('npv') is not none %}₹{{ '{:,.0f}'.format((loc.extras or {}).get('npv')) }}{% else %}—{% endif %}</span></div>
-    <div class="fin-row"><span>Est. 25-year bill savings</span><span>{% if loc.chart_data.financial.cumulative_savings %}₹{{ '{:,.0f}'.format(loc.chart_data.financial.cumulative_savings[-1]) }}{% else %}—{% endif %}</span></div>
+    <div class="fin-row"><span>{{ _("Est. 25-year bill savings") }}</span><span>{% if loc.chart_data.financial.cumulative_savings %}₹{{ '{:,.0f}'.format(loc.chart_data.financial.cumulative_savings[-1]) }}{% else %}—{% endif %}</span></div>
     {% if loc.lcoe %}
-    <div class="fin-row"><span>Discounted levelised cost of energy</span><span>₹{{ loc.lcoe }}/kWh</span></div>
+    <div class="fin-row"><span>{{ _("Discounted levelised cost of energy") }}</span><span>₹{{ loc.lcoe }}/kWh</span></div>
     {% endif %}
     <p class="monetary-disclaimer">{{ monetary_disclaimer }}</p>
   </div>
@@ -625,9 +625,9 @@
               {{ row.driver }}
               <div class="metric-sub">{{ row.low_label }} · {{ row.high_label }}</div>
             </th>
-            <td>{% if row.low.simple_payback_years %}{{ row.low.simple_payback_years }} yrs{% else %}—{% endif %}</td>
-            <td>{% if row.base.simple_payback_years %}{{ row.base.simple_payback_years }} yrs{% else %}—{% endif %}</td>
-            <td>{% if row.high.simple_payback_years %}{{ row.high.simple_payback_years }} yrs{% else %}—{% endif %}</td>
+            <td>{% if row.low.simple_payback_years %}{{ row.low.simple_payback_years }} {{ _("yrs") }}{% else %}—{% endif %}</td>
+            <td>{% if row.base.simple_payback_years %}{{ row.base.simple_payback_years }} {{ _("yrs") }}{% else %}—{% endif %}</td>
+            <td>{% if row.high.simple_payback_years %}{{ row.high.simple_payback_years }} {{ _("yrs") }}{% else %}—{% endif %}</td>
             <td>₹{{ '{:,.0f}'.format(row.low.npv_8pct or 0) }}</td>
             <td>₹{{ '{:,.0f}'.format(row.base.npv_8pct or 0) }}</td>
             <td>₹{{ '{:,.0f}'.format(row.high.npv_8pct or 0) }}</td>
@@ -640,7 +640,7 @@
   </div>
   {% endif %}
 
-  <p class="chart-note">Cashflow includes {{ loc.chart_data.energy.degradation_pct }}% annual module degradation, {{ (loc.extras or {}).get('tariff_escalation_pct', 4) }}% retail-tariff escalation, and subtracts the annual O&amp;M reserve once. Fixed feed-in compensation is not escalated. Self-consumption is a planning assumption, not measured household demand.</p>
+  <p class="chart-note">{{ _("Cashflow includes") }} {{ loc.chart_data.energy.degradation_pct }}% {{ _("annual module degradation,") }} {{ (loc.extras or {}).get('tariff_escalation_pct', 4) }}% {{ _("retail-tariff escalation, and subtracts the annual O&M reserve once. Fixed feed-in compensation is not escalated. Self-consumption is a planning assumption, not measured household demand.") }}</p>
 </section>
 
 </section>
@@ -649,9 +649,7 @@
 <section class="rpt-section" aria-labelledby="rpt-capex-dpa-title">
   <div class="report-section-heading"><h2 id="rpt-capex-dpa-title">{{ _('CAPEX vs DPA comparison') }}</h2></div>
   <p class="emi-help">
-    Side-by-side cash purchase (CAPEX) versus Deferred Payment Agreement / loan (DPA).
-    Adjust down-payment % and tenure below to see live updates (client-side).
-    PPA column deferred pending market data.
+    {{ _("Side-by-side cash purchase (CAPEX) versus Deferred Payment Agreement / loan (DPA).\n    Adjust down-payment %(percent)s and tenure below to see live updates (client-side).\n    PPA column deferred pending market data.", percent="%") }}
   </p>
 
   {% set fc = (loc.extras or {}).get('financing_comparison') if loc.extras else loc.get('financing_comparison') if loc is mapping else none %}
@@ -661,12 +659,12 @@
   <div class="financing-controls" id="financing-controls"
        data-endpoint="{{ url_for('estimate.api_financing_preview', location_id=loc.id) }}">
     <div class="financing-controls-heading">
-      <div><span class="report-eyebrow">DPA ASSUMPTIONS</span><h3>Model the repayment structure</h3></div>
-      <p id="financing-controls-status" class="financing-controls-status" role="status" aria-live="polite">Using saved assumptions</p>
+      <div><span class="report-eyebrow">{{ _("DPA ASSUMPTIONS") }}</span><h3>{{ _("Model the repayment structure") }}</h3></div>
+      <p id="financing-controls-status" class="financing-controls-status" role="status" aria-live="polite">{{ _("Using saved assumptions") }}</p>
     </div>
     <div class="financing-control-grid">
       <label class="financing-control" for="dpa-down-payment-range">
-        <span>Down payment</span>
+        <span>{{ _("Down payment") }}</span>
         <span class="financing-control-inputs">
           <input id="dpa-down-payment-range" type="range" min="0" max="100" step="1" value="{{ fc.assumptions.down_payment_pct }}">
           <input id="dpa-down-payment-value" type="number" min="0" max="100" step="1" value="{{ fc.assumptions.down_payment_pct }}" inputmode="decimal">
@@ -674,117 +672,117 @@
         </span>
       </label>
       <label class="financing-control" for="dpa-interest-rate-range">
-        <span>Interest rate</span>
+        <span>{{ _("Interest rate") }}</span>
         <span class="financing-control-inputs">
           <input id="dpa-interest-rate-range" type="range" min="0" max="50" step="0.1" value="{{ fc.assumptions.dpa_rate_pct }}">
           <input id="dpa-interest-rate-value" type="number" min="0" max="50" step="0.1" value="{{ fc.assumptions.dpa_rate_pct }}" inputmode="decimal">
-          <small>% p.a.</small>
+          <small>% {{ _("p.a.") }}</small>
         </span>
       </label>
       <label class="financing-control" for="dpa-tenure-range">
-        <span>Loan tenure</span>
+        <span>{{ _("Loan tenure") }}</span>
         <span class="financing-control-inputs">
           <input id="dpa-tenure-range" type="range" min="1" max="30" step="1" value="{{ fc.assumptions.dpa_tenure_years }}">
           <input id="dpa-tenure-value" type="number" min="1" max="30" step="1" value="{{ fc.assumptions.dpa_tenure_years }}" inputmode="numeric">
-          <small>years</small>
+          <small>{{ _("years") }}</small>
         </span>
       </label>
     </div>
-    <div class="financing-derived" aria-label="Calculated DPA values">
-      <div><span>System CAPEX</span><strong id="fc-system-cost">₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</strong></div>
-      <div><span>Down payment</span><strong id="fc-summary-down">₹{{ '{:,.0f}'.format(fc.dpa.down_payment or 0) }}</strong></div>
-      <div><span>Financed</span><strong id="fc-summary-loan">₹{{ '{:,.0f}'.format(fc.dpa.loan_amount or 0) }}</strong></div>
-      <div><span>Monthly EMI</span><strong id="fc-summary-emi">₹{{ '{:,.0f}'.format(fc.dpa.monthly_emi or 0) }}</strong></div>
-      <div><span>Total repayment</span><strong id="fc-summary-repayment">₹{{ '{:,.0f}'.format(fc.dpa.total_repayment or ((fc.dpa.total_cash_outflow or 0) - (fc.dpa.down_payment or 0))) }}</strong></div>
-      <div><span>Equity IRR</span><strong id="fc-summary-irr">{% if fc.dpa.equity_irr_pct is not none %}{{ fc.dpa.equity_irr_pct }}%{% else %}—{% endif %}</strong></div>
+    <div class="financing-derived" aria-label="{{ _('Calculated DPA values') }}">
+      <div><span>{{ _("System CAPEX") }}</span><strong id="fc-system-cost">₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</strong></div>
+      <div><span>{{ _("Down payment") }}</span><strong id="fc-summary-down">₹{{ '{:,.0f}'.format(fc.dpa.down_payment or 0) }}</strong></div>
+      <div><span>{{ _("Financed") }}</span><strong id="fc-summary-loan">₹{{ '{:,.0f}'.format(fc.dpa.loan_amount or 0) }}</strong></div>
+      <div><span>{{ _("Monthly EMI") }}</span><strong id="fc-summary-emi">₹{{ '{:,.0f}'.format(fc.dpa.monthly_emi or 0) }}</strong></div>
+      <div><span>{{ _("Total repayment") }}</span><strong id="fc-summary-repayment">₹{{ '{:,.0f}'.format(fc.dpa.total_repayment or ((fc.dpa.total_cash_outflow or 0) - (fc.dpa.down_payment or 0))) }}</strong></div>
+      <div><span>{{ _("Equity IRR") }}</span><strong id="fc-summary-irr">{% if fc.dpa.equity_irr_pct is not none %}{{ fc.dpa.equity_irr_pct }}%{% else %}—{% endif %}</strong></div>
     </div>
   </div>
-  <p class="chart-note">Changes are previewed by the authenticated SIGNIX financing engine; saved estimate inputs are not overwritten.</p>
+  <p class="chart-note">{{ _("Changes are previewed by the authenticated SIGNIX financing engine; saved estimate inputs are not overwritten.") }}</p>
 
   <div class="comparison-scroll">
     <table class="comparison-table" id="financing-comparison-table">
       <thead>
         <tr>
-          <th>Particulars</th>
-          <th>CAPEX (Cash)</th>
-          <th>DPA (Loan)</th>
+          <th>{{ _("Particulars") }}</th>
+          <th>{{ _("CAPEX (Cash)") }}</th>
+          <th>{{ _("DPA (Loan)") }}</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <th>Down payment</th>
+          <th>{{ _("Down payment") }}</th>
           <td id="fc-capex-dp">₹{{ '{:,.0f}'.format(fc.capex.down_payment or 0) }}</td>
           <td id="fc-dpa-dp">₹{{ '{:,.0f}'.format(fc.dpa.down_payment or 0) }}</td>
         </tr>
         <tr>
-          <th>Loan amount</th>
+          <th>{{ _("Loan amount") }}</th>
           <td>—</td>
           <td id="fc-dpa-loan">₹{{ '{:,.0f}'.format(fc.dpa.loan_amount or 0) }}</td>
         </tr>
         <tr>
-          <th>Tenure</th>
+          <th>{{ _("Tenure") }}</th>
           <td>—</td>
-          <td id="fc-dpa-tenure">{{ fc.dpa.tenure_years }} years</td>
+          <td id="fc-dpa-tenure">{{ fc.dpa.tenure_years }} {{ _("years") }}</td>
         </tr>
         <tr>
-          <th>Interest rate</th>
+          <th>{{ _("Interest rate") }}</th>
           <td>—</td>
-          <td id="fc-dpa-rate">{{ fc.dpa.annual_rate_pct }}% p.a.</td>
+          <td id="fc-dpa-rate">{{ fc.dpa.annual_rate_pct }}% {{ _("p.a.") }}</td>
         </tr>
         <tr>
-          <th>Monthly EMI</th>
+          <th>{{ _("Monthly EMI") }}</th>
           <td>—</td>
           <td id="fc-dpa-emi">₹{{ '{:,.0f}'.format(fc.dpa.monthly_emi or 0) }}</td>
         </tr>
         <tr>
-          <th>Annual payment</th>
+          <th>{{ _("Annual payment") }}</th>
           <td>—</td>
           <td id="fc-dpa-annual">₹{{ '{:,.0f}'.format(fc.dpa.annual_emi or 0) }}</td>
         </tr>
         <tr>
-          <th>Total repayment</th>
+          <th>{{ _("Total repayment") }}</th>
           <td>—</td>
           <td id="fc-dpa-repayment">₹{{ '{:,.0f}'.format(fc.dpa.total_repayment or ((fc.dpa.total_cash_outflow or 0) - (fc.dpa.down_payment or 0))) }}</td>
         </tr>
         <tr>
-          <th>Total interest</th>
+          <th>{{ _("Total interest") }}</th>
           <td>—</td>
           <td id="fc-dpa-interest">₹{{ '{:,.0f}'.format(fc.dpa.total_interest or 0) }}</td>
         </tr>
         <tr>
-          <th>Payback period</th>
-          <td id="fc-capex-payback">{% if fc.capex.payback_years %}{{ fc.capex.payback_years }} yrs{% else %}—{% endif %}</td>
-          <td id="fc-dpa-payback">{% if fc.dpa.payback_years %}{{ fc.dpa.payback_years }} yrs{% else %}—{% endif %}</td>
+          <th>{{ _("Payback period") }}</th>
+          <td id="fc-capex-payback">{% if fc.capex.payback_years %}{{ fc.capex.payback_years }} {{ _("yrs") }}{% else %}—{% endif %}</td>
+          <td id="fc-dpa-payback">{% if fc.dpa.payback_years %}{{ fc.dpa.payback_years }} {{ _("yrs") }}{% else %}—{% endif %}</td>
         </tr>
         <tr>
-          <th>Equity IRR</th>
+          <th>{{ _("Equity IRR") }}</th>
           <td id="fc-capex-irr">{% if fc.capex.equity_irr_pct is not none %}{{ fc.capex.equity_irr_pct }}%{% else %}—{% endif %}</td>
           <td id="fc-dpa-irr">{% if fc.dpa.equity_irr_pct is not none %}{{ fc.dpa.equity_irr_pct }}%{% else %}—{% endif %}</td>
         </tr>
         <tr>
-          <th>Total cash outflow</th>
+          <th>{{ _("Total cash outflow") }}</th>
           <td id="fc-capex-out">₹{{ '{:,.0f}'.format(fc.capex.total_cash_outflow or 0) }}</td>
           <td id="fc-dpa-out">₹{{ '{:,.0f}'.format(fc.dpa.total_cash_outflow or 0) }}</td>
         </tr>
         <tr>
-          <th>Year-1 operating benefit after O&amp;M</th>
+          <th>{{ _("Year-1 operating benefit after O&M")|forceescape }}</th>
           <td>₹{{ '{:,.0f}'.format(loc.chart_data.financial.annual_savings[0] if loc.chart_data.financial.annual_savings else 0) }}</td>
           <td>₹{{ '{:,.0f}'.format(loc.chart_data.financial.annual_savings[0] if loc.chart_data.financial.annual_savings else 0) }}</td>
         </tr>
         <tr>
-          <th>Annual O&amp;M planning reserve</th>
+          <th>{{ _("Annual O&M planning reserve")|forceescape }}</th>
           <td>₹{{ '{:,.0f}'.format((loc.extras or {}).get('annual_om', 0) or 0) }}</td>
           <td>₹{{ '{:,.0f}'.format((loc.extras or {}).get('annual_om', 0) or 0) }}</td>
         </tr>
         {% if loc.chart_data.financing.available %}
         <tr>
-          <th>25-year cumulative net position</th>
+          <th>{{ _("25-year cumulative net position") }}</th>
           <td id="fc-capex-position">₹{{ '{:,.0f}'.format(loc.chart_data.financing.capex.cumulative_cashflow[-1]) }}</td>
           <td id="fc-dpa-position">₹{{ '{:,.0f}'.format(loc.chart_data.financing.dpa.cumulative_cashflow[-1]) }}</td>
         </tr>
         {% endif %}
         <tr>
-          <th>25-year cumulative operating benefit after O&amp;M</th>
+          <th>{{ _("25-year cumulative operating benefit after O&M")|forceescape }}</th>
           <td>₹{{ '{:,.0f}'.format(loc.chart_data.financial.cumulative_savings[-1] if loc.chart_data.financial.cumulative_savings else 0) }}</td>
           <td>₹{{ '{:,.0f}'.format(loc.chart_data.financial.cumulative_savings[-1] if loc.chart_data.financial.cumulative_savings else 0) }}</td>
         </tr>
@@ -795,12 +793,12 @@
   <p class="monetary-disclaimer">{{ monetary_disclaimer }}</p>
 
   <article class="report-visual" style="margin-top:20px;">
-    <div class="report-visual-heading"><h3>CAPEX vs DPA cumulative position</h3><strong>25-year comparison</strong></div>
+    <div class="report-visual-heading"><h3>{{ _("CAPEX vs DPA cumulative position") }}</h3><strong>{{ _("25-year comparison") }}</strong></div>
     <div class="chart-frame chart-frame-tall"><canvas id="financingComparisonChart"></canvas></div>
     <p id="financing-chart-empty" class="chart-empty hidden"></p>
   </article>
   {% else %}
-  <p>Financing comparison data is not available for this estimate. Re-run the estimate to generate it.</p>
+  <p>{{ _("Financing comparison data is not available for this estimate. Re-run the estimate to generate it.") }}</p>
   {% endif %}
 </section>
 
@@ -810,33 +808,33 @@
 <section class="rpt-section" id="rpt-environmental" aria-labelledby="rpt-environmental-title">
   <div class="report-section-heading"><h2 id="rpt-environmental-title">{{ _('Environmental estimate') }}</h2><p>{{ _('Planning estimate from modeled energy, not a measured reduction.') }}</p></div>
   <div class="environment-hero">
-    <span>Annual CO₂ avoided</span><strong>{{ loc.co2_reduction_tons }} <small>tonnes/year</small></strong>
+    <span>{{ _("Annual CO₂ avoided") }}</span><strong>{{ loc.co2_reduction_tons }} <small>{{ _("tonnes/year") }}</small></strong>
     <div class="environment-rule"></div>
-    <p>{% if loc.chart_data.environment.lifetime_co2_tons is not none %}Degradation-adjusted 25-year planning estimate: {{ loc.chart_data.environment.lifetime_co2_tons }} tonnes CO₂.{% else %}Lifetime CO₂ is unavailable for this estimate.{% endif %}</p>
+    <p>{% if loc.chart_data.environment.lifetime_co2_tons is not none %}{{ _("Degradation-adjusted 25-year planning estimate:") }} {{ loc.chart_data.environment.lifetime_co2_tons }} {{ _("tonnes CO₂.") }}{% else %}{{ _("Lifetime CO₂ is unavailable for this estimate.") }}{% endif %}</p>
   </div>
   <div class="stat-grid">
-    <div class="stat-card"><span class="label">CO₂ Reduction / Year</span><span class="value">-{{ loc.co2_reduction_tons }} Tons</span></div>
-    <div class="stat-card"><span class="label">Grid factor</span><span class="value">{% if loc.chart_data.environment.provenance %}{{ loc.chart_data.environment.provenance.value }} kg CO₂/kWh{% else %}Unavailable{% endif %}</span></div>
+    <div class="stat-card"><span class="label">{{ _("CO₂ Reduction / Year") }}</span><span class="value">-{{ loc.co2_reduction_tons }} {{ _("Tons") }}</span></div>
+    <div class="stat-card"><span class="label">{{ _("Grid factor") }}</span><span class="value">{% if loc.chart_data.environment.provenance %}{{ loc.chart_data.environment.provenance.value }} {{ _("kg CO₂/kWh") }}{% else %}{{ _("Unavailable") }}{% endif %}</span></div>
   </div>
 
   <div class="equivalents-grid">
     <div class="equivalent-card">
       <span class="emoji">🌳</span>
-      <span class="value">~{{ loc.environmental_equivalents.trees_planted }} Trees</span>
-      <span class="label">Equivalent to planting</span>
+      <span class="value">~{{ loc.environmental_equivalents.trees_planted }} {{ _("Trees") }}</span>
+      <span class="label">{{ _("Equivalent to planting") }}</span>
     </div>
     <div class="equivalent-card">
       <span class="emoji">🚗</span>
-      <span class="value">~{{ '{:,}'.format(loc.environmental_equivalents.km_not_driven) }} Km</span>
-      <span class="label">Equivalent to not driving</span>
+      <span class="value">~{{ '{:,}'.format(loc.environmental_equivalents.km_not_driven) }} {{ _("Km") }}</span>
+      <span class="label">{{ _("Equivalent to not driving") }}</span>
     </div>
     <div class="equivalent-card">
       <span class="emoji">⛽</span>
-      <span class="value">~{{ loc.environmental_equivalents.fuel_liters_saved }} L Fuel</span>
-      <span class="label">Equivalent to saving</span>
+      <span class="value">~{{ loc.environmental_equivalents.fuel_liters_saved }} {{ _("L Fuel") }}</span>
+      <span class="label">{{ _("Equivalent to saving") }}</span>
     </div>
   </div>
-  <div class="green-banner">Be a part of a cleaner &amp; greener India 🌱 — Every rooftop counts.</div>
+  <div class="green-banner">{{ _("Be a part of a cleaner & greener India 🌱 — Every rooftop counts.") }}</div>
 </section>
 
 </section>
@@ -1083,7 +1081,7 @@
     else value = document.getElementById('clone-value-backup').value;
 
     if (change === 'bill_offset' && (!Number.isFinite(Number(value)) || Number(value) < 20 || Number(value) > 100)) {
-      setCloneStatus('Enter a bill offset from 20% to 100%.', 'error');
+      setCloneStatus({{ _('Enter a bill offset from %(minimum)s to %(maximum)s.', minimum='20%', maximum='100%')|tojson }}, 'error');
       document.getElementById('clone-value-offset').focus();
       return;
     }
@@ -1095,12 +1093,12 @@
       || (change === 'bill_offset' && normalizedMode === sourceSizingMode)
       || (change === 'needs_backup' && (String(value) === 'true') === sourceBackup);
     if (isIdentical) {
-      setCloneStatus('Choose a value different from this saved estimate before cloning.', 'error');
+      setCloneStatus({{ _('Choose a value different from this saved estimate before cloning.')|tojson }}, 'error');
       status.focus();
       return;
     }
 
-    setCloneStatus('Running alternate scenario…', 'loading');
+    setCloneStatus({{ _('Running alternate scenario…')|tojson }}, 'loading');
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
     try {
@@ -1118,10 +1116,10 @@
         status.focus();
         return;
       }
-      setCloneStatus('Scenario saved — opening compare…', 'success');
+      setCloneStatus({{ _('Scenario saved — opening compare…')|tojson }}, 'success');
       window.location.href = data.compare_url || data.redirect_url || '/compare';
     } catch (err) {
-      setCloneStatus('The scenario service is unavailable. Try again.', 'error');
+      setCloneStatus({{ _('The scenario service is unavailable. Try again.')|tojson }}, 'error');
       btn.disabled = false;
       btn.setAttribute('aria-busy', 'false');
       status.focus();

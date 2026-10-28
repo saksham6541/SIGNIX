@@ -1,6 +1,6 @@
 # filename: app/__init__.py
 from flask import Flask, session
-from flask_babel import Babel, get_locale
+from flask_babel import Babel, get_locale, get_translations, gettext as _
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect, CSRFError
 
@@ -48,7 +48,7 @@ def create_app():
             or (request.content_type or "").startswith("application/json")
         ):
             return jsonify(
-                error="Authentication required. Please log in and try again.",
+                error=_("Authentication required. Please log in and try again."),
                 login_url=url_for("auth.login", _external=False),
             ), 401
         # A local path is sufficient to resume the requested page and avoids
@@ -63,12 +63,15 @@ def create_app():
             authenticated = current_user.is_authenticated
         except (AttributeError, RuntimeError):
             authenticated = False
-        if authenticated:
-            return current_user.language_preference or DEFAULT_LOCALE
         try:
-            return session.get("language", DEFAULT_LOCALE)
+            selected = session.get("language")
+            if selected in SUPPORTED_LOCALES:
+                return selected
         except RuntimeError:
-            return DEFAULT_LOCALE
+            pass
+        if authenticated and current_user.language_preference in SUPPORTED_LOCALES:
+            return current_user.language_preference
+        return DEFAULT_LOCALE
 
     app.config.setdefault("BABEL_DEFAULT_LOCALE", DEFAULT_LOCALE)
     app.config.setdefault(
@@ -76,6 +79,8 @@ def create_app():
         f"{BASE_DIR}/translations",
     )
     babel.init_app(app, locale_selector=select_locale)
+    from app.localization import ui_label
+    app.jinja_env.filters["ui_label"] = ui_label
 
     @app.context_processor
     def inject_locale():
@@ -87,9 +92,13 @@ def create_app():
 
         return {
             "get_locale": get_locale,
-            "monetary_disclaimer": MONETARY_DISCLAIMER,
-            "subsidy_caveat": SUBSIDY_CAVEAT,
-            "subsidy_eligibility_assumption": SUBSIDY_ELIGIBILITY_ASSUMPTION,
+            "client_translations": {
+                key: value for key, value in getattr(get_translations(), "_catalog", {}).items()
+                if isinstance(key, str) and key and isinstance(value, str) and value
+            },
+            "monetary_disclaimer": _(MONETARY_DISCLAIMER),
+            "subsidy_caveat": _(SUBSIDY_CAVEAT),
+            "subsidy_eligibility_assumption": _(SUBSIDY_ELIGIBILITY_ASSUMPTION),
         }
 
     from app.models import User
@@ -144,9 +153,9 @@ def create_app():
         from flask import request, jsonify
         from werkzeug.exceptions import HTTPException
         if request.path.startswith("/api/"):
-            return jsonify({"error": "Internal server error. Check the Flask terminal."}), 500
+            return jsonify({"error": _("Internal server error. Check the Flask terminal.")}), 500
         if isinstance(err, HTTPException):
             return err
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": _("Internal server error")}), 500
 
     return app

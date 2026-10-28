@@ -119,7 +119,7 @@
               </div>
               <div class="scenario-col-sub">
                 {{ location.sizing_mode or '—' }}
-                {% if location.battery_kwh and location.battery_kwh > 0 %}· {{ '%.1f'|format(location.battery_kwh) }} kWh batt{% endif %}
+                {% if location.battery_kwh and location.battery_kwh > 0 %}· {{ '%.1f'|format(location.battery_kwh) }} {{ _("kWh batt") }}{% endif %}
               </div>
             </th>
             {% endfor %}
@@ -135,8 +135,8 @@
               <strong>{{ "%.2f"|format(location.system_size or 0) }} kW</strong>
               {% if sizing %}
               <div class="metric-sub">
-                min {{ "%.2f"|format(sizing.min_kw or 0) }}
-                · max {{ "%.2f"|format(sizing.max_kw or 0) }}
+                {{ _("min") }} {{ "%.2f"|format(sizing.min_kw or 0) }}
+                {{ _("· max") }} {{ "%.2f"|format(sizing.max_kw or 0) }}
               </div>
               {% endif %}
               {% if location.id in winners.get('system_size', []) %}<span class="best-tag">{{ _('Best') }}</span>{% endif %}
@@ -191,7 +191,7 @@
               {% if viability.get('tier') or viability.get('score') is not none %}
                 <span class="suit-pill">{{ (viability.get('tier') or 'rated')|replace('_',' ') }}</span>
                 {% if viability.get('score') is not none %}
-                <div class="metric-sub">score {{ viability.get('score') }}</div>
+                <div class="metric-sub">{{ _("score") }} {{ viability.get('score') }}</div>
                 {% endif %}
               {% else %}—{% endif %}
               {% if location.id in winners.get('suitability_score', []) %}<span class="best-tag">{{ _('Best') }}</span>{% endif %}

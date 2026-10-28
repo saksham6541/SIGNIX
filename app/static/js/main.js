@@ -87,7 +87,7 @@ function initSearch() {
     if (!statusBox) return;
     statusBox.className = `location-status is-${tone}`;
     const text = statusBox.querySelector('span:last-child');
-    if (text) text.textContent = message;
+    if (text) text.textContent = window.SignixI18n.t(message);
   }
 
   function setButtonBusy(button, busy, busyLabel) {
@@ -96,7 +96,7 @@ function initSearch() {
     button.setAttribute('aria-busy', String(busy));
     const label = button.querySelector('span') || button;
     if (!button.dataset.defaultLabel) button.dataset.defaultLabel = label.textContent.trim();
-    label.textContent = busy ? busyLabel : button.dataset.defaultLabel;
+    label.textContent = busy ? window.SignixI18n.t(busyLabel) : button.dataset.defaultLabel;
   }
 
   function clearResults() {
@@ -107,13 +107,13 @@ function initSearch() {
     const lat = Number(location.lat);
     const lng = Number(location.lon ?? location.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
-      setStatus('That result did not contain valid coordinates. Choose another result.', 'error');
+      setStatus(window.SignixI18n.t('That result did not contain valid coordinates. Choose another result.'), 'error');
       return false;
     }
     const address = location.address || location.display_name || location.label || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     requestSequence += 1;
     if (searchController) searchController.abort();
-    setButtonBusy(searchBtn, false, 'Searching…');
+    setButtonBusy(searchBtn, false, window.SignixI18n.t('Searching…'));
     SignixFormStore.selectedAddress = address;
     SignixFormStore.selectedLatLng = { lat, lng };
     input.value = address;
@@ -143,7 +143,7 @@ function initSearch() {
       button.setAttribute('role', 'option');
       const title = document.createElement('span');
       title.className = 'result-title';
-      title.textContent = result.label || result.display_name || 'Unnamed result';
+      title.textContent = result.label || result.display_name || window.SignixI18n.t('Unnamed result');
       button.appendChild(title);
       const detailText = result.display_name && result.display_name !== title.textContent
         ? result.display_name
@@ -154,7 +154,7 @@ function initSearch() {
         detail.textContent = detailText;
         button.appendChild(detail);
       }
-      button.addEventListener('click', () => selectLocation(result, 'Searched location selected'));
+      button.addEventListener('click', () => selectLocation(result, window.SignixI18n.t('Searched location selected')));
       fragment.appendChild(button);
     });
     resultsBox.appendChild(fragment);
@@ -164,23 +164,23 @@ function initSearch() {
     if (!mapsInput) return;
     const url = mapsInput.value.trim();
     if (!url) {
-      setStatus('Paste a Google Maps link or latitude, longitude first.', 'error');
+      setStatus(window.SignixI18n.t('Paste a Google Maps link or latitude, longitude first.'), 'error');
       mapsInput.focus();
       return;
     }
     setButtonBusy(mapsBtn, true, 'Reading…');
-    setStatus('Reading the shared map location…', 'loading');
+    setStatus(window.SignixI18n.t('Reading the shared map location…'), 'loading');
     clearResults();
     try {
       const res = await fetch(`${PARSE_MAPS_URL}?url=${encodeURIComponent(url)}`);
       const data = await res.json();
       if (!res.ok) {
-        setStatus(data.error || 'Could not read that Maps link. Search by address instead.', 'error');
+        setStatus(data.error || window.SignixI18n.t('Could not read that Maps link. Search by address instead.'), 'error');
         return;
       }
-      selectLocation(data, 'Shared pin selected');
+      selectLocation(data, window.SignixI18n.t('Shared pin selected'));
     } catch (err) {
-      setStatus('The Maps link could not be read. Check your connection or search by address.', 'error');
+      setStatus(window.SignixI18n.t('The Maps link could not be read. Check your connection or search by address.'), 'error');
     } finally {
       setButtonBusy(mapsBtn, false, 'Reading…');
     }
@@ -199,7 +199,7 @@ function initSearch() {
   async function runSearch() {
     const query = input.value.trim();
     if (!query) {
-      setStatus('Enter an address, landmark, society, or place to search.', 'error');
+      setStatus(window.SignixI18n.t('Enter an address, landmark, society, or place to search.'), 'error');
       input.focus();
       return;
     }
@@ -214,8 +214,8 @@ function initSearch() {
       searchTimedOut = true;
       controller.abort();
     }, 12000);
-    setButtonBusy(searchBtn, true, 'Searching…');
-    setStatus(`Searching for “${query}”…`, 'loading');
+    setButtonBusy(searchBtn, true, window.SignixI18n.t('Searching…'));
+    setStatus(window.SignixI18n.t('Searching for “%(query)s”…', { query }), 'loading');
     clearResults();
 
     try {
@@ -226,28 +226,28 @@ function initSearch() {
       const data = await res.json();
       if (sequence !== requestSequence) return;
       if (!res.ok || !data || !Array.isArray(data.results)) {
-        throw new Error((data && data.error) || 'Malformed search response');
+        throw new Error((data && data.error) || window.SignixI18n.t('Malformed search response'));
       }
       const list = data.results || [];
       if (!list.length) {
-        const message = data.error || 'No matching places found. Add a city, state, postcode, or nearby landmark.';
+        const message = data.error || window.SignixI18n.t('No matching places found. Add a city, state, postcode, or nearby landmark.');
         setStatus(message, data.source === 'unavailable' ? 'error' : 'empty');
         return;
       }
       renderSearchResults(list);
-      setStatus(`${list.length} location suggestion${list.length === 1 ? '' : 's'} found. Choose one to move the map.`, 'neutral');
+      setStatus(window.SignixI18n.t('%(count)s location suggestions found. Choose one to move the map.', { count: list.length }), 'neutral');
     } catch (err) {
       if (sequence !== requestSequence) return;
       if (err.name === 'AbortError' && !searchTimedOut) return;
       setStatus(
         searchTimedOut
-          ? 'Place search timed out. Try again or use a Maps link.'
-          : 'Place search is unavailable. Check your connection, try again, or use another location method.',
+          ? window.SignixI18n.t('Place search timed out. Try again or use a Maps link.')
+          : window.SignixI18n.t('Place search is unavailable. Check your connection, try again, or use another location method.'),
         'error'
       );
     } finally {
       clearTimeout(timeoutId);
-      if (sequence === requestSequence) setButtonBusy(searchBtn, false, 'Searching…');
+      if (sequence === requestSequence) setButtonBusy(searchBtn, false, window.SignixI18n.t('Searching…'));
     }
   }
 
@@ -273,26 +273,26 @@ function initSearch() {
     requestSequence += 1;
     searchController?.abort();
     clearTimeout(searchTimer);
-    setButtonBusy(searchBtn, false, 'Searching…');
+    setButtonBusy(searchBtn, false, window.SignixI18n.t('Searching…'));
     input.value = '';
     clearBtn.classList.add('hidden');
     clearResults();
-    setStatus('Search cleared. The current map marker is unchanged until you choose another property.', 'neutral');
+    setStatus(window.SignixI18n.t('Search cleared. The current map marker is unchanged until you choose another property.'), 'neutral');
     input.focus();
   });
 
   locateBtn.addEventListener('click', () => {
     if (!navigator.geolocation) {
-      setStatus('This browser does not support device location. Search by address or paste a Maps link.', 'error');
+      setStatus(window.SignixI18n.t('This browser does not support device location. Search by address or paste a Maps link.'), 'error');
       return;
     }
     if (window.isSecureContext === false && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-      setStatus('Device location requires a secure HTTPS connection. Search by address instead.', 'error');
+      setStatus(window.SignixI18n.t('Device location requires a secure HTTPS connection. Search by address instead.'), 'error');
       return;
     }
     locateBtn.disabled = true;
     locateBtn.setAttribute('aria-busy', 'true');
-    setStatus('Requesting your device location…', 'loading');
+    setStatus(window.SignixI18n.t('Requesting your device location…'), 'loading');
     clearResults();
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
@@ -304,17 +304,17 @@ function initSearch() {
       } catch (err) {
         // Exact device coordinates remain valid when address lookup is unavailable.
       } finally {
-        selectLocation({ lat: latitude, lon: longitude, address }, 'Device location selected');
+        selectLocation({ lat: latitude, lon: longitude, address }, window.SignixI18n.t('Device location selected'));
         locateBtn.disabled = false;
         locateBtn.setAttribute('aria-busy', 'false');
       }
     }, (error) => {
       const messages = {
-        1: 'Location permission was denied. Enable it in browser settings or search by address.',
-        2: 'Your device location is unavailable. Try again outdoors or search by address.',
-        3: 'Device location timed out. Try again or search by address.',
+        1: window.SignixI18n.t('Location permission was denied. Enable it in browser settings or search by address.'),
+        2: window.SignixI18n.t('Your device location is unavailable. Try again outdoors or search by address.'),
+        3: window.SignixI18n.t('Device location timed out. Try again or search by address.'),
       };
-      setStatus(messages[error.code] || 'Unable to retrieve your location. Search by address instead.', 'error');
+      setStatus(messages[error.code] || window.SignixI18n.t('Unable to retrieve your location. Search by address instead.'), 'error');
       locateBtn.disabled = false;
       locateBtn.setAttribute('aria-busy', 'false');
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
@@ -345,7 +345,7 @@ function initEstimationButton() {
 
   function setEstimateStatus(message, tone = 'neutral') {
     if (!status) return;
-    status.textContent = message;
+    status.textContent = window.SignixI18n.t(message);
     status.className = `estimate-action-status is-${tone}`;
   }
 
@@ -365,41 +365,41 @@ function initEstimationButton() {
         const tier = (viability.tier || 'fair').toLowerCase();
         const confidenceTier = (confidence.tier || 'unknown').replace(/_/g, ' ');
         const priorityLabels = {
-          fastest_payback: 'Fastest payback',
-          maximum_savings: 'Maximum long-term savings',
-          environmental_impact: 'Environmental impact',
-          backup_power: 'Backup power',
-          no_preference: 'No strong preference'
+          fastest_payback: window.SignixI18n.t('Fastest payback'),
+          maximum_savings: window.SignixI18n.t('Maximum long-term savings'),
+          environmental_impact: window.SignixI18n.t('Environmental impact'),
+          backup_power: window.SignixI18n.t('Backup power'),
+          no_preference: window.SignixI18n.t('No strong preference')
         };
         const labels = {
-          payback: 'Payback',
-          financial_viability: 'Financial viability',
-          roof_fit: 'Roof fit',
-          orientation: 'Orientation',
-          co2_reduction: 'CO2 reduction',
-          backup_capability: 'Backup capability'
+          payback: window.SignixI18n.t('Payback'),
+          financial_viability: window.SignixI18n.t('Financial viability'),
+          roof_fit: window.SignixI18n.t('Roof fit'),
+          orientation: window.SignixI18n.t('Orientation'),
+          co2_reduction: window.SignixI18n.t('CO2 reduction'),
+          backup_capability: window.SignixI18n.t('Backup capability')
         };
         const detail = (key, factor) => {
-          if (key === 'payback') return `${factor.tier || 'Unavailable'} payback period`;
-          if (key === 'financial_viability') return `${factor.tier || 'Unavailable'} lifetime savings margin`;
-          if (key === 'roof_fit') return `${factor.usable_area_per_kw ?? '—'} m² usable area per kW`;
-          if (key === 'orientation') return `${factor.factor ?? '—'} relative yield factor`;
-          if (key === 'co2_reduction') return `${factor.tons ?? '—'} tons CO2 reduction per year`;
-          return `${factor.score ?? 0}/100 backup capability`;
+          if (key === 'payback') return `${window.SignixI18n.t(factor.tier || 'Unavailable')} ${window.SignixI18n.t('payback period')}`;
+          if (key === 'financial_viability') return `${window.SignixI18n.t(factor.tier || 'Unavailable')} ${window.SignixI18n.t('lifetime savings margin')}`;
+          if (key === 'roof_fit') return `${factor.usable_area_per_kw ?? '—'} ${window.SignixI18n.t('m² usable area per kW')}`;
+          if (key === 'orientation') return `${factor.factor ?? '—'} ${window.SignixI18n.t('relative yield factor')}`;
+          if (key === 'co2_reduction') return `${factor.tons ?? '—'} ${window.SignixI18n.t('tons CO2 reduction per year')}`;
+          return `${factor.score ?? 0}${window.SignixI18n.t('/100 backup capability')}`;
         };
         const factorMarkup = Object.entries(labels).filter(([key]) => factors[key]).map(([key, label]) => {
           const factor = factors[key];
           const factorScore = Math.max(0, Math.min(100, Number(factor.score || 0)));
           const factorTier = (factor.tier || 'fair').toLowerCase();
-          return `<div class="suitability-factor"><div class="factor-heading"><strong>${label}</strong>${factor.tier ? `<span class="factor-tier suitability-${factorTier}">${factor.tier.replace(/_/g, ' ')}</span>` : ''}<span class="factor-score">${factorScore}/100</span></div><div class="factor-bar" role="progressbar" aria-valuenow="${factorScore}" aria-valuemin="0" aria-valuemax="100"><span class="factor-bar-fill suitability-${factorTier}" style="width: ${factorScore}%"></span></div><span class="factor-detail">${detail(key, factor)}</span></div>`;
+          return `<div class="suitability-factor"><div class="factor-heading"><strong>${label}</strong>${factor.tier ? `<span class="factor-tier suitability-${factorTier}">${window.SignixI18n.t(factor.tier.replace(/_/g, ' '))}</span>` : ''}<span class="factor-score">${factorScore}/100</span></div><div class="factor-bar" role="progressbar" aria-valuenow="${factorScore}" aria-valuemin="0" aria-valuemax="100"><span class="factor-bar-fill suitability-${factorTier}" style="width: ${factorScore}%"></span></div><span class="factor-detail">${detail(key, factor)}</span></div>`;
         }).join('');
         ratingHost.innerHTML = `
           <section class="suitability-card">
             <div class="suitability-primary">
-              <div class="score-ring-wrap" aria-label="Overall suitability score ${score} out of 100"><svg class="score-ring" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle class="score-ring-track" cx="50" cy="50" r="40"></circle><circle class="score-ring-progress suitability-${tier}" cx="50" cy="50" r="40" pathLength="100" style="stroke-dasharray: ${score} 100"></circle></svg><span class="score-ring-value"><strong>${score}</strong><small>/100</small></span></div>
-              <div class="suitability-primary-copy"><span class="suitability-label">Overall suitability</span><div class="suitability-badges"><span class="suitability-tier suitability-${tier}">${(viability.tier || 'Unknown').replace(/_/g, ' ')}</span><span class="confidence-badge">Estimate confidence: ${confidenceTier}</span></div>${rating.user_priority ? `<span class="suitability-priority">Priority: ${priorityLabels[rating.user_priority] || rating.user_priority.replace(/_/g, ' ')}</span>` : ''}</div>
+              <div class="score-ring-wrap" aria-label="${window.SignixI18n.t('Overall suitability score %(score)s out of 100', { score })}"><svg class="score-ring" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle class="score-ring-track" cx="50" cy="50" r="40"></circle><circle class="score-ring-progress suitability-${tier}" cx="50" cy="50" r="40" pathLength="100" style="stroke-dasharray: ${score} 100"></circle></svg><span class="score-ring-value"><strong>${score}</strong><small>/100</small></span></div>
+              <div class="suitability-primary-copy"><span class="suitability-label">${window.SignixI18n.t('Overall suitability')}</span><div class="suitability-badges"><span class="suitability-tier suitability-${tier}">${window.SignixI18n.t((viability.tier || 'Unknown').replace(/_/g, ' '))}</span><span class="confidence-badge">${window.SignixI18n.t('Estimate confidence:')} ${window.SignixI18n.t(confidenceTier)}</span></div>${rating.user_priority ? `<span class="suitability-priority">${window.SignixI18n.t('Priority:')} ${priorityLabels[rating.user_priority] || rating.user_priority.replace(/_/g, ' ')}</span>` : ''}</div>
             </div>
-            <details class="suitability-details"><summary>View factor breakdown</summary><div class="suitability-factors">${factorMarkup}</div></details>
+            <details class="suitability-details"><summary>${window.SignixI18n.t('View factor breakdown')}</summary><div class="suitability-factors">${factorMarkup}</div></details>
           </section>`;
       }
     }
@@ -409,7 +409,7 @@ function initEstimationButton() {
     if (panelEl) {
       const n = data.panel_count != null ? data.panel_count
         : (data.panel_estimate && data.panel_estimate.panel_count);
-      panelEl.textContent = n != null ? `approximately ${n} panels` : '';
+      panelEl.textContent = n != null ? window.SignixI18n.t('approximately %(count)s panels', { count: n }) : '';
     }
     const sizing = data.sizing || null;
     const sizingPanel = document.getElementById('result-sizing-panel');
@@ -422,20 +422,20 @@ function initEstimationButton() {
       setTxt('result-size-min', Number(sizing.min_kw || 0).toFixed(2));
       setTxt('result-size-recommended', Number(sizing.recommended_kw || data.system_size || 0).toFixed(2));
       setTxt('result-size-max', Number(sizing.max_kw || 0).toFixed(2));
-      setTxt('result-sizing-mode', sizing.mode ? `Mode: ${String(sizing.mode).replace(/_/g, ' ')}` : '');
+      setTxt('result-sizing-mode', sizing.mode ? window.SignixI18n.t('Mode: %(mode)s', { mode: window.SignixI18n.t(String(sizing.mode).replace(/_/g, ' ')) }) : '');
       const rat = document.getElementById('result-sizing-rationale');
       if (rat) {
         rat.innerHTML = '';
         (sizing.rationale || []).forEach(line => {
           const li = document.createElement('li');
-          li.textContent = line;
+          li.textContent = window.SignixI18n.t(line);
           rat.appendChild(li);
         });
       }
       const cons = document.getElementById('result-sizing-constraints');
       if (cons) {
         const list = sizing.constraints || [];
-        cons.textContent = list.length ? `Constraints: ${list.join(' · ')}` : '';
+        cons.textContent = list.length ? window.SignixI18n.t('Constraints: %(items)s', { items: list.map(item => window.SignixI18n.t(item)).join(' · ') }) : '';
       }
     } else if (sizingPanel) {
       sizingPanel.classList.add('hidden');
@@ -445,11 +445,11 @@ function initEstimationButton() {
       const bk = Number(data.battery_kwh || 0);
       const bs = data.battery_sizing || {};
       if (bk > 0) {
-        let msg = `Battery: ${bk.toFixed(2)} kWh`;
+        let msg = window.SignixI18n.t('Battery: %(capacity)s kWh', { capacity: bk.toFixed(2) });
         if (bs.critical_load_kw && bs.backup_hours) {
-          msg += ` (auto-sized for ${bs.critical_load_kw} kW × ${bs.backup_hours} h)`;
+          msg += window.SignixI18n.t(' (auto-sized for %(load)s kW × %(hours)s h)', { load: bs.critical_load_kw, hours: bs.backup_hours });
         } else if (bs.note) {
-          msg += ` — ${bs.note}`;
+          msg += ` — ${window.SignixI18n.t(bs.note)}`;
         }
         if (data.battery_cost) {
           msg += ` · ~₹${Number(data.battery_cost).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -472,13 +472,13 @@ function initEstimationButton() {
     if (annualRoiEl) {
       annualRoiEl.textContent = data.annual_roi_pct != null
         ? `${Number(data.annual_roi_pct).toFixed(2)}%`
-        : 'Unavailable';
+        : window.SignixI18n.t('Unavailable');
     }
     const lifetimeNetEl = document.getElementById('result-lifetime-net-benefit');
     if (lifetimeNetEl) {
       lifetimeNetEl.textContent = data.lifetime_net_benefit != null
         ? formatCurrency(data.lifetime_net_benefit)
-        : 'Unavailable';
+        : window.SignixI18n.t('Unavailable');
     }
     document.getElementById('result-co2-reduction').textContent = Number(data.co2_reduction_tons || 0).toFixed(2);
     const nominalPayback = data.nominal_payback_years != null
@@ -486,13 +486,13 @@ function initEstimationButton() {
       : data.payback_years;
     document.getElementById('result-payback').textContent = nominalPayback != null
       ? Number(nominalPayback).toFixed(1)
-      : 'Indicative estimate';
+      : window.SignixI18n.t('Indicative estimate');
     const simpleEl = document.getElementById('result-payback-simple');
     if (simpleEl) {
       const simplePayback = data.simple_payback_years;
       simpleEl.textContent = simplePayback != null
-        ? `Simple (flat tariff): ${Number(simplePayback).toFixed(1)} yrs`
-        : 'Simple (flat tariff): —';
+        ? window.SignixI18n.t('Simple (flat tariff): %(years)s yrs', { years: Number(simplePayback).toFixed(1) })
+        : window.SignixI18n.t('Simple (flat tariff): —');
     }
     document.getElementById('result-system-cost').textContent = formatCurrency(data.system_cost);
     document.getElementById('result-subsidy').textContent = `-${formatCurrency(data.subsidy_amount)}`;
@@ -500,20 +500,21 @@ function initEstimationButton() {
     const subsidyNote = document.getElementById('result-subsidy-note');
     if (subsidyNote) {
       const caveat = data.subsidy_caveat
-        || 'Central subsidy estimate — final amount subject to MNRE / DISCOM approval';
+        || window.SignixI18n.t('Central subsidy estimate — final amount subject to MNRE / DISCOM approval');
       const assumption = data.subsidy_eligibility_assumption
-        || 'Assumes residential, grid-connected system';
-      subsidyNote.textContent = `${caveat} ${assumption}`;
+        || window.SignixI18n.t('Assumes residential, grid-connected system');
+      subsidyNote.textContent = `${window.SignixI18n.t(caveat)} ${window.SignixI18n.t(assumption)}`;
     }
     const caveatEl = document.getElementById('result-subsidy-caveat');
-    if (caveatEl && data.subsidy_caveat) caveatEl.textContent = data.subsidy_caveat;
+    if (caveatEl && data.subsidy_caveat) caveatEl.textContent = window.SignixI18n.t(data.subsidy_caveat);
     const eligEl = document.getElementById('result-subsidy-eligibility');
     if (eligEl && data.subsidy_eligibility_assumption) {
-      eligEl.textContent = data.subsidy_eligibility_assumption;
+      eligEl.textContent = window.SignixI18n.t(data.subsidy_eligibility_assumption);
     }
     document.getElementById('result-area-summary').textContent =
-      `Usable roof area: ${Number(data.usable_area_sqm || 0).toFixed(2)} m² ` +
-      `of ${Number(data.roof_area_sqm || 0).toFixed(2)} m² total`;
+      window.SignixI18n.t('Usable roof area: %(usable)s m² of %(total)s m² total', {
+        usable: Number(data.usable_area_sqm || 0).toFixed(2), total: Number(data.roof_area_sqm || 0).toFixed(2),
+      });
     const sourceEl = document.getElementById('estimate-source');
     const sourceNames = {
       nasa_power: 'NASA POWER',
@@ -538,16 +539,16 @@ function initEstimationButton() {
         let confText = '';
         let confClass = 'data-conf-unknown';
         if (confTier === 'high') {
-          confText = ' · High confidence';
+          confText = window.SignixI18n.t(' · High confidence');
           confClass = 'data-conf-high';
         } else if (confTier === 'medium') {
-          confText = ' · Medium confidence';
+          confText = window.SignixI18n.t(' · Medium confidence');
           confClass = 'data-conf-medium';
         } else if (confTier === 'low') {
-          confText = ' · Low confidence — verify locally';
+          confText = window.SignixI18n.t(' · Low confidence — verify locally');
           confClass = 'data-conf-low';
         }
-        sourceEl.textContent = `Data: ${sourceName}${confText}`;
+        sourceEl.textContent = window.SignixI18n.t('Data: %(source)s%(confidence)s', { source: sourceName, confidence: confText });
         sourceEl.classList.add(confClass);
       } else {
         sourceEl.textContent = '';
@@ -561,7 +562,7 @@ function initEstimationButton() {
         || sourceKey === 'estimated'
         || confTier === 'low';
       sourceNote.textContent = isFallback
-        ? 'Live irradiance services were unavailable. This result uses a rough location-adjusted estimate.'
+        ? window.SignixI18n.t('Live irradiance services were unavailable. This result uses a rough location-adjusted estimate.')
         : '';
       sourceNote.classList.toggle('hidden', !isFallback);
     }
@@ -575,7 +576,7 @@ function initEstimationButton() {
     const polygon = getCurrentPolygon();
     const obstructions = typeof getCurrentObstructions === 'function' ? getCurrentObstructions() : [];
     if (!polygon) {
-      setEstimateStatus('Draw a rooftop boundary on the map before starting the estimate.', 'error');
+      setEstimateStatus(window.SignixI18n.t('Draw a rooftop boundary on the map before starting the estimate.'), 'error');
       document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
@@ -621,7 +622,7 @@ function initEstimationButton() {
 
     document.getElementById('loading-panel').classList.remove('hidden');
     btn.disabled = true;
-    setEstimateStatus('Generating the planning estimate…', 'loading');
+    setEstimateStatus(window.SignixI18n.t('Generating the planning estimate…'), 'loading');
 
     try {
       const csrfToken =
@@ -668,7 +669,7 @@ function initEstimationButton() {
         return;
       }
       if (res.status === 401) {
-        setEstimateStatus(data.error || 'Please log in again, then retry the estimate.', 'error');
+        setEstimateStatus(data.error || window.SignixI18n.t('Please log in again, then retry the estimate.'), 'error');
         if (data.login_url) window.location.href = data.login_url;
         return;
       }
@@ -678,10 +679,10 @@ function initEstimationButton() {
       }
       if (data.redirect_url) {
         showEstimateResult(data);
-        setEstimateStatus('Estimate complete. Review the snapshot below or open the full report.', 'success');
+        setEstimateStatus(window.SignixI18n.t('Estimate complete. Review the snapshot below or open the full report.'), 'success');
         document.getElementById('estimate-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        setEstimateStatus(data.error || 'The estimate could not be generated. Please retry.', 'error');
+        setEstimateStatus(data.error || window.SignixI18n.t('The estimate could not be generated. Please retry.'), 'error');
       }
     } catch (err) {
       console.error(err);
@@ -781,7 +782,7 @@ function initDialControls() {
     el('dial-impact-savings', '₹' + fmtNum(indSavings, 0));
     el('dial-impact-panels', String(indPanels));
     const pcl = document.getElementById('panel-count-label');
-    if (pcl) pcl.textContent = 'Showing approximately ' + indPanels + ' panels.';
+    if (pcl) pcl.textContent = window.SignixI18n.t('Showing approximately ') + indPanels + ' panels.';
 
     if (window.SIGNIX_ROOF3D) {
       window.SIGNIX_ROOF3D.setPitchAndPanels(state.pitch, indPanels);

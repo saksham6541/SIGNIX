@@ -198,12 +198,12 @@
     <div class="hero-card">
       <span class="label">{{ _('Recommended system') }}</span>
       <span class="value">{{ '%.1f'|format(loc.system_size or 0) }}</span>
-      <span class="unit">kW{% if loc.panel_count %} · approximately {{ loc.panel_count }} panels{% endif %}</span>
+      <span class="unit">kW{% if loc.panel_count %} {{ _("· approximately") }} {{ loc.panel_count }} {{ _("panels") }}{% endif %}</span>
     </div>
     <div class="hero-card">
       <span class="label">{{ _('Yearly generation') }}</span>
       <span class="value">{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span>
-      <span class="unit">kWh / year</span>
+      <span class="unit">{{ _("kWh / year") }}</span>
     </div>
     <div class="hero-card">
       <span class="label">{{ _('Annual net benefit') if loc.planning_track == 'business' else _('Monthly savings') }}</span>
@@ -223,7 +223,7 @@
     {% if loc.battery_cost_included %}<div class="row"><span>{{ _('Battery storage') }}{% if loc.battery_kwh and loc.battery_kwh > 0 %} ({{ loc.battery_kwh }} kWh){% endif %}</span><span>{% if loc.battery_cost_available %}₹{{ '{:,.0f}'.format(loc.battery_cost) }}{% else %}{{ _('Cost unavailable') }}{% endif %}</span></div>{% endif %}
     {% if loc.psg_guidance_allowed %}<div class="row"><span>{{ _('Central subsidy (estimate)') }}</span><span>{% if loc.subsidy_value_available %}−₹{{ '{:,.0f}'.format(loc.subsidy_amount) }}{% else %}{{ _('Amount unavailable') }}{% endif %}</span></div>{% endif %}
     <div class="row"><span>{{ _('Net investment') }}</span><span>₹{{ '{:,.0f}'.format(loc.net_investment or 0) }}</span></div>
-    {% if loc.costs_reconcile %}<p class="reconciliation-ok">{{ loc.cost_reconciliation_equation }}</p>{% elif loc.cost_reconciliation_note %}<p class="reconciliation-warn">{{ loc.cost_reconciliation_note }}</p>{% endif %}
+    {% if loc.costs_reconcile %}<p class="reconciliation-ok">{{ loc.cost_reconciliation_equation }}</p>{% elif loc.cost_reconciliation_note %}<p class="reconciliation-warn">{{ _(loc.cost_reconciliation_note) }}</p>{% endif %}
     {% if loc.psg_guidance_allowed %}<p class="disclaimer">{{ subsidy_caveat }} · {{ subsidy_eligibility_assumption }}</p>{% endif %}
     {% if loc.system_cost and loc.net_investment %}<div class="cost-track"><span class="cost-fill" style="width:100%;"></span></div><p class="chart-note">{{ _('Gross PV cost') }}</p><div class="cost-track"><span class="cost-fill net" style="width:{{ [100, (loc.net_investment / loc.system_cost * 100)]|min }}%;"></span></div><p class="chart-note">{{ _('Net investment after displayed adjustments') }}</p>{% endif %}
   </div></td><td><div class="panel">
@@ -231,23 +231,23 @@
     {% if loc.planning_track == 'business' %}
     <div class="row"><span>{{ _('Year-one ROI') }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
     <div class="row"><span>{{ _('25-year net benefit') }}</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
-    <div class="row"><span>{{ _('Commercial payback') }} <small>({{ _('tariff escalation assumed') }})</small></span><span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
+    <div class="row"><span>{{ _('Commercial payback') }} <small>({{ _('tariff escalation assumed') }})</small></span><span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _('years') }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span></div>
     <p class="disclaimer">{{ _('Demand-charge savings are not modelled.') }}</p>
     {% else %}
     {% set nom = (loc.extras or {}).get('nominal_payback_years', loc.payback_years) if loc.extras is defined else loc.payback_years %}
     {% if not nom and loc.extras %}{% set nom = loc.extras.get('nominal_payback_years') or loc.payback_years %}{% endif %}
     <div class="row">
       <span>{{ _('Nominal payback') }} <small>({{ _('tariff may rise over time') }})</small></span>
-      <span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _('years') }}{% elif nom is not none %}{{ nom }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span>
+      <span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _('years') }}{% elif nom is not none %}{{ nom }} {{ _('years') }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span>
     </div>
-    <div class="row"><span>{{ _('Payback without subsidy') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.payback_without_subsidy_years is not none %}{{ loc.payback_without_subsidy_years }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
-    <div class="row"><span>{{ _('Subsidy-adjusted payback') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.subsidy_adjusted_payback_years is not none %}{{ loc.subsidy_adjusted_payback_years }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
+    <div class="row"><span>{{ _('Payback without subsidy') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.payback_without_subsidy_years is not none %}{{ loc.payback_without_subsidy_years }} {{ _('years') }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span></div>
+    <div class="row"><span>{{ _('Subsidy-adjusted payback') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.subsidy_adjusted_payback_years is not none %}{{ loc.subsidy_adjusted_payback_years }} {{ _('years') }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span></div>
     {% endif %}
     {% if loc.planning_track == 'business' %}<div class="row">
       <span>{{ _('Simple payback') }} <small>({{ _('flat tariff') }})</small></span>
       <span>
         {% set simp = loc.simple_payback_years if loc.simple_payback_years is not none else (loc.extras.get('simple_payback_years') if loc.extras else none) %}
-        {% if simp is not none %}{{ simp }} {{ _('years') }}{% else %}{{ loc.payback_unavailable_reason }}{% endif %}
+        {% if simp is not none %}{{ simp }} {{ _('years') }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}
       </span>
     </div>{% endif %}
     {% if loc.discounted_payback_years is not none %}<div class="row"><span>{{ _('Discounted payback') }}</span><span>{{ loc.discounted_payback_years }} {{ _('years') }}</span></div>{% elif loc.lifecycle_projection %}<div class="row"><span>{{ _('Discounted payback') }}</span><span>{{ _('No break-even in 25 years') }}</span></div>{% endif %}
@@ -268,7 +268,7 @@
   <p class="disclaimer">{{ monetary_disclaimer }}</p>
   {% if loc.qr_png_data_uri %}
   <div style="margin-top:14px;">
-    <img src="{{ loc.qr_png_data_uri }}" alt="QR" width="88" height="88"/>
+    <img src="{{ loc.qr_png_data_uri }}" alt="{{ _('QR') }}" width="88" height="88"/>
     <p class="disclaimer">{{ _('Scan to open live estimate') }}: {{ loc.live_estimate_url }}</p>
   </div>
   {% endif %}
@@ -283,7 +283,7 @@
   <div class="chart-panel">
     <h2>{{ _('Monthly solar generation') }}</h2>
     <p class="chart-note">{{ _('Estimated generation by month in kWh.') }} {% if not loc.chart_data.consumption.monthly_available %}{{ _(loc.monthly_consumption_note) }}{% endif %}</p>
-    <table class="monthly-chart"><tr>{% for item in loc.monthly_chart %}<td><div class="bar-stage"><span class="bar" style="height:{{ [item.generation_pct, 3]|max }}%;"></span>{% if item.consumption_kwh is not none %}<span class="bar load" style="height:{{ [item.consumption_pct, 3]|max }}%;"></span>{% endif %}</div><span class="bar-label">{{ item.month[:3] }}</span></td>{% endfor %}</tr></table>
+    <table class="monthly-chart"><tr>{% for item in loc.monthly_chart %}<td><div class="bar-stage"><span class="bar" style="height:{{ [item.generation_pct, 3]|max }}%;"></span>{% if item.consumption_kwh is not none %}<span class="bar load" style="height:{{ [item.consumption_pct, 3]|max }}%;"></span>{% endif %}</div><span class="bar-label">{{ item.month[:3]|ui_label }}</span></td>{% endfor %}</tr></table>
     <p class="legend"><span class="key"></span>{{ _('Solar generation') }}{% if loc.chart_data.consumption.monthly_available %}<span class="key load"></span>{{ _('Recorded consumption') }}{% endif %}</p>
   </div>
   {% endif %}
@@ -311,7 +311,7 @@
     <div class="row"><span>{{ _(loc.location_label) }}</span><span style="font-weight:600;">{{ loc.location_display }}</span></div>
     {% if loc.coordinates_display and not loc.address_is_fallback %}<div class="row"><span>{{ _('Coordinates') }}</span><span>{{ loc.coordinates_display }}</span></div>{% endif %}
     {% if loc.orientation_label %}
-    <div class="row"><span>{{ _('Detected roof orientation') }}</span><span>{{ loc.orientation_label }}</span></div>
+    <div class="row"><span>{{ _('Detected roof orientation') }}</span><span>{{ loc.orientation_label|ui_label }}</span></div>
     {% endif %}
     {% if loc.battery_kwh and loc.battery_kwh > 0 %}
     <div class="row"><span>{{ _('Battery included') }}</span><span>{{ '%.1f'|format(loc.battery_kwh) }} kWh</span></div>
@@ -341,7 +341,7 @@
     <h2>{{ _('Planning assumptions') }}</h2>
     <p class="disclaimer">{% if loc.planning_track == 'business' %}{{ _('Commercial operating-benefit assumptions are used. Demand-charge savings are not modelled.') }}{% else %}{{ _('Residential tariff, household-savings and eligibility-dependent subsidy assumptions are used.') }}{% endif %} {{ _('Confirm current DISCOM rules, vendor pricing and site conditions before procurement.') }}</p>
     {% if loc.assumption_rows %}<table class="glossary">{% for item in loc.assumption_rows %}<tr><td>{{ _(item.label) }}</td><td>{{ item.value }}</td></tr>{% endfor %}</table>{% endif %}
-    {% for note in loc.source_notes %}<p class="disclaimer" style="margin:4px 0;">{{ note }}</p>{% endfor %}
+    {% for note in loc.source_notes %}<p class="disclaimer" style="margin:4px 0;">{{ _(note) }}</p>{% endfor %}
   </div>
 
   <div class="section">
@@ -352,7 +352,7 @@
   {% if loc.map_svg_data_uri or loc.map_png_data_uri %}
   <div class="section map-snapshot">
     <h2 style="text-align:left;">{{ _('Rooftop reference') }}</h2>
-    <img style="height:42mm;" src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="Rooftop outline"/>
+    <img style="height:42mm;" src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="{{ _('Rooftop outline') }}"/>
     <p class="disclaimer" style="margin-top:4px;">{{ _('Rooftop outline — amber areas are marked obstructions') }}</p>
   </div>
   {% endif %}

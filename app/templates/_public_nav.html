@@ -66,9 +66,9 @@
     <div class="public-nav-actions">
       <a class="public-nav-consultation" href="{{ url_for('pages.consultation') }}" {% if request.endpoint == 'pages.consultation' %}aria-current="page"{% endif %}>{{ _('Book a Free Consultation') }}</a>
       <span class="public-nav-language" aria-label="{{ _('Language') }}">
-        <a href="{{ url_for('auth.set_language', language='en') }}" lang="en" {% if get_locale() == 'en' %}aria-current="true"{% endif %}>EN</a>
+        <a href="{{ url_for('auth.set_language', language='en') }}" lang="en" {% if get_locale()|string == 'en' %}aria-current="true"{% endif %}>EN</a>
         <span aria-hidden="true">/</span>
-        <a href="{{ url_for('auth.set_language', language='hi') }}" lang="hi" {% if get_locale() == 'hi' %}aria-current="true"{% endif %}>हिंदी</a>
+        <a href="{{ url_for('auth.set_language', language='hi') }}" lang="hi" {% if get_locale()|string == 'hi' %}aria-current="true"{% endif %}>हिंदी</a>
       </span>
       {% if current_user.is_authenticated %}
       <span class="public-nav-user-chip">

@@ -8,6 +8,7 @@
  *    shadows, orientation, and useful metrics rather than a generic 3D house.
  */
 (function () {
+  var roofText = typeof window !== 'undefined' && window.SignixI18n ? window.SignixI18n.t : function (message, values) { return message.replace(/%\((\w+)\)s/g, function (match, key) { return values && key in values ? String(values[key]) : match; }); };
   var scene, camera, renderer, rootGroup, animationId;
   var roofPlanesGroup, panelsGroup, structuresGroup, boundaryGroup, contextGroup, shadeOverlayGroup;
   var currentPitch = 0, currentPanels = 0, roofType = 'flat';
@@ -51,29 +52,29 @@
     return{ok:true,code:'ready'};
   }
   function viewerFailureMessage(code,detail){
-    var messages={three_unavailable:'3D preview unavailable because the Three.js renderer did not load. Reload the page and check that local static assets are reachable.',webgl_unavailable:'3D preview unavailable because WebGL is disabled or unsupported on this device.',renderer_initialization_failed:'3D preview could not initialize a WebGL renderer on this device.'};
-    return(messages[code]||'3D preview unavailable.')+(detail?' '+detail:'');
+    var messages={three_unavailable:'3D preview unavailable because the Three.js renderer did not load. Reload the page and check that local static assets are reachable.',webgl_unavailable:roofText('3D preview unavailable because WebGL is disabled or unsupported on this device.'),renderer_initialization_failed:roofText('3D preview could not initialize a WebGL renderer on this device.')};
+    return(messages[code]||roofText('3D preview unavailable.'))+(detail?' '+detail:'');
   }
   function resolveViewerUnavailable(code,detail){
     var message=viewerFailureMessage(code,detail),fallback=document.getElementById('roof-3d-fallback'),surfaces=document.getElementById('roof3d-surface-list'),structures=document.getElementById('roof3d-structure-list'),satellite=document.getElementById('roof3d-satellite-badge'),shade=document.getElementById('roof3d-shade-badge'),panels=document.getElementById('roof-3d-panel-status'),provider=document.getElementById('roof3d-provider-status'),accept=document.getElementById('roof3d-layout-accept'),acceptance=document.getElementById('roof3d-layout-acceptance-status');
     if(fallback){fallback.textContent=message;fallback.classList.remove('hidden');fallback.style.display='block';}
-    if(surfaces)surfaces.textContent='Roof surfaces unavailable because the 3D renderer did not initialize.';
-    if(structures)structures.textContent='Structure visualization unavailable because the 3D renderer did not initialize.';
-    if(satellite){satellite.textContent='Satellite reference · unavailable';satellite.classList.add('is-error');}
-    if(shade){shade.textContent='Shade analysis · unavailable';shade.classList.add('is-error');}
-    if(panels)panels.textContent='Physical panel layout unavailable because the 3D renderer did not initialize.';
-    if(provider){provider.className='roof3d-provider-status unavailable';provider.textContent='3D renderer unavailable · '+message;}
+    if(surfaces)surfaces.textContent=roofText('Roof surfaces unavailable because the 3D renderer did not initialize.');
+    if(structures)structures.textContent=roofText('Structure visualization unavailable because the 3D renderer did not initialize.');
+    if(satellite){satellite.textContent=roofText('Satellite reference · unavailable');satellite.classList.add('is-error');}
+    if(shade){shade.textContent=roofText('Shade analysis · unavailable');shade.classList.add('is-error');}
+    if(panels)panels.textContent=roofText('Physical panel layout unavailable because the 3D renderer did not initialize.');
+    if(provider){provider.className='roof3d-provider-status unavailable';provider.textContent=roofText('3D renderer unavailable · ')+message;}
     if(accept)accept.disabled=true;
-    if(acceptance)acceptance.textContent='Layout cannot be accepted until reconstruction and placement complete.';
+    if(acceptance)acceptance.textContent=roofText('Layout cannot be accepted until reconstruction and placement complete.');
     return{code:code,message:message};
   }
   function resolveReconstructionFailure(message){
     var surfaces=document.getElementById('roof3d-surface-list'),structures=document.getElementById('roof3d-structure-list'),satellite=document.getElementById('roof3d-satellite-badge'),shade=document.getElementById('roof3d-shade-badge'),status=document.getElementById('roof-ai-status'),accept=document.getElementById('roof3d-layout-accept');
-    if(surfaces)surfaces.textContent='Location-specific roof surfaces unavailable; using the authoritative user-drawn boundary.';
-    if(structures)structures.textContent='Location-specific structures unavailable.';
-    if(satellite){satellite.textContent='Satellite reference · unavailable';satellite.classList.add('is-error');}
-    if(shade){shade.textContent='Shade analysis · unavailable';shade.classList.add('is-error');}
-    if(status)status.textContent='User-boundary fallback active. '+message;
+    if(surfaces)surfaces.textContent=roofText('Location-specific roof surfaces unavailable; using the authoritative user-drawn boundary.');
+    if(structures)structures.textContent=roofText('Location-specific structures unavailable.');
+    if(satellite){satellite.textContent=roofText('Satellite reference · unavailable');satellite.classList.add('is-error');}
+    if(shade){shade.textContent=roofText('Shade analysis · unavailable');shade.classList.add('is-error');}
+    if(status)status.textContent=roofText('User-boundary fallback active. ')+message;
     if(accept)accept.disabled=true;
   }
   function extractRing(g) {
@@ -160,7 +161,7 @@
   function panelLayoutMetrics(panels,moduleWatts){var list=Array.isArray(panels)?panels:[],preview=list.filter(function(panel){return panel.shadeVerified===false;}).length,confirmed=list.filter(function(panel){return panel.shadeVerified===true;}).length;return{total:list.length,preview:preview,confirmed:confirmed,totalKw:layoutCapacityKw(list.length,moduleWatts),previewKw:layoutCapacityKw(preview,moduleWatts),confirmedKw:layoutCapacityKw(confirmed,moduleWatts)};}
   function acceptedLayoutMetrics(accepted){var status=accepted&&accepted.status;if(status!=='accepted')return{status:status==='stale'?'stale':'none',count:null,capacityKw:null};var hasCount=accepted.panel_count!==null&&accepted.panel_count!==undefined&&accepted.panel_count!=='',hasCapacity=accepted.dc_capacity_kw!==null&&accepted.dc_capacity_kw!==undefined&&accepted.dc_capacity_kw!=='',count=Number(accepted.panel_count),capacity=Number(accepted.dc_capacity_kw);return hasCount&&hasCapacity&&Number.isFinite(count)&&count>=0&&Number.isFinite(capacity)&&capacity>=0?{status:'accepted',count:count,capacityKw:capacity}:{status:'invalid',count:null,capacityKw:null};}
   function layoutAcceptanceState(model,panels,grid,mode){if(!model||model.available!==true)return{ok:false,code:'reconstruction_unavailable'};var payload=reconstructionPayloadState(model);if(!payload.ok)return{ok:false,code:'reconstruction_'+payload.code};var revision=model.design_revision;if(!revision||revision.id==null||!Number.isFinite(Number(revision.number)))return{ok:false,code:'design_revision_unavailable'};if(!model.geometry_key||!grid||grid.geometry_key!==model.geometry_key||grid.geometry_compatible===false)return{ok:false,code:'validation_unavailable'};if(mode==='conservative'&&!classificationGridValid(grid))return{ok:false,code:'classification_unavailable'};if(!Array.isArray(panels)||!panels.length)return{ok:false,code:'no_panels'};return{ok:true,code:'ready'};}
-  function placementShortfallText(placed,requested,reasons){var missing=Math.max(0,(Number(requested)||0)-(Number(placed)||0));if(!missing)return'';var labels={surface:'surface geometry',boundary:'roof boundary',edge_setback:'edge setback',obstruction:'obstruction',obstruction_setback:'obstruction setback',classification:'shade/classification'},used=Object.keys(reasons||{}).filter(function(key){return Number(reasons[key])>0&&labels[key];}).map(function(key){return labels[key];});return missing+' estimate module'+(missing===1?'':'s')+' could not be placed'+(used.length?' after '+used.join(', ')+' checks.':'.');}
+  function placementShortfallText(placed,requested,reasons){var missing=Math.max(0,(Number(requested)||0)-(Number(placed)||0));if(!missing)return'';var labels={surface:roofText('surface geometry'),boundary:roofText('roof boundary'),edge_setback:roofText('edge setback'),obstruction:roofText('obstruction'),obstruction_setback:roofText('obstruction setback'),classification:roofText('shade/classification')},used=Object.keys(reasons||{}).filter(function(key){return Number(reasons[key])>0&&labels[key];}).map(function(key){return labels[key];});var message=missing===1?roofText('%(count)s estimate module could not be placed',{count:missing}):roofText('%(count)s estimate modules could not be placed',{count:missing});return message+(used.length?roofText(' after %(checks)s checks.',{checks:used.join(', ')}):'.');}
   function cameraFrameForBounds(bounds,aspect,azimuth,elevation){var safeAspect=Math.max(Number(aspect)||1,.35),az=Number.isFinite(Number(azimuth))?Number(azimuth):.72,el=Number.isFinite(Number(elevation))?Number(elevation):.55,width=Math.max(Number(bounds.width)||0,.5),depth=Math.max(Number(bounds.depth)||0,.5),height=Math.max(Number(bounds.height)||0,.5),projectedWidth=Math.abs(Math.sin(az))*width+Math.abs(Math.cos(az))*depth,projectedHeight=Math.abs(Math.cos(az)*Math.sin(el))*width+Math.abs(Math.sin(az)*Math.sin(el))*depth+Math.abs(Math.cos(el))*height;return Math.max(5.5,Math.max(projectedWidth/safeAspect,projectedHeight)*1.18);}
   function cameraFrameForRing(ring,aspect,azimuth,elevation,height){if(!Array.isArray(ring)||ring.length<3)return null;var bounds=ringBounds(ring);bounds.height=Math.max(Number(height)||.5,.5);return cameraFrameForBounds(bounds,aspect,azimuth,elevation);}
   function clearGroup(g){if(!g)return;while(g.children.length){var c=g.children.pop();if(c.geometry)c.geometry.dispose();if(c.material){if(Array.isArray(c.material))c.material.forEach(function(m){m.dispose();});else c.material.dispose();}}}
@@ -246,13 +247,13 @@
   }
   function updateSurfacePanelCounts(panels){
     var counts={};panels.forEach(function(panel){var id=panel.surface.parentId||panel.surface.id;counts[id]=(counts[id]||0)+1;});
-    reconstructedSurfaces.forEach(function(surface){surface.panelCount=counts[surface.parentId||surface.id]||0;});var total=sumSurfacePanelCounts(counts),headline=document.getElementById('roof3d-module-count');if(headline)headline.innerHTML=String(total)+' <small>modules</small>';renderInspector();
+    reconstructedSurfaces.forEach(function(surface){surface.panelCount=counts[surface.parentId||surface.id]||0;});var total=sumSurfacePanelCounts(counts),headline=document.getElementById('roof3d-module-count');if(headline)headline.innerHTML=String(total)+' <small>'+roofText('modules')+'</small>';renderInspector();
   }
   function renderInspector(){
     var list=document.getElementById('roof3d-surface-list'),structures=document.getElementById('roof3d-structure-list');if(!list||!structures)return;
     var groups={};reconstructedSurfaces.forEach(function(s){var id=s.parentId||s.id;if(!groups[id])groups[id]={id:id,area:0,usableArea:0,pitch:s.pitch,azimuth:s.azimuth,elevation:s.referenceHeight,elevationDatum:s.elevationDatum,source:s.source,confidence:s.confidence,geometryKind:s.geometryKind,panels:0,valid:s.valid!==false};groups[id].area+=Number(s.area)||0;groups[id].usableArea+=Number(s.usableArea)||0;groups[id].panels=Math.max(groups[id].panels,Number(s.panelCount)||0);groups[id].valid=groups[id].valid&&s.valid!==false;});
-    var items=Object.values(groups);list.innerHTML=items.length?items.map(function(s,index){var elevation=s.elevation==null?'Elevation unavailable':Number(s.elevation).toFixed(1)+(s.elevationDatum==='mean_sea_level'?' m AMSL':s.elevationDatum==='relative_building_height'?' m building height':' m elevation · datum unavailable'),geometry=String(s.geometryKind||'geometry unavailable').replaceAll('_',' '),validity=s.valid?'':' · invalid surface';return '<button type="button" class="roof3d-surface-item'+(selectedSurfaceId===s.id?' active':'')+'" data-surface-id="'+s.id+'"><strong>Surface '+(index+1)+'</strong><span>'+s.area.toFixed(1)+' m² area · '+s.usableArea.toFixed(1)+' m² usable</span><span>'+Math.round(s.pitch)+'° pitch · '+Math.round(s.azimuth)+'° azimuth</span><small>'+s.panels+' modules · '+elevation+' · '+geometry+' · '+String(s.source||'unavailable').replaceAll('_',' ')+' · '+String(s.confidence||'unavailable')+validity+'</small></button>';}).join(''):'<p class="roof3d-empty">Roof surface data unavailable</p>';
-    structures.innerHTML=reconstructedStructures.length?reconstructedStructures.map(function(s){var bounds=ringBounds(s.polygon);return '<div class="roof3d-structure-item"><strong>'+String(s.type||'Structure')+'</strong><span>'+(s.height==null?'Height unavailable · flat display marker only':Number(s.height).toFixed(1)+' m high')+' · '+bounds.width.toFixed(1)+' × '+bounds.depth.toFixed(1)+' m footprint</span><small>'+(s.isObstruction?'Panel obstruction · ':'')+String(s.source||'unavailable')+' · '+String(s.confidence||'unavailable')+'</small></div>';}).join(''):'<p class="roof3d-empty">No reconstructed structures</p>';
+    var items=Object.values(groups);list.innerHTML=items.length?items.map(function(s,index){var elevation=s.elevation==null?roofText('Elevation unavailable'):Number(s.elevation).toFixed(1)+(s.elevationDatum==='mean_sea_level'?' m AMSL':s.elevationDatum==='relative_building_height'?roofText(' m building height'):roofText(' m elevation · datum unavailable')),geometry=String(s.geometryKind||roofText('geometry unavailable')).replaceAll('_',' '),validity=s.valid?'':roofText(' · invalid surface');return '<button type="button" class="roof3d-surface-item'+(selectedSurfaceId===s.id?' active':'')+'" data-surface-id="'+s.id+'"><strong>'+roofText('Surface')+' '+(index+1)+'</strong><span>'+s.area.toFixed(1)+roofText(' m² area · ')+s.usableArea.toFixed(1)+' m² '+roofText('usable')+'</span><span>'+Math.round(s.pitch)+'° '+roofText('Pitch')+' · '+Math.round(s.azimuth)+'° '+roofText('Azimuth')+'</span><small>'+s.panels+roofText(' modules · ')+elevation+' · '+geometry+' · '+String(s.source||'unavailable').replaceAll('_',' ')+' · '+String(s.confidence||'unavailable')+validity+'</small></button>';}).join(''):'<p class="roof3d-empty">'+roofText('Roof surface data unavailable')+'</p>';
+    structures.innerHTML=reconstructedStructures.length?reconstructedStructures.map(function(s){var bounds=ringBounds(s.polygon);return '<div class="roof3d-structure-item"><strong>'+String(s.type||roofText('Structure'))+'</strong><span>'+(s.height==null?roofText('Height unavailable · flat display marker only'):Number(s.height).toFixed(1)+' m '+roofText('Height'))+' · '+bounds.width.toFixed(1)+' × '+bounds.depth.toFixed(1)+' m '+roofText('Footprint')+'</span><small>'+(s.isObstruction?roofText('Panel obstruction · '):'')+String(s.source||'unavailable')+' · '+String(s.confidence||'unavailable')+'</small></div>';}).join(''):'<p class="roof3d-empty">'+roofText('No reconstructed structures')+'</p>';
     list.querySelectorAll('[data-surface-id]').forEach(function(button){button.addEventListener('click',function(){selectSurface(this.dataset.surfaceId);});});
   }
   function selectSurface(id){selectedSurfaceId=id;roofPlanesGroup.children.forEach(function(child){if(child.material&&child.userData.kind==='roof-surface'){var active=(child.userData.surfaceId===id);child.material.color.setHex(active?0xc68b43:child.userData.baseColor);child.material.emissive?.setHex(active?0x2b1704:0x000000);}});renderInspector();}
@@ -353,9 +354,9 @@
 
   function updateProviderStatus(){
     var badge=document.getElementById('roof3d-provider-status');if(!badge||!siteRoofModel)return;var status=siteRoofModel.status_badge||{};
-    badge.className='roof3d-provider-status '+(status.tone||'fallback');badge.innerHTML='<strong>'+String(status.label||'Rooftop model')+'</strong><span>'+String(status.detail||'')+'</span>';
-    var satellite=document.querySelector('[data-roof3d-view="satellite"]');if(satellite){var available=Boolean(siteRoofModel.imagery&&siteRoofModel.imagery.available);satellite.disabled=!available;satellite.title=available?'Show available satellite reference':'Satellite imagery unavailable for this reconstruction';}
-    var satelliteBadge=document.getElementById('roof3d-satellite-badge');if(satelliteBadge&&!siteRoofModel.imagery?.available){satelliteBadge.textContent='Satellite reference · unavailable';satelliteBadge.classList.add('is-error');satelliteBadge.classList.remove('is-ready');}
+    badge.className='roof3d-provider-status '+(status.tone||'fallback');badge.innerHTML='<strong>'+String(status.label||roofText('Rooftop model'))+'</strong><span>'+String(status.detail||'')+'</span>';
+    var satellite=document.querySelector('[data-roof3d-view="satellite"]');if(satellite){var available=Boolean(siteRoofModel.imagery&&siteRoofModel.imagery.available);satellite.disabled=!available;satellite.title=available?roofText('Show available satellite reference'):roofText('Satellite imagery unavailable for this reconstruction');}
+    var satelliteBadge=document.getElementById('roof3d-satellite-badge');if(satelliteBadge&&!siteRoofModel.imagery?.available){satelliteBadge.textContent=roofText('Satellite reference · unavailable');satelliteBadge.classList.add('is-error');satelliteBadge.classList.remove('is-ready');}
   }
   function applyLayerVisibility(){
     [['roof-planes',roofPlanesGroup],['shade-overlay',shadeOverlayGroup],['panels',panelsGroup],['structures',structuresGroup],['boundary',boundaryGroup],['context',contextGroup]].forEach(function(pair){var input=document.querySelector('[data-roof3d-layer="'+pair[0]+'"]');if(pair[1])pair[1].visible=(!input||input.checked)&&!(viewMode==='wireframe'&&pair[0]==='panels');});
@@ -383,7 +384,7 @@
     if(applyButton)applyButton.disabled=!isDirty||orientationSaving;
     return Boolean(isDirty);
   }
-  function syncLayoutAcceptance(){var button=document.getElementById('roof3d-layout-accept'),state=layoutAcceptanceState(siteRoofModel,currentPlacedPanels,shadeGrid,panelLayoutMode);if(button){button.disabled=!state.ok;button.title=state.ok?'Accept this validated visible layout':state.code==='no_panels'?'No valid modules are available to accept.':'Layout acceptance requires a current reconstruction and compatible validation data.';}return state;}
+  function syncLayoutAcceptance(){var button=document.getElementById('roof3d-layout-accept'),state=layoutAcceptanceState(siteRoofModel,currentPlacedPanels,shadeGrid,panelLayoutMode);if(button){button.disabled=!state.ok;button.title=state.ok?roofText('Accept this validated visible layout'):state.code==='no_panels'?roofText('No valid modules are available to accept.'):roofText('Layout acceptance requires a current reconstruction and compatible validation data.');}return state;}
   function bindPlannerControls(){
     document.querySelectorAll('[data-roof3d-layer]').forEach(function(input){input.addEventListener('change',applyLayerVisibility);});
     document.querySelectorAll('[data-roof3d-view]').forEach(function(button){button.addEventListener('click',function(){setViewMode(this.dataset.roof3dView);});});
@@ -395,10 +396,10 @@
   async function acceptVisibleLayout(){
     var button=document.getElementById('roof3d-layout-accept'),status=document.getElementById('roof3d-layout-acceptance-status'),revision=siteRoofModel&&siteRoofModel.design_revision,locationId=typeof SIGNIX_LOCATION_ID!=='undefined'?SIGNIX_LOCATION_ID:null;
     var readiness=layoutAcceptanceState(siteRoofModel,currentPlacedPanels,shadeGrid,panelLayoutMode);
-    if(!button||!status||!locationId||!readiness.ok){if(status)status.textContent='A current reconstruction and compatible validation data are required before accepting this layout.';syncLayoutAcceptance();return;}
-    button.disabled=true;status.textContent='Validating layout and recalculating the saved estimate…';
+    if(!button||!status||!locationId||!readiness.ok){if(status)status.textContent=roofText('A current reconstruction and compatible validation data are required before accepting this layout.');syncLayoutAcceptance();return;}
+    button.disabled=true;status.textContent=roofText('Validating layout and recalculating the saved estimate…');
     var payload={design_revision_id:revision.id,design_revision_number:revision.number,geometry_key:siteRoofModel.geometry_key,layout_mode:panelLayoutMode,panels:currentPlacedPanels.map(function(panel){return{surface_id:panel.surface.id,corners_local_xz_meters:panel.corners.map(function(point){return[Number(point[0].toFixed(6)),Number(point[1].toFixed(6))];})};})};
-    try{var csrf=document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')||'',res=await fetch('/api/locations/'+encodeURIComponent(locationId)+'/rooftop-layout/accept',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify(payload)}),data=await res.json();if(!res.ok)throw new Error(data.error||'Layout acceptance failed');siteRoofModel.layout_acceptance=data.accepted_layout;siteRoofModel.design_revision={id:data.accepted_layout.accepted_design_revision_id,number:data.accepted_layout.accepted_design_revision_number};updateAcceptedLayoutStatus(data.accepted_layout);status.textContent='Accepted · '+data.accepted_layout.panel_count+' modules · '+Number(data.accepted_layout.dc_capacity_kw).toFixed(2)+' kWp. Refreshing authoritative report values…';button.textContent='Layout accepted';setTimeout(function(){window.location.reload();},700);}
+    try{var csrf=document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')||'',res=await fetch('/api/locations/'+encodeURIComponent(locationId)+'/rooftop-layout/accept',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify(payload)}),data=await res.json();if(!res.ok)throw new Error(data.error||roofText('Layout acceptance failed'));siteRoofModel.layout_acceptance=data.accepted_layout;siteRoofModel.design_revision={id:data.accepted_layout.accepted_design_revision_id,number:data.accepted_layout.accepted_design_revision_number};updateAcceptedLayoutStatus(data.accepted_layout);status.textContent=roofText('Accepted · ')+data.accepted_layout.panel_count+roofText(' modules · ')+Number(data.accepted_layout.dc_capacity_kw).toFixed(2)+roofText(' kWp. Refreshing authoritative report values…');button.textContent=roofText('Layout accepted');setTimeout(function(){window.location.reload();},700);}
     catch(error){status.textContent=error.message;syncLayoutAcceptance();}
   }
   function bindSurfaceSelection(container){
@@ -588,14 +589,14 @@
     var badge=document.getElementById('roof3d-shade-badge'),modeBadge=document.getElementById('roof3d-layout-mode-badge'),note=document.getElementById('roof3d-shade-note'),areas=shadeGrid&&shadeGrid.areas_sqm||{};
     function area(id,key){var element=document.getElementById(id);if(element)element.textContent=Number(areas[key]||0).toFixed(1)+' m²';}
     area('roof3d-area-usable','usable');area('roof3d-area-shaded','shaded');area('roof3d-area-obstruction','obstruction');area('roof3d-area-setback','setback');area('roof3d-area-unknown','unknown');
-    if(modeBadge){modeBadge.textContent=panelLayoutMode==='planning_preview'?'Planning preview — shade unverified':'Conservative layout — confirmed usable cells only';modeBadge.classList.toggle('is-preview',panelLayoutMode==='planning_preview');}
+    if(modeBadge){modeBadge.textContent=panelLayoutMode==='planning_preview'?roofText('Planning preview — shade unverified'):roofText('Conservative layout — confirmed usable cells only');modeBadge.classList.toggle('is-preview',panelLayoutMode==='planning_preview');}
     if(!badge)return;
     if(!shadeGrid||shadeGrid.status==='insufficient_data'||!classificationGridValid(shadeGrid)){
-      var incompatible=shadeGrid&&shadeGrid.geometry_compatible===false;badge.textContent=incompatible?'Shade classification · incompatible with current roof':'Shade unverified · obstruction and setback rules active';badge.classList.add('is-error');badge.classList.remove('is-ready');
-      if(note)note.textContent=incompatible?(panelLayoutMode==='planning_preview'?'The incompatible shade grid is ignored. Preview panels are not shade-verified.':'The incompatible shade grid is ignored. Conservative mode fails closed and places no panels.'):(panelLayoutMode==='planning_preview'?'Planning-preview panels may occupy unknown cells. They are not shade-verified, and saved generation estimates do not include validated shading losses.':'Unknown regions have not been shade-verified. Conservative mode excludes them from panel placement.');
+      var incompatible=shadeGrid&&shadeGrid.geometry_compatible===false;badge.textContent=incompatible?roofText('Shade classification · incompatible with current roof'):roofText('Shade unverified · obstruction and setback rules active');badge.classList.add('is-error');badge.classList.remove('is-ready');
+      if(note)note.textContent=incompatible?(panelLayoutMode==='planning_preview'?roofText('The incompatible shade grid is ignored. Preview panels are not shade-verified.'):roofText('The incompatible shade grid is ignored. Conservative mode fails closed and places no panels.')):(panelLayoutMode==='planning_preview'?roofText('Planning-preview panels may occupy unknown cells. They are not shade-verified, and saved generation estimates do not include validated shading losses.'):roofText('Unknown regions have not been shade-verified. Conservative mode excludes them from panel placement.'));
     }else{
-      var source=String(shadeGrid.source&&shadeGrid.source.type||'available').replaceAll('_',' ');badge.textContent='Shade classification · '+source;badge.classList.add('is-ready');badge.classList.remove('is-error');
-      if(note)note.textContent='Panel placement excludes classified shade, obstruction footprints, safety setbacks, and any unknown cells required by policy.';
+      var source=String(shadeGrid.source&&shadeGrid.source.type||'available').replaceAll('_',' ');badge.textContent=roofText('Shade classification · ')+source;badge.classList.add('is-ready');badge.classList.remove('is-error');
+      if(note)note.textContent=roofText('Panel placement excludes classified shade, obstruction footprints, safety setbacks, and any unknown cells required by policy.');
     }
   }
 
@@ -636,7 +637,7 @@
 
   function addGround(){var bounds=ringBounds(localRing),padding=Math.max(1.2,Math.min(Math.max(bounds.width,bounds.depth)*.12,3.5)),w=Math.max(bounds.width+padding*2,5),d=Math.max(bounds.depth+padding*2,5),g=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshStandardMaterial({color:0xe9e5dc,roughness:1,transparent:true,opacity:.58}));g.rotation.x=-Math.PI/2;g.position.set(bounds.cx,-.04,bounds.cz);g.receiveShadow=true;g.userData={kind:'ground-context'};(contextGroup&&contextGroup.parent===rootGroup?contextGroup:rootGroup).add(g);}
 
-  function setGeometryAvailability(available){var fallback=document.getElementById('roof-3d-fallback');if(!fallback)return;if(available){fallback.classList.add('hidden');fallback.style.display='none';return;}fallback.textContent='3D roof geometry unavailable because no valid authoritative roof boundary is saved.';fallback.classList.remove('hidden');fallback.style.display='block';}
+  function setGeometryAvailability(available){var fallback=document.getElementById('roof-3d-fallback');if(!fallback)return;if(available){fallback.classList.add('hidden');fallback.style.display='none';return;}fallback.textContent=roofText('3D roof geometry unavailable because no valid authoritative roof boundary is saved.');fallback.classList.remove('hidden');fallback.style.display='block';}
 
   function buildRoofModel(pitchDeg,panelCount){if(!rootGroup)return;currentPitch=Math.max(0,Math.min(40,Number(pitchDeg)||0));currentPanels=panelCount;if(siteRoofModel){buildSiteRoofModel(currentPanels);return;}resetViewerGroups();
     if(!localRing||localRing.length<3){currentPlacedPanels=[];setGeometryAvailability(false);updatePanelStatus([],panelCount);return;}setGeometryAvailability(true);
@@ -645,7 +646,7 @@
     var info={type:roofType,baseY:2.35,angle:angle,pitchRad:effective*Math.PI/180,halfD:Math.max(rb.depth/2,.5),halfW:Math.max(rb.width/2,.5),centerZ:rb.cz,centerX:rb.cx,minZ:rb.minZ,depth:Math.max(rb.depth,.5),rise:Math.tan(effective*Math.PI/180)*riseRun};roofInfo=info;
     addGround();addWalls(info.baseY);addRoof(info);addPlaneMeshes();addStructureBlocks(localObstructions.map(function(r){return{polygon:r};}),'user');addStructureBlocks(aiObstructions,'ai');addPanels(currentPanels,info);applyViewPresentation();updateOrientation(info);fitCamera(userInteracted||viewMode!=='3d');
   }
-  function cardinalDirection(angle){var deg=((angle*180/Math.PI)+360)%360;var dirs=['N','NE','E','SE','S','SW','W','NW'];return dirs[Math.round(deg/45)%8];}
+  function cardinalDirection(angle){var deg=((angle*180/Math.PI)+360)%360;var dirs=[roofText('N'),roofText('NE'),roofText('E'),roofText('SE'),roofText('S'),roofText('SW'),roofText('W'),roofText('NW')];return dirs[Math.round(deg/45)%8];}
   function updateCompassMarker(){
     var ring=document.querySelector('.roof3d-compass-ring'),sun=document.querySelector('.roof3d-sun');
     if(!ring||!sun)return;
@@ -655,7 +656,7 @@
     sun.style.top=(50-38*Math.cos(rad))+'%';
     sun.style.bottom='auto';
     sun.style.transform='translate(-50%,-50%)';
-    sun.title='Drag to change solar orientation';
+    sun.title=roofText('Drag to change solar orientation');
     ring.setAttribute('aria-valuenow',String(Math.round(deg)));
     ring.setAttribute('aria-valuetext',Math.round(deg)+' degrees '+cardinalDirection(rad));
   }
@@ -666,12 +667,12 @@
     var heading=((Number(currentOrientationDeg)||0)%360+360)%360;
     var selected=reconstructedSurfaces.find(function(surface){return (surface.parentId||surface.id)===selectedSurfaceId;})||reconstructedSurfaces[0];
     var pitch=Math.round(Number(selected?selected.pitch:(aiAnalysis?.pitch_degrees ?? currentPitch))||0);
-    t.textContent='Solar orientation · '+cardinalDirection(heading*Math.PI/180)+' · '+Math.round(heading)+'°';
-    d.textContent=selected&&selected.pitch===0?'Panels follow the flat roof plane · mounting tilt not modelled · drag the compass to orient':(!selected&&roofType==='flat'?'Simulated mounting tilt '+Math.round(FLAT_PANEL_TILT*180/Math.PI)+'° · drag the compass to optimize':'Panels facing '+Math.round(heading)+'° · '+pitch+'° roof pitch · drag the compass');
+    t.textContent=roofText('Solar orientation · ')+cardinalDirection(heading*Math.PI/180)+' · '+Math.round(heading)+'°';
+    d.textContent=selected&&selected.pitch===0?roofText('Panels follow the flat roof plane · mounting tilt not modelled · drag the compass to orient'):(!selected&&roofType==='flat'?roofText('Simulated mounting tilt ')+Math.round(FLAT_PANEL_TILT*180/Math.PI)+roofText('° · drag the compass to optimize'):roofText('Panels facing ')+Math.round(heading)+'° · '+pitch+roofText('° roof pitch · drag the compass'));
     var detail=document.getElementById('roof3d-ai-details');
     if(detail){
-      var aiText=aiAnalysis?' AI vision: '+(aiAnalysis.roof_type||roofType)+' roof, '+pitch+'° pitch, advisory confidence '+Math.round((Number(aiAnalysis.confidence)||0)*100)+'%.':'';
-      detail.textContent=aiText+' Orientation preview: '+Math.round(heading)+'° ('+cardinalDirection(heading*Math.PI/180)+').';
+      var aiText=aiAnalysis?roofText(' AI vision: ')+(aiAnalysis.roof_type||roofType)+' roof, '+pitch+roofText('° pitch, advisory confidence ')+Math.round((Number(aiAnalysis.confidence)||0)*100)+'%.':'';
+      detail.textContent=aiText+roofText(' Orientation preview: ')+Math.round(heading)+'° ('+cardinalDirection(heading*Math.PI/180)+').';
     }
     updateCompassMarker();
   }
@@ -690,16 +691,16 @@
       document.querySelectorAll('[data-orientation-monthly-savings]').forEach(function(el){el.textContent='₹'+Math.round(savings).toLocaleString('en-IN');});
     }
     var factorEl=document.getElementById('roof3d-orientation-factor');
-    if(factorEl&&Number.isFinite(factor))factorEl.textContent=Math.round(factor*100)+'% relative yield';
+    if(factorEl&&Number.isFinite(factor))factorEl.textContent=Math.round(factor*100)+'% ' + roofText('relative yield');
     var deltaEl=document.getElementById('roof3d-orientation-delta');
     if(deltaEl&&Number.isFinite(gen)&&typeof ANNUAL_GENERATION!=='undefined'){
       var delta=gen-savedAnnualGeneration;
-      deltaEl.textContent=(delta>=0?'+':'')+Math.round(delta).toLocaleString('en-IN')+' kWh/yr vs saved orientation';
+      deltaEl.textContent=(delta>=0?'+':'')+Math.round(delta).toLocaleString('en-IN')+roofText(' kWh/yr vs saved orientation');
     }
     var apply=document.getElementById('roof3d-orientation-apply');
     syncOrientationApplyButton(apply,orientationDirty);
     var status=document.getElementById('roof-ai-status');
-    if(status)status.textContent=(orientationDirty?'Orientation preview · ':'Saved orientation · ')+label+' · '+Math.round((factor||0)*100)+'% relative yield.'+(orientationDirty?' Click Apply orientation to save.':'');
+    if(status)status.textContent=(orientationDirty?roofText('Orientation preview · '):roofText('Saved orientation · '))+label+' · '+Math.round((factor||0)*100)+'% ' + roofText('relative yield.')+(orientationDirty?roofText(' Click Apply orientation to save.'):'');
   }
 
   function angularDifference(a,b){var difference=Math.abs((((Number(a)||0)-(Number(b)||0)+540)%360)-180);return difference;}
@@ -708,12 +709,12 @@
     var locationId=typeof SIGNIX_LOCATION_ID!=='undefined'?SIGNIX_LOCATION_ID:null;
     if(!locationId)return;
     var seq=expectedSeq===undefined?invalidateOrientationPreview():expectedSeq;if(seq!==orientationRequestSeq)return;
-    var status=document.getElementById('roof-ai-status');if(status)status.textContent='Calculating generation for '+Math.round(currentOrientationDeg)+'°…';
+    var status=document.getElementById('roof-ai-status');if(status)status.textContent=roofText('Calculating generation for ')+Math.round(currentOrientationDeg)+'°…';
     var csrf=document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')||'';
     fetch('/api/estimate/'+encodeURIComponent(locationId)+'/orientation-preview',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({orientation:currentOrientationDeg})})
       .then(function(res){return res.json().then(function(data){return{ok:res.ok,data:data};});})
-      .then(function(out){if(seq!==orientationRequestSeq)return;if(!out.ok)throw new Error(out.data.error||'Preview failed');updateOrientationStatus(out.data);})
-      .catch(function(err){if(seq!==orientationRequestSeq)return;var status=document.getElementById('roof-ai-status');if(status)status.textContent='Orientation changed visually. Generation preview unavailable right now.';console.warn('Orientation preview failed',err);});
+      .then(function(out){if(seq!==orientationRequestSeq)return;if(!out.ok)throw new Error(out.data.error||roofText('Preview failed'));updateOrientationStatus(out.data);})
+      .catch(function(err){if(seq!==orientationRequestSeq)return;var status=document.getElementById('roof-ai-status');if(status)status.textContent=roofText('Orientation changed visually. Generation preview unavailable right now.');console.warn('Orientation preview failed',err);});
   }
 
   function setOrientation(deg, preview){
@@ -733,7 +734,7 @@
     ring.addEventListener('pointerdown',function(e){dragging=true;userInteracted=true;ring.setPointerCapture?.(e.pointerId);setOrientation(readDeg(e),true);e.preventDefault();});
     ring.addEventListener('pointermove',move);
     ['pointerup','pointercancel','lostpointercapture'].forEach(function(ev){ring.addEventListener(ev,function(){dragging=false;});});
-    ring.setAttribute('role','slider');ring.setAttribute('tabindex','0');ring.setAttribute('aria-label','Solar panel orientation');ring.setAttribute('aria-valuemin','0');ring.setAttribute('aria-valuemax','359');
+    ring.setAttribute('role','slider');ring.setAttribute('tabindex','0');ring.setAttribute('aria-label',roofText('Solar panel orientation'));ring.setAttribute('aria-valuemin','0');ring.setAttribute('aria-valuemax','359');
     ring.addEventListener('keydown',function(e){var step=e.shiftKey?15:5;if(e.key==='ArrowLeft'||e.key==='ArrowDown'){setOrientation(currentOrientationDeg-step,true);e.preventDefault();}else if(e.key==='ArrowRight'||e.key==='ArrowUp'){setOrientation(currentOrientationDeg+step,true);e.preventDefault();}else if(e.key==='Home'){setOrientation(180,true);e.preventDefault();}});
     updateCompassMarker();
   }
@@ -742,21 +743,21 @@
     if(!orientationDirty)return;
     var locationId=typeof SIGNIX_LOCATION_ID!=='undefined'?SIGNIX_LOCATION_ID:null;if(!locationId)return;
     invalidateOrientationPreview();var requestedOrientation=currentOrientationDeg;orientationSaving=true;
-    var apply=document.getElementById('roof3d-orientation-apply');if(apply){apply.disabled=true;apply.textContent='Saving…';}
+    var apply=document.getElementById('roof3d-orientation-apply');if(apply){apply.disabled=true;apply.textContent=roofText('Saving…');}
     var csrf=document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')||'';
     try{
       var res=await fetch('/api/estimate/'+encodeURIComponent(locationId)+'/orientation',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({orientation:requestedOrientation})});
-      var data=await res.json();if(!res.ok)throw new Error(data.error||'Could not save orientation');
+      var data=await res.json();if(!res.ok)throw new Error(data.error||roofText('Could not save orientation'));
       savedOrientationDeg=requestedOrientation;savedAnnualGeneration=Number(data.annual_generation||savedAnnualGeneration);orientationDirty=angularDifference(currentOrientationDeg,savedOrientationDeg)>0.1;orientationSaving=false;if(!orientationDirty)updateOrientationStatus(data);else{clearTimeout(orientationPreviewTimer);orientationPreviewTimer=null;requestOrientationPreview(orientationRequestSeq);}
       if(!orientationDirty)document.querySelectorAll('[data-orientation-annual-generation]').forEach(function(el){el.dataset.original=el.textContent;});
-      if(apply){apply.textContent=orientationDirty?'Apply orientation':'✓ Orientation applied';syncOrientationApplyButton(apply,orientationDirty);if(!orientationDirty)setTimeout(function(){apply.textContent='Apply orientation';syncOrientationApplyButton(apply,orientationDirty);},1400);}
-      var banner=document.getElementById('orientation-save-status');if(banner)banner.textContent='Saved to this estimate.';
-    }catch(err){orientationSaving=false;if(apply){apply.textContent='Apply orientation';syncOrientationApplyButton(apply,orientationDirty);}var status=document.getElementById('roof-ai-status');if(status)status.textContent='Could not save orientation: '+err.message;}
+      if(apply){apply.textContent=orientationDirty?roofText('Apply orientation'):roofText('✓ Orientation applied');syncOrientationApplyButton(apply,orientationDirty);if(!orientationDirty)setTimeout(function(){apply.textContent=roofText('Apply orientation');syncOrientationApplyButton(apply,orientationDirty);},1400);}
+      var banner=document.getElementById('orientation-save-status');if(banner)banner.textContent=roofText('Saved to this estimate.');
+    }catch(err){orientationSaving=false;if(apply){apply.textContent=roofText('Apply orientation');syncOrientationApplyButton(apply,orientationDirty);}var status=document.getElementById('roof-ai-status');if(status)status.textContent=roofText('Could not save orientation: ')+err.message;}
   }
 
-  function undoOrientation(){setOrientation(savedOrientationDeg,false);orientationDirty=false;var apply=document.getElementById('roof3d-orientation-apply');if(apply){apply.disabled=true;apply.textContent='Apply orientation';}var seq=orientationRequestSeq;requestOrientationPreview(seq);}
-  function updatePanelStatus(panelsOrCount,requested){var panels=Array.isArray(panelsOrCount)?panelsOrCount:null,placed=panels?panels.length:Number(panelsOrCount)||0,e=document.getElementById('roof-3d-panel-status'),moduleWatts=typeof MODULE_WATTAGE_W!=='undefined'?Number(MODULE_WATTAGE_W):NaN,metrics=panelLayoutMetrics(panels||[],moduleWatts),preview=metrics.preview,confirmed=metrics.confirmed,selectedKw=typeof SYSTEM_SIZE!=='undefined'?Number(SYSTEM_SIZE):NaN,layoutKw=panels?metrics.totalKw:layoutCapacityKw(placed,moduleWatts),shadeUnverified=shadeGrid&&shadeGrid.status==='insufficient_data',message=panelLayoutMode==='planning_preview'&&preview>0?placed+' physically feasible preview modules placed; '+preview+' are not shade-verified.':shadeUnverified&&placed===0?'No panels placed: conservative mode requires confirmed usable cells.':placed+' shade-verified physical modules placed on valid reconstructed surfaces.',shortfall=placementShortfallText(placed,requested,placementRejections);if(shortfall)message+=' '+shortfall;if(layoutDiffersFromEstimate(layoutKw,selectedKw))message+=' Visible layout capacity '+layoutKw.toFixed(2)+' kWp differs from the selected '+selectedKw.toFixed(2)+' kW estimate.';if(e)e.textContent=message;var c=document.getElementById('roof3d-module-count');if(c)c.innerHTML=String(placed)+' <small>modules</small>';var capacity=document.getElementById('roof3d-layout-capacity');if(capacity)capacity.innerHTML=layoutKw===null?'Unavailable':layoutKw.toFixed(2)+' <small>kWp</small>';var previewCount=document.getElementById('roof3d-preview-module-count');if(previewCount)previewCount.textContent=String(preview);var previewCapacity=document.getElementById('roof3d-preview-capacity');if(previewCapacity)previewCapacity.textContent=Number.isFinite(metrics.previewKw)?metrics.previewKw.toFixed(2)+' kWp':'Unavailable';var confirmedCount=document.getElementById('roof3d-confirmed-module-count');if(confirmedCount)confirmedCount.textContent=String(confirmed);var confirmedCapacity=document.getElementById('roof3d-confirmed-capacity');if(confirmedCapacity)confirmedCapacity.textContent=Number.isFinite(metrics.confirmedKw)?metrics.confirmedKw.toFixed(2)+' kWp':'Unavailable';}
-  function updateAcceptedLayoutStatus(accepted){var metrics=acceptedLayoutMetrics(accepted),count=document.getElementById('roof3d-accepted-module-count'),capacity=document.getElementById('roof3d-accepted-capacity'),status=document.getElementById('roof3d-layout-acceptance-status');if(count)count.textContent=metrics.status==='accepted'?String(metrics.count):metrics.status==='stale'?'Stale':metrics.status==='invalid'?'Unavailable':'None';if(capacity)capacity.textContent=metrics.status==='accepted'?metrics.capacityKw.toFixed(2)+' kWp':'—';if(status&&metrics.status==='accepted')status.textContent='Accepted layout · '+metrics.count+' modules · '+metrics.capacityKw.toFixed(2)+' kWp. '+(accepted.shade_verified?'Shade-classified':'Shade remains unverified')+'.';else if(status&&metrics.status==='stale')status.textContent='Previously accepted layout is stale. Reconstruct and accept a current proposal.';else if(status&&metrics.status==='invalid')status.textContent='Accepted layout metrics are unavailable. Reconstruct and validate a current proposal.';else if(status)status.textContent='Preview only — not accepted.';}
+  function undoOrientation(){setOrientation(savedOrientationDeg,false);orientationDirty=false;var apply=document.getElementById('roof3d-orientation-apply');if(apply){apply.disabled=true;apply.textContent=roofText('Apply orientation');}var seq=orientationRequestSeq;requestOrientationPreview(seq);}
+  function updatePanelStatus(panelsOrCount,requested){var panels=Array.isArray(panelsOrCount)?panelsOrCount:null,placed=panels?panels.length:Number(panelsOrCount)||0,e=document.getElementById('roof-3d-panel-status'),moduleWatts=typeof MODULE_WATTAGE_W!=='undefined'?Number(MODULE_WATTAGE_W):NaN,metrics=panelLayoutMetrics(panels||[],moduleWatts),preview=metrics.preview,confirmed=metrics.confirmed,selectedKw=typeof SYSTEM_SIZE!=='undefined'?Number(SYSTEM_SIZE):NaN,layoutKw=panels?metrics.totalKw:layoutCapacityKw(placed,moduleWatts),shadeUnverified=shadeGrid&&shadeGrid.status==='insufficient_data',message=panelLayoutMode==='planning_preview'&&preview>0?placed+roofText(' physically feasible preview modules placed; ')+preview+roofText(' are not shade-verified.'):shadeUnverified&&placed===0?roofText('No panels placed: conservative mode requires confirmed usable cells.'):placed+roofText(' shade-verified physical modules placed on valid reconstructed surfaces.'),shortfall=placementShortfallText(placed,requested,placementRejections);if(shortfall)message+=' '+shortfall;if(layoutDiffersFromEstimate(layoutKw,selectedKw))message+=roofText(' Visible layout capacity ')+layoutKw.toFixed(2)+roofText(' kWp differs from the selected ')+selectedKw.toFixed(2)+roofText(' kW estimate.');if(e)e.textContent=message;var c=document.getElementById('roof3d-module-count');if(c)c.innerHTML=String(placed)+' <small>'+roofText('modules')+'</small>';var capacity=document.getElementById('roof3d-layout-capacity');if(capacity)capacity.innerHTML=layoutKw===null?roofText('Unavailable'):layoutKw.toFixed(2)+' <small>kWp</small>';var previewCount=document.getElementById('roof3d-preview-module-count');if(previewCount)previewCount.textContent=String(preview);var previewCapacity=document.getElementById('roof3d-preview-capacity');if(previewCapacity)previewCapacity.textContent=Number.isFinite(metrics.previewKw)?metrics.previewKw.toFixed(2)+' kWp':roofText('Unavailable');var confirmedCount=document.getElementById('roof3d-confirmed-module-count');if(confirmedCount)confirmedCount.textContent=String(confirmed);var confirmedCapacity=document.getElementById('roof3d-confirmed-capacity');if(confirmedCapacity)confirmedCapacity.textContent=Number.isFinite(metrics.confirmedKw)?metrics.confirmedKw.toFixed(2)+' kWp':roofText('Unavailable');}
+  function updateAcceptedLayoutStatus(accepted){var metrics=acceptedLayoutMetrics(accepted),count=document.getElementById('roof3d-accepted-module-count'),capacity=document.getElementById('roof3d-accepted-capacity'),status=document.getElementById('roof3d-layout-acceptance-status');if(count)count.textContent=metrics.status==='accepted'?String(metrics.count):metrics.status==='stale'?'Stale':metrics.status==='invalid'?roofText('Unavailable'):roofText('None');if(capacity)capacity.textContent=metrics.status==='accepted'?metrics.capacityKw.toFixed(2)+' kWp':'—';if(status&&metrics.status==='accepted')status.textContent=roofText('Accepted layout · ')+metrics.count+roofText(' modules · ')+metrics.capacityKw.toFixed(2)+' kWp. '+(accepted.shade_verified?'Shade-classified':roofText('Shade remains unverified'))+'.';else if(status&&metrics.status==='stale')status.textContent=roofText('Previously accepted layout is stale. Reconstruct and accept a current proposal.');else if(status&&metrics.status==='invalid')status.textContent=roofText('Accepted layout metrics are unavailable. Reconstruct and validate a current proposal.');else if(status)status.textContent=roofText('Preview only — not accepted.');}
   function parseGeometryFromGlobals(){localRing=null;localObstructions=[];var raw=extractRing(typeof ROOF_POLYGON_GEOJSON!=='undefined'?ROOF_POLYGON_GEOJSON:null),origin=geographicOrigin(raw);projectionOrigin=origin;var r=geoJsonRingToLocal(raw,origin);if(r)localRing=r;var obs=typeof ROOF_OBSTRUCTIONS_GEOJSON!=='undefined'?ROOF_OBSTRUCTIONS_GEOJSON:null;if(obs&&obs.coordinates){var list=obs.type==='MultiPolygon'?obs.coordinates:[obs.coordinates];list.forEach(function(item){var loc=geoJsonRingToLocal(item[0]||item,origin);if(loc&&loc.length>=3)localObstructions.push(loc);});}}
   function reconstructionBounds(){
     var ring=localRing&&localRing.length?localRing:[[-4,-3],[4,-3],[4,3],[-4,3]],bounds=ringBounds(ring),minY=0,maxY=roofInfo?roofInfo.baseY+Math.max(roofInfo.rise,0):3;
@@ -786,26 +787,26 @@
       if(!duplicate)localObstructions.push(item.polygon);
     });
     aiStructuresApplied=true;
-    var b=document.getElementById('roof-ai-apply-btn');if(b)b.textContent='✓ Structures applied';
-    var s=document.getElementById('roof-ai-status');if(s)s.textContent='AI-detected rooftop structures are now excluded from panel placement.';
+    var b=document.getElementById('roof-ai-apply-btn');if(b)b.textContent=roofText('✓ Structures applied');
+    var s=document.getElementById('roof-ai-status');if(s)s.textContent=roofText('AI-detected rooftop structures are now excluded from panel placement.');
     buildRoofModel(currentPitch,currentPanels);
   }
 
   async function loadSatelliteReference(){
     if(!localRing||!window.ROOF_POLYGON_GEOJSON)return;
     var badge=document.getElementById('roof3d-satellite-badge');
-    try{var res=await fetch('/api/roof-ai/imagery',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'image/jpeg','X-Requested-With':'XMLHttpRequest','X-CSRFToken':document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content')||''},body:JSON.stringify({polygon:ROOF_POLYGON_GEOJSON.coordinates?.[0]||[]})});if(!res.ok)throw new Error('imagery unavailable');var blob=await res.blob(),url=URL.createObjectURL(blob);var loader=new THREE.TextureLoader();loader.load(url,function(tex){satelliteTexture=tex;var overlay=new THREE.Mesh(new THREE.PlaneGeometry(footprintSpan*1.28,footprintSpan*1.28),new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:.20,depthWrite:false}));overlay.rotation.x=-Math.PI/2;overlay.position.y=-.02;overlay.scale.set(1,.72,1);rootGroup.add(overlay);if(badge){badge.textContent='Satellite reference · ready';badge.classList.add('is-ready');}});}catch(e){if(badge){badge.textContent='Satellite reference · unavailable';badge.classList.add('is-error');}}
+    try{var res=await fetch('/api/roof-ai/imagery',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'image/jpeg','X-Requested-With':'XMLHttpRequest','X-CSRFToken':document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content')||''},body:JSON.stringify({polygon:ROOF_POLYGON_GEOJSON.coordinates?.[0]||[]})});if(!res.ok)throw new Error('imagery unavailable');var blob=await res.blob(),url=URL.createObjectURL(blob);var loader=new THREE.TextureLoader();loader.load(url,function(tex){satelliteTexture=tex;var overlay=new THREE.Mesh(new THREE.PlaneGeometry(footprintSpan*1.28,footprintSpan*1.28),new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:.20,depthWrite:false}));overlay.rotation.x=-Math.PI/2;overlay.position.y=-.02;overlay.scale.set(1,.72,1);rootGroup.add(overlay);if(badge){badge.textContent=roofText('Satellite reference · ready');badge.classList.add('is-ready');}});}catch(e){if(badge){badge.textContent=roofText('Satellite reference · unavailable');badge.classList.add('is-error');}}
   }
   async function loadSiteRoofModel(){
     var locationId=typeof SIGNIX_LOCATION_ID!=='undefined'?SIGNIX_LOCATION_ID:null; if(!locationId)return;
     var requestSeq=++siteModelRequestSeq,badge=document.getElementById('roof3d-satellite-badge'),status=document.getElementById('roof-ai-status'),accept=document.getElementById('roof3d-layout-accept');
     siteModelLoading=true;
     if(accept)accept.disabled=true;
-    if(badge){badge.textContent='Rooftop data · loading…';badge.classList.remove('is-error');}
-    if(status)status.textContent='Loading available location-specific rooftop data…';
+    if(badge){badge.textContent=roofText('Rooftop data · loading…');badge.classList.remove('is-error');}
+    if(status)status.textContent=roofText('Loading available location-specific rooftop data…');
     try{
       var res=await fetch('/api/roof-model/'+encodeURIComponent(locationId)+'?high_fidelity=0',{credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});
-      var data=await res.json(),payloadState=reconstructionPayloadState(data);if(requestSeq!==siteModelRequestSeq)return;if(!res.ok||!payloadState.ok)throw new Error(data.error||(payloadState.code==='malformed'?'Rooftop reconstruction response was malformed.':'Location-specific roof data unavailable'));
+      var data=await res.json(),payloadState=reconstructionPayloadState(data);if(requestSeq!==siteModelRequestSeq)return;if(!res.ok||!payloadState.ok)throw new Error(data.error||(payloadState.code==='malformed'?roofText('Rooftop reconstruction response was malformed.'):roofText('Location-specific roof data unavailable')));
       siteRoofModel=data; siteModelLoading=false;
       shadeGrid=data.shade_analysis||null; shadeSide=null;
       if(shadeGrid)shadeGrid.geometry_compatible=Boolean(data.geometry_key&&shadeGrid.geometry_key===data.geometry_key);
@@ -813,14 +814,14 @@
       var layoutControl=document.getElementById('roof3d-layout-mode');if(layoutControl)layoutControl.value=panelLayoutMode;
       var accepted=data.layout_acceptance;updateAcceptedLayoutStatus(accepted);
       var segs=data.surfaces||[];
-      if(badge){badge.textContent=data.mode==='provider'?'Rooftop reconstruction · provider':(data.mode==='prototype_fixture'?'Rooftop reconstruction · prototype fixture':'Rooftop reconstruction · user boundary');badge.classList.add('is-ready');badge.classList.remove('is-error');}
+      if(badge){badge.textContent=data.mode==='provider'?roofText('Rooftop reconstruction · provider'):(data.mode==='prototype_fixture'?roofText('Rooftop reconstruction · prototype fixture'):roofText('Rooftop reconstruction · user boundary'));badge.classList.add('is-ready');badge.classList.remove('is-error');}
       var shadeBadge=document.getElementById('roof3d-shade-badge');
       if(shadeBadge)updateShadeStatus();
       if(status){
-        status.textContent=(data.status_badge?.detail||'Rooftop reconstruction loaded')+' · '+segs.length+' surface fragment'+(segs.length===1?'':'s')+'. Your drawn boundary remains authoritative.';
+        status.textContent=(data.status_badge?.detail||roofText('Rooftop reconstruction loaded'))+' · '+segs.length+roofText(' surface fragment')+(segs.length===1?'':'s')+roofText('. Your drawn boundary remains authoritative.');
       }
       buildRoofModel(currentPitch,currentPanels);
-    }catch(err){if(requestSeq!==siteModelRequestSeq)return;siteModelLoading=false;siteRoofModel=null;reconstructedSurfaces=[];reconstructedStructures=[];shadeGrid=null;shadeSide=null;currentPlacedPanels=[];buildRoofModel(currentPitch,currentPanels);resolveReconstructionFailure('Location-specific data unavailable: '+err.message);if(badge){badge.textContent='Geographic rooftop data · unavailable';badge.classList.add('is-error');}console.warn('Site roof data unavailable',err);}
+    }catch(err){if(requestSeq!==siteModelRequestSeq)return;siteModelLoading=false;siteRoofModel=null;reconstructedSurfaces=[];reconstructedStructures=[];shadeGrid=null;shadeSide=null;currentPlacedPanels=[];buildRoofModel(currentPitch,currentPanels);resolveReconstructionFailure(roofText('Location-specific data unavailable: ')+err.message);if(badge){badge.textContent=roofText('Geographic rooftop data · unavailable');badge.classList.add('is-error');}console.warn('Site roof data unavailable',err);}
   }
 
   function init(){var container=document.getElementById('roof-3d-container'),fallback=document.getElementById('roof-3d-fallback');if(!container)return;var capability=viewerCapability(typeof THREE!=='undefined',typeof THREE!=='undefined'&&hasWebGL());if(!capability.ok){resolveViewerUnavailable(capability.code);return;}if(fallback){fallback.classList.add('hidden');fallback.style.display='none';}

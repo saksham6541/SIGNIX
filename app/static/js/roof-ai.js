@@ -15,12 +15,12 @@
   async function analyze() {
     const polygon = typeof ROOF_POLYGON_GEOJSON !== 'undefined' ? ROOF_POLYGON_GEOJSON?.coordinates?.[0] : null;
     if (!polygon || polygon.length < 3) {
-      setStatus('Drawn roof geometry is unavailable.', false);
+      setStatus(window.SignixI18n.t('Drawn roof geometry is unavailable.'), false);
       return;
     }
     const button = document.getElementById('roof-ai-btn');
     if (button) button.disabled = true;
-    setStatus('AI is inspecting the satellite view…', true);
+    setStatus(window.SignixI18n.t('AI is inspecting the satellite view…'), true);
     try {
       const locationId = typeof SIGNIX_LOCATION_ID !== 'undefined' ? SIGNIX_LOCATION_ID : null;
       const response = await fetch(locationId
@@ -39,7 +39,7 @@
           : { polygon })
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'AI roof analysis failed');
+      if (!response.ok) throw new Error(data.error || window.SignixI18n.t('AI roof analysis failed'));
       const geminiSource = Array.isArray(data.sources)
         ? data.sources.find((item) => item.provider === 'gemini')
         : null;
@@ -55,14 +55,14 @@
       const confidence = Math.round((Number(a.confidence) || 0) * 100);
       const objects = Array.isArray(a.obstructions) ? a.obstructions.length : 0;
       const apply = document.getElementById('roof-ai-apply-btn');
-      if (apply) { apply.disabled = objects === 0; apply.textContent = objects ? `Apply ${objects} detected structure${objects === 1 ? '' : 's'}` : 'No structures detected'; }
+      if (apply) { apply.disabled = objects === 0; apply.textContent = objects ? `Apply ${objects} detected structure${objects === 1 ? '' : 's'}` : window.SignixI18n.t('No structures detected'); }
       const pitch = a.pitch_degrees != null ? `${Math.round(a.pitch_degrees)}°` : 'unknown';
       const cacheNote = geminiSource?.cached ? ' · cached result' : '';
       setStatus(`AI analysis: ${a.roof_type || 'unknown'} roof · ${pitch} pitch · ${objects} visible obstruction${objects === 1 ? '' : 's'} · ${confidence}% confidence${cacheNote}`, false);
       const detail = document.getElementById('roof-ai-details');
-      if (detail) detail.textContent = 'AI suggestions are advisory; your drawn rooftop boundary remains authoritative.';
+      if (detail) detail.textContent = window.SignixI18n.t('AI suggestions are advisory; your drawn rooftop boundary remains authoritative.');
     } catch (error) {
-      setStatus(error.message || 'AI roof analysis unavailable.', false);
+      setStatus(error.message || window.SignixI18n.t('AI roof analysis unavailable.'), false);
     } finally {
       if (button) button.disabled = false;
     }

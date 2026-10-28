@@ -326,7 +326,7 @@
       {% if get_locale()|string == 'hi' %}
       <h2 id="cta-title">{{ _('Ready to explore your solar potential?') }}</h2>
       {% else %}
-      <h2 id="cta-title">Ready to explore your <span>solar potential?</span></h2>
+      <h2 id="cta-title">{{ _("Ready to explore your") }} <span>{{ _("solar potential?") }}</span></h2>
       {% endif %}
       <p>{{ _('Start with the solution that fits your property.') }}</p>
       <div class="landing-cta-actions">

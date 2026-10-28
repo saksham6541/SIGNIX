@@ -117,24 +117,24 @@
   </table>
   {% if loc.map_svg_data_uri or loc.map_png_data_uri %}
   <div class="map-snapshot" style="margin:10px 0 14px;">
-    <img src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="Rooftop outline"/>
+    <img src="{{ loc.map_png_data_uri or loc.map_svg_data_uri }}" alt="{{ _('Rooftop outline') }}"/>
     <p style="font-size:10px;color:#666;margin:4px 0 0;">{{ _('Rooftop outline — amber = obstructions') }}</p>
   </div>
   {% endif %}
   <div>
     {% if loc.orientation_label %}
-    <span class="badge">{{ _('Detected orientation') }}: {{ loc.orientation_label }}{% if loc.orientation_deg is not none %} ({{ loc.orientation_deg }}°){% endif %}</span>
+    <span class="badge">{{ _('Detected orientation') }}: {{ loc.orientation_label|ui_label }}{% if loc.orientation_deg is not none %} ({{ loc.orientation_deg }}°){% endif %}</span>
     {% endif %}
     {% if loc.battery_kwh and loc.battery_kwh > 0 %}
     <span class="badge badge-g">{{ _('Battery') }}: {{ loc.battery_kwh }} kWh</span>
     {% endif %}
     {% if loc.inverter_type %}
-    <span class="badge badge-o">{{ _('Inverter') }}: {{ loc.inverter_type }}</span>
+    <span class="badge badge-o">{{ _('Inverter') }}: {{ loc.inverter_type|ui_label }}</span>
     {% endif %}
     {% if loc.irradiance_source %}
     {% set conf = loc.irradiance_confidence or (loc.suitability_rating.data_confidence.tier if loc.suitability_rating and loc.suitability_rating.data_confidence else none) %}
     {% set conf_cls = 'badge-conf-high' if conf == 'high' else 'badge-conf-medium' if conf == 'medium' else 'badge-conf-low' if conf == 'low' else '' %}
-    <span class="badge {{ conf_cls }}">{% if loc.irradiance_source == 'nasa_power' %}{{ _('Data') }}: NASA POWER{% elif loc.irradiance_source == 'pvgis' %}{{ _('Data') }}: PVGIS{% elif loc.irradiance_source in ('mock', 'mock_fallback') %}{{ _('Data') }}: Mock{% else %}{{ _('Data') }}: {{ loc.irradiance_source }}{% endif %}{% if conf == 'high' %} · {{ _('High confidence') }}{% elif conf == 'medium' %} · {{ _('Medium confidence') }}{% elif conf == 'low' %} · {{ _('Low confidence — verify locally') }}{% endif %}</span>
+    <span class="badge {{ conf_cls }}">{% if loc.irradiance_source == 'nasa_power' %}{{ _('Data') }}: NASA POWER{% elif loc.irradiance_source == 'pvgis' %}{{ _('Data') }}: PVGIS{% elif loc.irradiance_source in ('mock', 'mock_fallback') %}{{ _('Data') }}{{ _(": Mock") }}{% else %}{{ _('Data') }}: {{ loc.irradiance_source }}{% endif %}{% if conf == 'high' %} · {{ _('High confidence') }}{% elif conf == 'medium' %} · {{ _('Medium confidence') }}{% elif conf == 'low' %} · {{ _('Low confidence — verify locally') }}{% endif %}</span>
     {% endif %}
   </div>
 
@@ -161,7 +161,7 @@
     <tr><td>{{ _('Roof capacity (from drawing)') }}</td><td>{{ loc.roof_capacity_kw }} kW</td></tr>
     {% endif %}
     {% if loc.sizing_method %}
-    <tr><td>{{ _('Sizing method') }}</td><td>{{ loc.sizing_method }}</td></tr>
+    <tr><td>{{ _('Sizing method') }}</td><td>{{ loc.sizing_method|ui_label }}</td></tr>
     {% endif %}
   </table>
 
@@ -170,7 +170,7 @@
   <table>
     <tr><th>{{ _('Item') }}</th><th>{{ _('Value') }}</th></tr>
     <tr><td>{{ _('Monthly bill (input)') }}</td><td>₹{{ '{:,.0f}'.format(loc.bill_sizing.monthly_bill) }}</td></tr>
-    <tr><td>{{ _('Tariff used') }}</td><td>₹{{ loc.bill_sizing.tariff_per_kwh }}/unit</td></tr>
+    <tr><td>{{ _('Tariff used') }}</td><td>₹{{ loc.bill_sizing.tariff_per_kwh }}{{ _("/unit") }}</td></tr>
     <tr><td>{{ _('Estimated monthly units') }}</td><td>{{ loc.bill_sizing.monthly_units }} {{ _('units') }}</td></tr>
     {% if loc.bill_sizing.daily_units is defined %}
     <tr><td>{{ _('Estimated daily units') }}</td><td>{{ loc.bill_sizing.daily_units }} {{ _('units') }}</td></tr>
@@ -184,8 +184,8 @@
   {% set rating = loc.suitability_rating %}
   <h2>{{ _('Suitability rating') }}</h2>
   <table class="rating-box">
-    <tr><td>{{ _('Overall viability') }}</td><td class="rating-score rating-{{ rating.overall_viability.tier or 'fair' }}">{{ (rating.overall_viability.tier or 'Unknown')|title }} — {{ rating.overall_viability.score }}/100</td></tr>
-    <tr><td>{{ _('Estimate confidence') }}</td><td><strong>{{ (rating.data_confidence.tier or 'Unknown')|title }}</strong> ({{ rating.data_confidence.score }}/100)</td></tr>
+    <tr><td>{{ _('Overall viability') }}</td><td class="rating-score rating-{{ rating.overall_viability.tier or 'fair' }}">{{ (rating.overall_viability.tier or 'Unknown')|title|ui_label }} — {{ rating.overall_viability.score }}/100</td></tr>
+    <tr><td>{{ _('Estimate confidence') }}</td><td><strong>{{ (rating.data_confidence.tier or 'Unknown')|title|ui_label }}</strong> ({{ rating.data_confidence.score }}/100)</td></tr>
     {% if rating.user_priority %}<tr><td>{{ _('Priority') }}</td><td>{{ rating.user_priority|replace('_', ' ')|title }}</td></tr>{% endif %}
   </table>
   <table>
@@ -195,9 +195,9 @@
     {% set factor = (rating.factors or {}).get(key) %}
     {% if factor %}
     <tr>
-      <td>{{ label }}</td>
+      <td>{{ label|ui_label }}</td>
       <td class="rating-score-cell"><div class="rating-bar"><div class="rating-bar-fill rating-{{ factor.tier or 'fair' }}" style="width:{{ factor.score or 0 }}%;"></div></div><span class="muted rating-score-value">{{ factor.score or 0 }}/100</span></td>
-      <td>{% if factor.tier %}{{ factor.tier|title }} — {% endif %}{% if key == 'roof_fit' %}{{ factor.usable_area_per_kw }} m² usable area per kW{% elif key == 'orientation' %}{% if factor.factor is not none %}{{ _('Detected orientation') }}: {{ loc.orientation_label or _('not detected') }}; {{ factor.factor }} {{ _('relative yield factor') }}{% else %}{{ _('Detected orientation') }}: {{ loc.orientation_label or _('not detected') }}; {{ _('yield factor unavailable') }}. {{ _('The saved score is retained.') }}{% endif %}{% elif key == 'co2_reduction' %}{{ factor.tons }} tons CO2 reduction per year{% elif key == 'backup_capability' %}{{ factor.score }}/100 backup capability{% else %}{{ factor.tier|title }}{% endif %}</td>
+      <td>{% if factor.tier %}{{ factor.tier|title|ui_label }} — {% endif %}{% if key == 'roof_fit' %}{{ factor.usable_area_per_kw }} {{ _("m² usable area per kW") }}{% elif key == 'orientation' %}{% if factor.factor is not none %}{{ _('Detected orientation') }}: {{ loc.orientation_label or _('not detected') }}; {{ factor.factor }} {{ _('relative yield factor') }}{% else %}{{ _('Detected orientation') }}: {{ loc.orientation_label or _('not detected') }}; {{ _('yield factor unavailable') }}. {{ _('The saved score is retained.') }}{% endif %}{% elif key == 'co2_reduction' %}{{ factor.tons }} {{ _("tons CO2 reduction per year") }}{% elif key == 'backup_capability' %}{{ factor.score }}{{ _("/100 backup capability") }}{% else %}{{ factor.tier|title|ui_label }}{% endif %}</td>
     </tr>
     {% endif %}
     {% endfor %}
@@ -208,12 +208,12 @@
   <h2>2. {{ _('Performance indicators') }}</h2>
   <table>
     <tr><th>{{ _('Metric') }}</th><th>{{ _('Value') }}</th></tr>
-    {% if loc.specific_yield %}<tr><td>{{ _('Specific yield') }}</td><td>{{ '{:,.0f}'.format(loc.specific_yield) }} kWh/kWp/year</td></tr>{% endif %}
+    {% if loc.specific_yield %}<tr><td>{{ _('Specific yield') }}</td><td>{{ '{:,.0f}'.format(loc.specific_yield) }} {{ _("kWh/kWp/year") }}</td></tr>{% endif %}
     {% if loc.capacity_factor %}<tr><td>{{ _('Capacity factor') }}</td><td>{{ loc.capacity_factor }}%</td></tr>{% endif %}
     {% if loc.orientation_factor is not none %}<tr><td>{{ _('Orientation yield factor (vs South)') }}</td><td>{{ (loc.orientation_factor * 100)|round|int }}%</td></tr>{% endif %}
     {% if loc.recommended_tilt_deg %}<tr><td>{{ _('Recommended tilt') }}</td><td>{{ loc.recommended_tilt_deg }}° (≈ {{ _('latitude') }})</td></tr>{% endif %}
     {% if loc.performance_ratio %}<tr><td>{{ _('Performance ratio (assumed)') }}</td><td>{{ loc.performance_ratio }}</td></tr>{% endif %}
-    {% if loc.peak_sun_hours_assumed %}<tr><td>{{ _('Peak sun hours (assumed)') }}</td><td>{{ loc.peak_sun_hours_assumed }} h/day</td></tr>{% endif %}
+    {% if loc.peak_sun_hours_assumed %}<tr><td>{{ _('Peak sun hours (assumed)') }}</td><td>{{ loc.peak_sun_hours_assumed }} {{ _("h/day") }}</td></tr>{% endif %}
     {% if loc.lcoe %}<tr><td>{{ _('Discounted LCOE (25 yr)') }}</td><td>₹{{ loc.lcoe }}/kWh</td></tr>{% endif %}
     {% if loc.lifetime_kwh %}<tr><td>{{ _('Lifetime energy (25 yr, 0.5%%/yr degradation)') }}</td><td>{{ '{:,.0f}'.format(loc.lifetime_kwh) }} kWh</td></tr>{% endif %}
     {% if loc.self_consumption_frac %}<tr><td>{{ _('Self-consumption share') }}</td><td>{{ (loc.self_consumption_frac * 100)|int }}%</td></tr>{% endif %}
@@ -223,7 +223,7 @@
   <h2>3. {{ _('Monthly generation (kWh)') }}</h2>
   <div class="chart-panel">
     <p class="muted">{{ _('Estimated generation by month.') }} {% if not loc.chart_data.consumption.monthly_available %}{{ _(loc.monthly_consumption_note) }}{% endif %}</p>
-    <table class="monthly-chart"><tr>{% for item in loc.monthly_chart %}<td><div class="bar-stage"><span class="bar" style="height:{{ [item.generation_pct, 3]|max }}%;"></span>{% if item.consumption_kwh is not none %}<span class="bar load" style="height:{{ [item.consumption_pct, 3]|max }}%;"></span>{% endif %}</div><span class="bar-label">{{ item.month[:3] }}</span></td>{% endfor %}</tr></table>
+    <table class="monthly-chart"><tr>{% for item in loc.monthly_chart %}<td><div class="bar-stage"><span class="bar" style="height:{{ [item.generation_pct, 3]|max }}%;"></span>{% if item.consumption_kwh is not none %}<span class="bar load" style="height:{{ [item.consumption_pct, 3]|max }}%;"></span>{% endif %}</div><span class="bar-label">{{ item.month[:3]|ui_label }}</span></td>{% endfor %}</tr></table>
     <p class="legend"><span class="key"></span>{{ _('Solar generation') }}{% if loc.chart_data.consumption.monthly_available %}<span class="key load"></span>{{ _('Recorded consumption') }}{% endif %}</p>
   </div>
   {% endif %}
@@ -254,22 +254,22 @@
   {% if loc.costs_reconcile %}
   <p class="reconciliation-ok">{{ _('Cost check') }}: {{ loc.cost_reconciliation_equation }}</p>
   {% elif loc.cost_reconciliation_note %}
-  <p class="reconciliation-warn">{{ loc.cost_reconciliation_note }}</p>
+  <p class="reconciliation-warn">{{ _(loc.cost_reconciliation_note) }}</p>
   {% endif %}
   {% if loc.planning_track == 'business' %}
   <div class="fin-row"><span>{{ _('Year-one net operating benefit') }}</span><span>₹{{ '{:,.0f}'.format(loc.annual_net_benefit or 0) }}</span></div>
   <div class="fin-row"><span>{{ _('Year-one ROI') }}</span><span>{% if loc.get('annual_roi_pct') is not none %}{{ '%.2f'|format(loc.get('annual_roi_pct')) }}%{% else %}—{% endif %}</span></div>
   <div class="fin-row"><span>{{ _('25-year net benefit') }}</span><span>{% if loc.get('lifetime_net_benefit') is not none %}₹{{ '{:,.0f}'.format(loc.get('lifetime_net_benefit')) }}{% else %}—{% endif %}</span></div>
   <p class="muted">{{ _('Demand-charge savings are not modelled.') }}</p>
-  <div class="fin-row"><span>{{ _('Commercial payback') }} <small>({{ _('tariff escalation assumed') }})</small></span><span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} years{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
+  <div class="fin-row"><span>{{ _('Commercial payback') }} <small>({{ _('tariff escalation assumed') }})</small></span><span>{% if loc.nominal_payback_years is not none %}{{ loc.nominal_payback_years }} {{ _("years") }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span></div>
   {% else %}
   <div class="fin-row"><span>{{ _('Estimated monthly savings') }}</span><span>₹{{ '{:,.0f}'.format(loc.monthly_savings or 0) }}</span></div>
-  <div class="fin-row"><span>{{ _('Payback without subsidy') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.payback_without_subsidy_years is not none %}{{ loc.payback_without_subsidy_years }} years{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
-  <div class="fin-row"><span>{{ _('Subsidy-adjusted payback') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.subsidy_adjusted_payback_years is not none %}{{ loc.subsidy_adjusted_payback_years }} years{% else %}{{ loc.payback_unavailable_reason }}{% endif %}</span></div>
+  <div class="fin-row"><span>{{ _('Payback without subsidy') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.payback_without_subsidy_years is not none %}{{ loc.payback_without_subsidy_years }} {{ _("years") }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span></div>
+  <div class="fin-row"><span>{{ _('Subsidy-adjusted payback') }} <small>({{ _('simple, flat tariff') }})</small></span><span>{% if loc.subsidy_adjusted_payback_years is not none %}{{ loc.subsidy_adjusted_payback_years }} {{ _("years") }}{% else %}{{ _(loc.payback_unavailable_reason) }}{% endif %}</span></div>
   {% endif %}
   {% if loc.lifecycle_projection %}
   <div class="fin-row"><span>{{ _('25-year net operating savings') }}</span><span>₹{{ '{:,.0f}'.format(loc.lifecycle_projection.lifetime_net_savings_before_upfront or 0) }}</span></div>
-  <div class="fin-row"><span>{{ _('Discounted payback') }}</span><span>{% if loc.discounted_payback_years is not none %}{{ loc.discounted_payback_years }} years{% else %}{{ _('No break-even in 25 years') }}{% endif %}</span></div>
+  <div class="fin-row"><span>{{ _('Discounted payback') }}</span><span>{% if loc.discounted_payback_years is not none %}{{ loc.discounted_payback_years }} {{ _("years") }}{% else %}{{ _('No break-even in 25 years') }}{% endif %}</span></div>
   <div class="fin-row"><span>{{ _('Net present value') }} ({{ loc.discount_rate_pct }}%)</span><span>₹{{ '{:,.0f}'.format(loc.npv or 0) }}</span></div>
   {% endif %}
   {% if loc.annual_om %}
@@ -327,7 +327,7 @@
   </p>
 {% if loc.qr_png_data_uri %}
   <div style="margin-top:18px;padding-top:10px;border-top:1px solid #ddd;">
-    <img src="{{ loc.qr_png_data_uri }}" alt="QR code" width="80" height="80" style="vertical-align:middle;"/>
+    <img src="{{ loc.qr_png_data_uri }}" alt="{{ _('QR code') }}" width="80" height="80" style="vertical-align:middle;"/>
     <span style="font-size:10px;color:#666;margin-left:8px;">{{ _('Live estimate') }}: {{ loc.live_estimate_url }}</span>
   </div>
   {% endif %}
