@@ -77,6 +77,12 @@ def test_acceptance_derives_capacity_and_recalculates_estimate(client, app, layo
         current = RooftopDesign.query.filter_by(user_location_id=location_id, is_current=True).one()
         assert saved.system_size == pytest.approx(.545)
         assert saved.extras["accepted_layout"]["status"] == "accepted"
+        orientation = saved.extras["generation_provenance"]["orientation"]
+        assert orientation["global_direction_source"] == "footprint_longest_edge_heuristic"
+        assert saved.extras["orientation_input"] == "auto"
+        plane = saved.extras["surface_generation"]["surfaces"][0]
+        assert plane["roof_pitch_degrees"] is None
+        assert plane["surface_geometry_kind"] == layout["surface_generation_inputs"][0]["surface_geometry_kind"]
         assert saved.extras["surface_generation_status"] == "current"
         assert saved.extras["surface_generation"]["geometry_key"] == layout["geometry_key"]
         assert current.panel_layout["panel_count"] == 1

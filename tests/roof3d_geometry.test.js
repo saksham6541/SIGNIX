@@ -200,3 +200,10 @@ assert.equal(geometry.syncOrientationApplyButton(applyStateButton, false), false
 assert.equal(applyStateButton.disabled, true);
 
 console.log('roof3d geometry tests passed');
+
+// Missing provider-specific orientation ratios must never become a zero yield.
+for (const unavailable of [null, undefined, '', false, NaN, Infinity]) {
+  assert.equal(geometry.orientationYieldText(unavailable), 'Unavailable');
+}
+assert.equal(geometry.orientationYieldText(0), '0% relative yield');
+assert.equal(geometry.orientationYieldText(.653), '65% relative yield');

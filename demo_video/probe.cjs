@@ -1,0 +1,2 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true}); const page=await browser.newPage({viewport:{width:1920,height:1080}}); await page.goto('http://127.0.0.1:5000/signup'); await page.screenshot({path:__dirname+'/probe.png'}); console.log((await page.locator('body').innerText()).slice(0,1700)); await browser.close();})();

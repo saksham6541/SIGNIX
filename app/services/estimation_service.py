@@ -562,7 +562,10 @@ def _apply_result_to_location(location, result, extra_updates=None):
         "planning_track": result.get("planning_track"),
         "property_type": result.get("property_type"),
         "calculation_policy": result.get("calculation_policy"),
-        "orientation_input": result.get("orientation_deg"),
+        "orientation_input": (
+            "auto" if (result.get("orientation_provenance") or {}).get("global_direction_source")
+            == "footprint_longest_edge_heuristic" else result.get("orientation_deg")
+        ),
         "orientation_source": result.get("orientation_source"),
         "irradiance_confidence": result.get("irradiance_confidence"),
         "cashflow_25yr": result.get("cashflow_25yr"),
@@ -628,9 +631,10 @@ def recalculate_for_accepted_layout(
     """Run the established engine at validated layout capacity; caller commits."""
     inputs = _estimate_inputs_from_location(location)
     inputs["orientation"] = (
-        location.orientation_deg
-        if location.orientation_deg is not None
-        else (location.extras or {}).get("orientation_input", "auto")
+        (location.extras or {}).get("orientation_input", "auto")
+        if (location.extras or {}).get("orientation_source") == "auto-detect"
+        or (location.extras or {}).get("orientation_input") == "auto"
+        else location.orientation_deg if location.orientation_deg is not None else "auto"
     )
     inputs["accepted_panel_count"] = panel_count
     inputs["accepted_module_wattage"] = module_wattage

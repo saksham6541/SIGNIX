@@ -1,0 +1,14 @@
+// Uninterrupted 1x validation: no screenshots or rendering during playback.
+const fs=require('fs'),path=require('path');const {pathToFileURL}=require('url');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{
+ const q=path.join(__dirname,'stabilization','qc');
+ const browser=await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling','--disable-renderer-backgrounding']});
+ const page=await browser.newPage({viewport:{width:1920,height:1080}});const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto(pathToFileURL(path.join(q,'playback.html')).href);
+ await page.waitForFunction(()=>document.querySelector('video').readyState>=3);
+ const started=Date.now();
+ await page.evaluate(()=>{const v=document.querySelector('video');window.review={events:[],samples:[],maxCallbackGap:0,lastWall:0};['error','stalled','waiting','ended'].forEach(n=>v.addEventListener(n,()=>review.events.push({event:n,t:v.currentTime})));function frame(now,m){if(review.lastWall)review.maxCallbackGap=Math.max(review.maxCallbackGap,now-review.lastWall);review.lastWall=now;if(!review.samples.length||m.mediaTime-review.samples.at(-1).t>=1){const q=v.getVideoPlaybackQuality();review.samples.push({t:m.mediaTime,frames:m.presentedFrames,dropped:q.droppedVideoFrames});}v.requestVideoFrameCallback(frame);}v.requestVideoFrameCallback(frame);v.playbackRate=1;return v.play()});
+ while(true){await page.waitForTimeout(15000);const state=await page.evaluate(()=>{const v=document.querySelector('video'),q=v.getVideoPlaybackQuality();return{t:v.currentTime,ended:v.ended,dropped:q.droppedVideoFrames,error:v.error?.message}});console.log(JSON.stringify(state));if(state.error)throw Error(state.error);if(state.ended)break;if(Date.now()-started>240000)throw Error('Playback exceeded 240 seconds');}
+ const result=await page.evaluate(()=>{const v=document.querySelector('video'),q=v.getVideoPlaybackQuality();return{...window.review,duration:v.duration,currentTime:v.currentTime,ended:v.ended,rate:v.playbackRate,videoWidth:v.videoWidth,videoHeight:v.videoHeight,totalVideoFrames:q.totalVideoFrames,droppedVideoFrames:q.droppedVideoFrames,corruptedVideoFrames:q.corruptedVideoFrames,muted:v.muted}});result.wallSeconds=(Date.now()-started)/1000;result.errors=errors;result.cleanPass=result.ended&&result.droppedVideoFrames===0&&result.corruptedVideoFrames===0&&errors.length===0&&!result.events.some(e=>e.event!=='ended');fs.writeFileSync(path.join(q,'browser-playback-uninterrupted.json'),JSON.stringify(result,null,2));await browser.close();console.log(JSON.stringify({...result,samples:result.samples.length}));if(!result.cleanPass)process.exitCode=1;
+})();

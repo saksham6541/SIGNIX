@@ -677,12 +677,17 @@
     updateCompassMarker();
   }
 
+  function orientationYieldText(value) {
+    var factor=typeof value==='number'&&Number.isFinite(value)?value:null;
+    return factor===null?roofText('Unavailable'):Math.round(factor*100)+'% '+roofText('relative yield');
+  }
+
   function updateOrientationStatus(result){
     if(result&&result.chart_data)window.dispatchEvent(new CustomEvent('signix:chart-data',{detail:result.chart_data}));
     if(!result)return;
     var gen=Number(result.annual_generation);
     var savings=Number(result.monthly_savings);
-    var factor=Number(result.orientation_factor);
+    var factorText=orientationYieldText(result.orientation_factor);
     var label=result.orientation_label||cardinalDirection(currentOrientationDeg*Math.PI/180);
     if(Number.isFinite(gen)){
       document.querySelectorAll('[data-orientation-annual-generation]').forEach(function(el){el.textContent=Math.round(gen).toLocaleString('en-IN');});
@@ -691,7 +696,7 @@
       document.querySelectorAll('[data-orientation-monthly-savings]').forEach(function(el){el.textContent='₹'+Math.round(savings).toLocaleString('en-IN');});
     }
     var factorEl=document.getElementById('roof3d-orientation-factor');
-    if(factorEl&&Number.isFinite(factor))factorEl.textContent=Math.round(factor*100)+'% ' + roofText('relative yield');
+    if(factorEl)factorEl.textContent=factorText;
     var deltaEl=document.getElementById('roof3d-orientation-delta');
     if(deltaEl&&Number.isFinite(gen)&&typeof ANNUAL_GENERATION!=='undefined'){
       var delta=gen-savedAnnualGeneration;
@@ -700,7 +705,7 @@
     var apply=document.getElementById('roof3d-orientation-apply');
     syncOrientationApplyButton(apply,orientationDirty);
     var status=document.getElementById('roof-ai-status');
-    if(status)status.textContent=(orientationDirty?roofText('Orientation preview · '):roofText('Saved orientation · '))+label+' · '+Math.round((factor||0)*100)+'% ' + roofText('relative yield.')+(orientationDirty?roofText(' Click Apply orientation to save.'):'');
+    if(status)status.textContent=(orientationDirty?roofText('Orientation preview · '):roofText('Saved orientation · '))+label+' · '+factorText+'.'+(orientationDirty?roofText(' Click Apply orientation to save.'):'');
   }
 
   function angularDifference(a,b){var difference=Math.abs((((Number(a)||0)-(Number(b)||0)+540)%360)-180);return difference;}
@@ -832,6 +837,6 @@
     function animate(){animationId=requestAnimationFrame(animate);renderer.render(scene,camera);}animate();function resizeViewer(){var w=container.clientWidth,h=container.clientHeight;if(w<10||h<10)return;renderer.setSize(w,h);var preserveView=userInteracted||viewMode!=='3d';if(!preserveView){fitCamera();return;}var zoomRatio=cameraFitDistance>0?cameraDistance/cameraFitDistance:1;cameraFitDistance=cameraFrameForBounds(reconstructionBounds(),Math.max(w/h,.35),cameraAzimuth,cameraElevation);cameraDistance=cameraFitDistance*zoomRatio;camera.far=Math.max(250,cameraDistance*12);updateCamera();}window.addEventListener('resize',resizeViewer);if(typeof ResizeObserver!=='undefined')new ResizeObserver(resizeViewer).observe(container);
     window.SIGNIX_ROOF3D={setPitch:function(d){currentPitch=Number(d)||0;buildRoofModel(currentPitch,currentPanels);},setPanelCount:function(n){currentPanels=Number(n)||0;buildRoofModel(currentPitch,currentPanels);},setPitchAndPanels:function(d,n){currentPitch=Number(d)||0;currentPanels=Number(n)||0;buildRoofModel(currentPitch,currentPanels);},setRoofType:setRoofType,setOrientation:setOrientation,applyOrientation:applyOrientation,undoOrientation:undoOrientation,setPanelLayoutMode:setPanelLayoutMode,stageAIAnalysis:stageAIAnalysis,applyAIAnalysis:applyAIAnalysis,applyAIStructures:applyAIStructures,hasRealFootprint:function(){return!!(localRing&&localRing.length>=3);},getPlacedPanelCount:function(){return document.getElementById('roof-3d-panel-status')?.textContent||'';},loadSiteRoofModel:loadSiteRoofModel,setViewMode:setViewMode,setLayerVisible:function(name,visible){var input=document.querySelector('[data-roof3d-layer="'+name+'"]');if(input)input.checked=Boolean(visible);applyLayerVisibility();},debugState:function(){return{mode:siteRoofModel?.mode||'user_fallback',panelLayoutMode:panelLayoutMode,viewMode:viewMode,surfaces:reconstructedSurfaces.map(function(s){return{id:s.id,parentId:s.parentId,pitch:s.pitch,azimuth:s.azimuth,normal:s.normal,valid:s.valid,panelCount:s.panelCount,polygon:s.polygon};}),structures:reconstructedStructures.map(function(s){return{id:s.id,polygon:s.polygon,height:s.height};}),orientation:currentOrientationDeg,cameraAzimuth:cameraAzimuth,cameraElevation:cameraElevation,cameraViewSize:cameraDistance,cameraTarget:[cameraTargetX,cameraTargetY,cameraTargetZ],northDegrees:0,layers:{roofPlanes:roofPlanesGroup?.visible,panels:panelsGroup?.visible,structures:structuresGroup?.visible,boundary:boundaryGroup?.visible}};}};
   }
-  if(typeof window!=='undefined')window.SIGNIX_ROOF3D_GEOMETRY={cameraFrameForBounds:cameraFrameForBounds,cameraFrameForRing:cameraFrameForRing,pointInRing:pointInRing,polygonFits:polygonFits,polygonFitReason:polygonFitReason,polygonsOverlap:polygonsOverlap,classificationGridValid:classificationGridValid,panelIntersectsClassification:panelIntersectsClassification,panelTouchesExcludedGrid:panelTouchesExcludedGrid,panelShadeVerified:panelShadeVerified,selectNonOverlappingPanels:selectNonOverlappingPanels,panelLayoutMetrics:panelLayoutMetrics,acceptedLayoutMetrics:acceptedLayoutMetrics,layoutAcceptanceState:layoutAcceptanceState,placementShortfallText:placementShortfallText,sumSurfacePanelCounts:sumSurfacePanelCounts,layoutCapacityKw:layoutCapacityKw,layoutDiffersFromEstimate:layoutDiffersFromEstimate,angularDifference:angularDifference,contractLocalRing:contractLocalRing,normalizedImagePolygonToLocal:normalizedImagePolygonToLocal,surfacePanelRect:surfacePanelRect,viewerCapability:viewerCapability,reconstructionPayloadState:reconstructionPayloadState,resolveViewerUnavailable:resolveViewerUnavailable,resolveReconstructionFailure:resolveReconstructionFailure,syncOrientationApplyButton:syncOrientationApplyButton};
+  if(typeof window!=='undefined')window.SIGNIX_ROOF3D_GEOMETRY={orientationYieldText:orientationYieldText,cameraFrameForBounds:cameraFrameForBounds,cameraFrameForRing:cameraFrameForRing,pointInRing:pointInRing,polygonFits:polygonFits,polygonFitReason:polygonFitReason,polygonsOverlap:polygonsOverlap,classificationGridValid:classificationGridValid,panelIntersectsClassification:panelIntersectsClassification,panelTouchesExcludedGrid:panelTouchesExcludedGrid,panelShadeVerified:panelShadeVerified,selectNonOverlappingPanels:selectNonOverlappingPanels,panelLayoutMetrics:panelLayoutMetrics,acceptedLayoutMetrics:acceptedLayoutMetrics,layoutAcceptanceState:layoutAcceptanceState,placementShortfallText:placementShortfallText,sumSurfacePanelCounts:sumSurfacePanelCounts,layoutCapacityKw:layoutCapacityKw,layoutDiffersFromEstimate:layoutDiffersFromEstimate,angularDifference:angularDifference,contractLocalRing:contractLocalRing,normalizedImagePolygonToLocal:normalizedImagePolygonToLocal,surfacePanelRect:surfacePanelRect,viewerCapability:viewerCapability,reconstructionPayloadState:reconstructionPayloadState,resolveViewerUnavailable:resolveViewerUnavailable,resolveReconstructionFailure:resolveReconstructionFailure,syncOrientationApplyButton:syncOrientationApplyButton};
   if(typeof document!=='undefined'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();}
 })();

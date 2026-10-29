@@ -261,6 +261,10 @@ def test_report_renders_serialized_chart_contract(client, app):
                     [77.21, 28.615], [77.209, 28.614],
                 ]],
             },
+            orientation_deg=90,
+            orientation_label="East",
+            orientation_factor=None,
+            recommended_tilt_deg=28.6,
             system_size=1.0,
             annual_generation=1200.0,
             monthly_data={month: 100 for month in MONTHS},
@@ -287,6 +291,10 @@ def test_report_renders_serialized_chart_contract(client, app):
     response = client.get(f"/report/{location_id}")
     body = response.get_data(as_text=True)
     assert response.status_code == 200
+    assert "Orientation factor: Unavailable" in body
+    assert 'class="orientation-meter"' not in body
+    assert "Azimuth 90" in body
+    assert "Recommended tilt 28.6" in body
     assert "let REPORT_CHART_DATA" in body
     assert 'id="monthlyGenerationChart"' in body
     assert 'id="annualSavingsChart"' in body
@@ -325,6 +333,8 @@ def test_report_renders_serialized_chart_contract(client, app):
 
     client.get("/language/hi")
     hindi_body = client.get(f"/report/{location_id}").get_data(as_text=True)
+    assert "दिशा गुणक: उपलब्ध नहीं" in hindi_body
+    assert 'class="orientation-meter"' not in hindi_body
     assert "सिस्टम साइज़िंग" in hindi_body
     assert "ऊर्जा पूर्वानुमान" in hindi_body
     assert "अगले चरण" in hindi_body

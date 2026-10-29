@@ -64,6 +64,7 @@ def calculation_assumptions():
     """Return the complete, serializable input set that controls saved results."""
     return {
         "calculation_model_version": CALCULATION_MODEL_VERSION,
+        "surface_orientation_model_version": "1.1",
         "financial_model_version": FINANCIAL_MODEL_VERSION,
         "financial_model": {
             "projection_years": 25,
@@ -148,6 +149,7 @@ def generation_provenance_for_result(result):
             result.get("temperature_derating_applied") and location_loss_model_used
         ),
         "orientation_adjustment_applied": not pvgis and location_loss_model_used,
+        "orientation": result.get("orientation_provenance") or {},
         "provider_system_loss_percent": 14.0 if pvgis else None,
         "monthly_annual_reconciled": (
             round(sum((result.get("monthly_data") or {}).values()), 1)
@@ -1658,6 +1660,8 @@ def resolve_orientation(orientation_input, coordinates):
     except (TypeError, ValueError):
         az, label = estimate_orientation_from_polygon(coordinates)
         return az, label, orientation_factor(az), "auto-detect"
+    if not math.isfinite(az):
+        raise ValueError("orientation must be finite")
     label = _azimuth_to_label(az)
     return az, label, orientation_factor(az), "user-selected"
 
@@ -2615,7 +2619,10 @@ def calculate_accepted_surface_generation(
 ):
     """Aggregate accepted capacity surface-by-surface without inventing POA data.
 
-    Location irradiance is adjusted with the existing azimuth factor only; tilt
+    Roof planes describe flush mounting only as an explicit planning assumption.
+    Horizontal planes have no azimuth penalty. Simulated display planes are not
+    evidence of roof pitch. For pitched/unknown planes, location irradiance is
+    adjusted with the existing azimuth approximation only; tilt
     is recorded but not modelled because the current inputs do not support a
     defensible transposition calculation. A provider annual-flux specific yield
     is used directly only with explicit units and complete panel coverage.
@@ -2646,18 +2653,42 @@ def calculate_accepted_surface_generation(
         pitch = item.get("pitch_degrees")
         azimuth = item.get("azimuth_degrees")
         try:
-            pitch = float(pitch) if pitch is not None else None
-            azimuth = float(azimuth) if azimuth is not None else None
+            pitch = float(pitch) if pitch is not None and not isinstance(pitch, bool) else None
         except (TypeError, ValueError):
-            pitch = azimuth = None
-        orientation_usable = (
-            pitch is not None and azimuth is not None
-            and math.isfinite(pitch) and math.isfinite(azimuth)
-            and 0 < pitch < 89 and 0 <= azimuth <= 360
+            pitch = None
+        try:
+            azimuth = float(azimuth) if azimuth is not None and not isinstance(azimuth, bool) else None
+        except (TypeError, ValueError):
+            azimuth = None
+        if pitch is not None and (not math.isfinite(pitch) or not 0 <= pitch < 89):
+            pitch = None
+        if azimuth is not None and (not math.isfinite(azimuth) or not 0 <= azimuth <= 360):
+            azimuth = None
+        geometry_unverified = (
+            item.get("surface_source") in {"prototype_fixture", "user_boundary"}
+            or item.get("surface_confidence") in {"simulated", "unavailable"}
+            or item.get("surface_geometry_kind") in {
+                "simulated_planar_surface", "authoritative_footprint_flat_fallback",
+            }
         )
-        effective_azimuth = azimuth % 360 if orientation_usable else float(fallback_azimuth) % 360
+        pitch_usable = (
+            not geometry_unverified and pitch is not None
+            and math.isfinite(pitch) and 0 <= pitch < 89
+        )
+        horizontal = pitch_usable and pitch == 0
+        orientation_usable = (
+            pitch_usable and azimuth is not None
+            and math.isfinite(azimuth) and 0 <= azimuth <= 360
+        )
+        # Azimuth is undefined for a horizontal plane. Do not turn a roof
+        # display marker into a tilted array or penalize a flat, flush array.
+        effective_azimuth = None if horizontal else (
+            azimuth % 360 if orientation_usable else float(fallback_azimuth) % 360
+        )
+        if effective_azimuth is not None and not math.isfinite(effective_azimuth):
+            raise ValueError("fallback azimuth must be finite")
         provider_monthly_yield = profile_kind == PVGIS_PROFILE_KIND
-        factor = orientation_factor(effective_azimuth)
+        factor = 1.0 if horizontal else orientation_factor(effective_azimuth)
         base_monthly = (
             calculate_monthly_generation_from_specific_yield(capacity, irradiance_profile)
             if provider_monthly_yield
@@ -2714,10 +2745,28 @@ def calculate_accepted_surface_generation(
             "effective_azimuth_degrees": effective_azimuth if not direct_valid else None,
             "orientation_source": (
                 "provider_model_not_separately_adjusted"
-                if provider_monthly_yield and not direct_valid
-                else ("surface_metadata" if orientation_usable else "global_fallback")
+                if provider_monthly_yield or direct_valid
+                else ("horizontal_plane" if horizontal else "surface_metadata" if orientation_usable else "global_fallback")
             ),
             "orientation_factor": applied_factor,
+            "orientation_factor_basis": (
+                "provider_model_not_separately_adjusted" if applied_factor is None
+                else "horizontal_plane_no_azimuth_derate" if horizontal
+                else "azimuth_only_planning_approximation"
+            ),
+            "surface_source": item.get("surface_source"),
+            "surface_confidence": item.get("surface_confidence") or "unverified",
+            "surface_geometry_kind": item.get("surface_geometry_kind"),
+            "roof_pitch_degrees": pitch if pitch_usable else None,
+            "roof_face_azimuth_degrees": (
+                azimuth % 360 if orientation_usable and not horizontal else None
+            ),
+            "panel_tilt_degrees": pitch if pitch_usable else None,
+            "panel_azimuth_degrees": effective_azimuth,
+            "mounting_basis": (
+                "flush_to_roof_planning_assumption" if pitch_usable
+                else "mounting_unavailable_global_azimuth_assumption"
+            ),
             "tilt_model": (
                 "provider_model_not_separately_adjusted"
                 if provider_monthly_yield and not direct_valid
@@ -2752,7 +2801,9 @@ def calculate_accepted_surface_generation(
         ),
         "surfaces": breakdown,
         "limitations": [
-            "Tilt is recorded but not transposed because plane-of-array irradiance is unavailable.",
+            "Pitched tilt is recorded but not transposed because plane-of-array irradiance is unavailable.",
+            "Roof pitch equals panel tilt only under an explicit flush-mount planning assumption; rack tilt is unavailable.",
+            "Unknown/simulated roof planes use the global azimuth planning assumption, not measured geometry.",
             "Qualitative shaded/unknown classifications are not converted to numeric shade losses.",
             "Provider annual flux is a combined production input; its shade component is not isolated as a percentage.",
         ],
@@ -3050,6 +3101,31 @@ def run_full_estimation(
         result["orientation_source"] = "accepted_surface_metadata"
         if profile_kind == PVGIS_PROFILE_KIND:
             result["orientation_source"] = "provider_model_not_separately_adjusted"
+    result["orientation_provenance"] = {
+        "azimuth_convention": "degrees_clockwise_from_geographic_north",
+        "global_panel_azimuth_degrees": az,
+        "global_direction_source": (
+            "user_specified" if orient_source == "user-selected"
+            else "footprint_longest_edge_heuristic"
+        ),
+        "global_direction_confidence": (
+            "user_specified_unverified" if orient_source == "user-selected" else "estimated"
+        ),
+        "roof_face_azimuth_degrees": None,
+        "roof_pitch_degrees": None,
+        "panel_tilt_degrees": None,
+        "recommended_tilt_basis": "absolute_latitude_planning_recommendation_not_installed_tilt",
+        "factor_model": (
+            "provider_model_not_separately_adjusted" if result["orientation_factor"] is None
+            else "accepted_surface_planning_model" if surface_generation
+            else "azimuth_only_planning_approximation"
+        ),
+        "factor_unavailable_reason": (
+            "provider_yield_includes_orientation_no_separate_reference_ratio"
+            if result["orientation_factor"] is None else None
+        ),
+        "surface_details_path": "surface_generation.surfaces" if surface_generation else None,
+    }
     result["suitability_rating"] = calculate_suitability_rating(
         result, user_priority=user_priority or "no_preference"
     )

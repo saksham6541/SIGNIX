@@ -307,6 +307,7 @@ def accept_layout(location_id, user_id, payload):
             "azimuth_degrees": surface.get("azimuth_degrees"),
             "surface_source": surface.get("source"),
             "surface_confidence": surface.get("confidence"),
+            "surface_geometry_kind": surface.get("geometry_kind"),
             "shade_status": shade_status,
             "quantitative_flux": quantitative_flux,
         })

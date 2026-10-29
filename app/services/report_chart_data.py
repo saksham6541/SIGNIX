@@ -391,6 +391,7 @@ def build_report_chart_data(data):
             "factor": _number(pick("orientation_factor")),
             "recommended_tilt_degrees": _number(pick("recommended_tilt_deg")),
             "shading_loss_pct": None,
+            "provenance": (extras.get("generation_provenance") or {}).get("orientation") or {},
         },
         "environment": environment,
         "diagnostics": {

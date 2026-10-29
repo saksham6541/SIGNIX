@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "output": "SIGNIX_Product_Demo_Stabilized.mp4",
+  "fps": 30,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "source_fps": 25,
+  "intermediate_crf": 17,
+  "final_crf": 18,
+  "preset": "slow",
+  "source_retiming": false,
+  "motion": "Fixed interactive footage; fractional RGB bicubic affine PDF push/hold/pull, quintic easing",
+  "detail_edit": {
+    "finance": [
+      [
+        38.1,
+        1.0,
+        6
+      ],
+      [
+        53.0,
+        2.0,
+        13
+      ]
+    ],
+    "business": [
+      [
+        8.2,
+        1.0,
+        7
+      ],
+      [
+        28.0,
+        2.0,
+        18
+      ]
+    ],
+    "compare": [
+      [
+        62.2,
+        1.0,
+        7
+      ],
+      [
+        76.0,
+        2.0,
+        13
+      ]
+    ]
+  },
+  "original_sha256": "0c6833a589ff8b05031f3d89426bebf62287a638ef7e472683ee6fd82861d0f5"
+}

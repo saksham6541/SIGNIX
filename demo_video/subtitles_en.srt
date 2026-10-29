@@ -1,0 +1,123 @@
+1
+00:00:00,500 --> 00:00:05,308
+Before investing in solar, one decision connects many questions.
+
+2
+00:00:05,588 --> 00:00:12,277
+Is the roof suitable? What could it generate? And how might that investment perform?
+
+3
+00:00:12,557 --> 00:00:17,300
+Signix brings those questions into one rooftop planning workspace.
+
+4
+00:00:18,500 --> 00:00:25,562
+Begin with a dedicated Home planning experience, using the location and electricity
+inputs for your scenario.
+
+5
+00:00:26,500 --> 00:00:34,648
+The satellite map provides visual context. Draw a planning boundary, then mark the
+areas you want to exclude.
+
+6
+00:00:34,928 --> 00:00:41,661
+Here, a demonstration footprint and obstruction show how usable area changes before
+sizing begins.
+
+7
+00:00:41,941 --> 00:00:46,915
+This is an illustrative planning exercise, not a survey of this building.
+
+8
+00:00:48,500 --> 00:00:52,973
+The rooftop designer connects the footprint to a panel layout preview.
+
+9
+00:00:53,253 --> 00:01:01,486
+Switch between views and inspect the arrangement. Prototype geometry and unverified
+shade remain clearly identified.
+
+10
+00:01:03,500 --> 00:01:09,623
+Generation forecasts turn the selected system into monthly and long term energy
+estimates.
+
+11
+00:01:09,903 --> 00:01:14,326
+The application exposes its data source and planning assumptions.
+
+12
+00:01:14,606 --> 00:01:23,824
+This demonstration uses mock weather fallback. These figures illustrate the
+calculation workflow, rather than verified site production.
+
+13
+00:01:25,500 --> 00:01:33,203
+For a home, review the estimated investment, household savings, and payback alongside
+the assumptions behind them.
+
+14
+00:01:33,483 --> 00:01:39,291
+Any residential assistance is indicative and subject to eligibility and official
+verification.
+
+15
+00:01:39,571 --> 00:01:43,259
+A planning estimate is never a guarantee of savings.
+
+16
+00:01:44,500 --> 00:01:50,523
+Business planning uses its own commercial policies while sharing the rooftop and
+energy workflow.
+
+17
+00:01:50,803 --> 00:02:00,111
+Review capital cost, the annual operations and maintenance reserve, net operating
+benefit, return on investment, and payback.
+
+18
+00:02:00,391 --> 00:02:06,794
+Residential subsidy is not a commercial benefit. Demand charge savings are not
+modelled.
+
+19
+00:02:09,500 --> 00:02:16,663
+Save a configuration, change one planning choice, and compare the resulting scenarios
+for the same roof.
+
+20
+00:02:16,943 --> 00:02:23,971
+The side by side view makes differences in capacity, investment, and expected
+performance easier to discuss.
+
+21
+00:02:24,251 --> 00:02:28,050
+The calculation engine supplies the results shown here.
+
+22
+00:02:29,500 --> 00:02:34,758
+Export the planning summary for a conversation with an installer or project partner.
+
+23
+00:02:35,038 --> 00:02:41,771
+Keep the assumptions and limitations with the figures, so the next decision starts
+with the same context.
+
+24
+00:02:44,500 --> 00:02:50,868
+The same report can be explored in English and Hindi, helping more people participate
+in the decision.
+
+25
+00:02:54,500 --> 00:03:00,903
+Map the roof. Understand the energy potential. Compare the investment.
+
+26
+00:03:01,183 --> 00:03:05,137
+Signix. Rooftop Solar Planning.
+
+27
+00:03:05,417 --> 00:03:12,540
+Use the estimate to ask better questions, then verify the site, design, and approvals
+before procurement.

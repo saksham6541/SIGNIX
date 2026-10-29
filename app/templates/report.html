@@ -295,8 +295,8 @@
       <div class="system-output-link">
         <strong>{{ loc.system_size }} <small>kWp</small></strong><span>→</span><strong><span data-orientation-annual-generation>{{ '{:,.0f}'.format(loc.annual_generation or 0) }}</span> <small>{{ _("kWh/year") }}</small></strong>
       </div>
-      <div class="orientation-meter"><span style="width:{{ ((loc.orientation_factor or 0) * 100)|round|int }}%"></span></div>
-      <p class="chart-note">{{ _("Orientation factor:") }} {{ ((loc.orientation_factor or 0) * 100)|round|int }}% · {{ _("Azimuth") }} {{ loc.orientation_deg if loc.orientation_deg is not none else 'unavailable' }}{% if loc.orientation_deg is not none %}°{% endif %} {{ _("· Recommended tilt") }} {{ loc.recommended_tilt_deg if loc.recommended_tilt_deg is not none else 'unavailable' }}{% if loc.recommended_tilt_deg is not none %}°{% endif %}</p>
+      {% if loc.orientation_factor is not none %}<div class="orientation-meter"><span style="width:{{ (loc.orientation_factor * 100)|round|int }}%"></span></div>{% endif %}
+      <p class="chart-note">{{ _("Orientation factor:") }} {% if loc.orientation_factor is not none %}{{ (loc.orientation_factor * 100)|round|int }}%{% else %}{{ _("Unavailable") }}{% endif %} · {{ _("Azimuth") }} {{ loc.orientation_deg if loc.orientation_deg is not none else 'unavailable' }}{% if loc.orientation_deg is not none %}°{% endif %} {{ _("· Recommended tilt") }} {{ loc.recommended_tilt_deg if loc.recommended_tilt_deg is not none else 'unavailable' }}{% if loc.recommended_tilt_deg is not none %}°{% endif %}</p>
     </article>
   </div>
 

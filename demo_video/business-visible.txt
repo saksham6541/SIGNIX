@@ -1,0 +1,139 @@
+Home
+Business
+HOME
+Dashboard
+Financial Overview
+NEW ESTIMATE
+New Business Estimate
+BUSINESS SITES
+Saved Business Sites
+Compare Scenarios
+ACCOUNT
+Profile
+Settings
+PLANNING NOTE
+Start with the roof you control
+
+Draw the boundary yourself; SIGNIX keeps it as the footprint constraint.
+
+EN / हिंदी
+S
+SIGNIX Demonstration
+▾
+Log out
+← Saved Properties
+
+SAVED ESTIMATE · #4
+
+Demonstration commercial roof — illustrative inputs
+
+Data source: Mock data · Orientation: South · Inverter: on-grid
+
+Download PDF
+↓
+System Sizing
+Energy Forecasting
+Financing Options
+CAPEX vs DPA
+Environmental
+Next Steps
+Financing
+
+Cashflow and savings use the saved SIGNIX financial model.
+
+Payback and cumulative cashflow
+Break-even 3.8 years
+Investment composition
+Annual and cumulative operating benefit after O&M
+25-year electricity cost
+
+Starts at ₹10.0/kWh with 4.0% annual escalation; includes the persisted annual O&M reserve. Effective solar cost: ₹2.94/kWh.
+
+PV System Cost (mid estimate)
+₹651,840
+Typical cost band
+₹543,200 – ₹776,000
+Net Investment
+₹651,840
+Year-one net operating benefit
+₹163,226
+Year-one ROI
+25.04%
+25-year net benefit
+₹5,797,200
+
+Demand-charge savings are not modelled.
+
+Nominal payback (escalating tariff)
+3.8 yrs
+Simple payback (year-one net savings)
+4.0 yrs
+Discounted payback (8.0% nominal discount rate)
+4.6 yrs
+Net present value
+₹1,749,346
+Est. 25-year bill savings
+₹6,449,040
+Discounted levelised cost of energy
+₹2.94/kWh
+
+Indicative only — verify with DISCOM / vendor
+
+Loan EMI (indicative)
+
+Principal = net investment. Default shown: 5 years @ 10% p.a. (adjustable range 3–7 years, 8–12%).
+
+MONTHLY EMI
+₹13,850
+MONTHLY BENEFIT AFTER O&M
+₹13,602
+SAVINGS − EMI
+₹-248
+Bill savings may not fully cover EMI at these terms
+
+Tenure: 5 years · Rate: 10.0% · Total interest: ₹179,140
+
+Indicative only — verify with DISCOM / vendor
+
+Financing snapshot INFORMATIONAL ONLY
+
+Informational financing ranges only — not a loan offer or partnership product.
+
+Interest range: 8–12% · Tenure range: 3–7 years
+
+LOWER EMI END
+₹10,160
+8.0% · 7 yrs
+TYPICAL MIDPOINT
+₹13,850
+10.0% · 5 yrs
+HIGHER EMI END
+₹21,650
+12.0% · 3 yrs
+
+Indicative EMI using standard reducing-balance math. Actual rates, eligibility, and tenure depend on your bank or NBFC. Indicative only — verify with DISCOM / vendor / lender.
+
+Indicative only — verify with DISCOM / vendor
+
+Sensitivity (indicative)
+
+Indicative sensitivity only — not a Monte Carlo. NPV discounts escalated/degraded bill savings less annual O&M.
+
+Driver	Downside payback	Base payback	Upside payback	Downside NPV	Base NPV	Upside NPV
+Generation ±10%
+−10% generation · +10% generation
+	4.5 yrs	4.0 yrs	3.6 yrs	₹1,500,878	₹1,749,346	₹1,997,815
+Tariff ±₹2/kWh
+₹8/kWh · ₹12/kWh
+	5.1 yrs	4.0 yrs	3.3 yrs	₹1,252,409	₹1,749,346	₹2,246,283
+System cost ±10%
+−10% cost · +10% cost
+	3.6 yrs	4.0 yrs	4.4 yrs	₹1,822,880	₹1,749,346	₹1,675,812
+
+Indicative only — verify with DISCOM / vendor
+
+Cashflow includes 0.5% annual module degradation, 4.0% retail-tariff escalation, and subtracts the annual O&M reserve once. Fixed feed-in compensation is not escalated. Self-consumption is a planning assumption, not measured household demand.
+
+SIGNIX · Indicative estimates only · Verify DISCOM / MNRE rules before procurement
+
+💬

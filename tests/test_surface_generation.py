@@ -23,7 +23,7 @@ def _surface(surface_id, panels, capacity, pitch=20, azimuth=180, **extra):
     }
 
 
-def test_single_flat_surface_uses_global_orientation_and_uniform_reference():
+def test_single_flat_surface_has_no_azimuth_penalty_and_uniform_reference():
     result = solar_logic.calculate_accepted_surface_generation(
         [_surface("flat", 2, 1.0, pitch=0, azimuth=0)], UNIFORM_PSH,
         fallback_azimuth=180,
@@ -31,8 +31,8 @@ def test_single_flat_surface_uses_global_orientation_and_uniform_reference():
     assert result["monthly_generation_kwh"] == BASE_MONTHLY_1KW
     assert result["annual_generation_kwh"] == 1460.0
     surface = result["surfaces"][0]
-    assert surface["orientation_source"] == "global_fallback"
-    assert surface["effective_azimuth_degrees"] == 180
+    assert surface["orientation_source"] == "horizontal_plane"
+    assert surface["effective_azimuth_degrees"] is None
     assert surface["tilt_model"] == "not_applied_no_plane_of_array_irradiance"
 
 
@@ -72,6 +72,9 @@ def test_missing_orientation_and_unknown_shade_remain_explicit():
     assert surface["shade_status"] == "unknown_not_quantified"
     assert surface["shade_loss_percent"] is None
     assert surface["quantitative_flux"] is None
+    assert surface["roof_pitch_degrees"] is None
+    assert surface["panel_tilt_degrees"] is None
+    assert surface["mounting_basis"] == "mounting_unavailable_global_azimuth_assumption"
 
 
 def test_qualitative_shade_is_not_converted_to_a_numeric_loss():
@@ -143,6 +146,8 @@ def test_full_pvgis_estimate_reconciles_monthly_annual_and_financial_generation(
     assert result["surface_generation"]["annual_generation_kwh"] == 1200.0
     assert result["generation_25yr"][0] == 1200.0
     assert result["orientation_factor"] is None
+    assert result["orientation_provenance"]["global_direction_source"] == "user_specified"
+    assert result["orientation_provenance"]["factor_unavailable_reason"] == "provider_yield_includes_orientation_no_separate_reference_ratio"
     provenance = solar_logic.generation_provenance_for_result(result)
     assert provenance["profile_units"] == "kWh_per_kWp_per_month"
     assert provenance["performance_ratio_applied"] is False
@@ -210,3 +215,98 @@ def test_legacy_estimate_without_surfaces_keeps_global_orientation_path():
         )
     assert result.get("surface_generation") is None
     assert result["orientation_factor"] == 0.653
+
+
+@pytest.mark.parametrize("azimuth,label", [(0, "North"), (90, "East"), (180, "South"), (270, "West"), (360, "North")])
+def test_geographic_azimuth_convention(azimuth, label):
+    degrees, actual_label, factor, source = solar_logic.resolve_orientation(azimuth, [])
+    assert degrees == azimuth % 360
+    assert actual_label == label
+    assert source == "user-selected"
+    assert .65 <= factor <= 1
+
+
+@pytest.mark.parametrize("heading", [0, 90, 180, 270])
+def test_horizontal_flush_array_is_independent_of_compass_heading(heading):
+    result = solar_logic.calculate_accepted_surface_generation([
+        _surface("flat", 2, 1, pitch=0, azimuth=None, surface_source="provider", surface_confidence="provider"),
+    ], UNIFORM_PSH, fallback_azimuth=heading)
+    surface = result["surfaces"][0]
+    assert result["annual_generation_kwh"] == 1460
+    assert result["weighted_orientation_factor"] == 1
+    assert surface["roof_face_azimuth_degrees"] is None
+    assert surface["panel_azimuth_degrees"] is None
+    assert surface["panel_tilt_degrees"] == 0
+    assert surface["mounting_basis"] == "flush_to_roof_planning_assumption"
+
+
+@pytest.mark.parametrize("metadata", [
+    {"surface_source": "prototype_fixture", "surface_confidence": "simulated"},
+    {"surface_source": "user_boundary", "surface_confidence": "authoritative"},
+    {"surface_geometry_kind": "simulated_planar_surface"},
+])
+@pytest.mark.parametrize("pitch", [0, 20])
+def test_display_geometry_does_not_supply_measured_panel_orientation(metadata, pitch):
+    result = solar_logic.calculate_accepted_surface_generation([
+        _surface("display", 2, 1, pitch=pitch, azimuth=0, **metadata),
+    ], UNIFORM_PSH, fallback_azimuth=180)
+    surface = result["surfaces"][0]
+    assert result["annual_generation_kwh"] == 1460
+    assert surface["orientation_source"] == "global_fallback"
+    assert surface["roof_pitch_degrees"] is None
+    assert surface["roof_face_azimuth_degrees"] is None
+    assert surface["panel_tilt_degrees"] is None
+    assert surface["orientation_factor_basis"] == "azimuth_only_planning_approximation"
+
+
+@pytest.mark.parametrize("invalid", [float("nan"), float("inf"), -float("inf")])
+def test_nonfinite_global_orientation_is_rejected(invalid):
+    with pytest.raises(ValueError, match="finite"):
+        solar_logic.resolve_orientation(invalid, [])
+
+
+@pytest.mark.parametrize("track", ["home", "business"])
+def test_flat_surface_result_flows_to_track_financials_and_forecasts(track):
+    from app.services.report_chart_data import build_report_chart_data
+
+    coordinates = [[28.6139, 77.2090], [28.6139, 77.2092],
+                   [28.6141, 77.2092], [28.6141, 77.2090]]
+    with patch.object(solar_logic, "fetch_solar_data", return_value=(UNIFORM_PSH, None, "test_fixture", "low")):
+        result = solar_logic.run_full_estimation(
+            28.614, 77.2091, coordinates, tariff_per_kwh=8, orientation=90,
+            accepted_panel_count=2, accepted_module_wattage=500,
+            accepted_surfaces=[_surface("flat", 2, 1, pitch=0)], planning_track=track,
+        )
+    assert result["annual_generation"] == 1460
+    assert result["generation_25yr"][0] == 1460
+    assert result["financial_provenance"]["generation_input_kwh"] == 1460
+    assert result["planning_track"] == track
+    if track == "business":
+        assert result["subsidy_amount"] == 0
+    else:
+        assert result["subsidy_amount"] > 0
+    provenance = solar_logic.generation_provenance_for_result(result)
+    assert provenance["orientation"]["global_direction_source"] == "user_specified"
+    assert provenance["orientation"]["panel_tilt_degrees"] is None
+    chart = build_report_chart_data({**result, "extras": {"generation_provenance": provenance}})
+    assert chart["orientation"]["factor"] == 1
+    assert chart["orientation"]["provenance"] == provenance["orientation"]
+
+
+@pytest.mark.parametrize("pitch,azimuth", [(None, 90), (float("nan"), 90), (20, float("inf")), (True, 90)])
+def test_missing_or_invalid_plane_never_claims_known_panel_orientation(pitch, azimuth):
+    result = solar_logic.calculate_accepted_surface_generation([
+        _surface("invalid", 2, 1, pitch=pitch, azimuth=azimuth),
+    ], UNIFORM_PSH, fallback_azimuth=180)
+    surface = result["surfaces"][0]
+    assert surface["orientation_source"] == "global_fallback"
+    assert surface["roof_face_azimuth_degrees"] is None
+    assert surface["orientation_factor_basis"] == "azimuth_only_planning_approximation"
+
+
+def test_horizontal_plane_does_not_require_a_valid_azimuth():
+    result = solar_logic.calculate_accepted_surface_generation([
+        _surface("flat", 2, 1, pitch=0, azimuth="unavailable"),
+    ], UNIFORM_PSH, fallback_azimuth=90)
+    assert result["annual_generation_kwh"] == 1460
+    assert result["surfaces"][0]["panel_tilt_degrees"] == 0

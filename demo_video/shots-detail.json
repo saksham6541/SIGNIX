@@ -1,0 +1,17 @@
+[
+  {
+    "name": "business-detail",
+    "start": 7.736,
+    "end": 33.753
+  },
+  {
+    "name": "finance-detail",
+    "start": 37.693,
+    "end": 56.902
+  },
+  {
+    "name": "compare-detail",
+    "start": 61.998,
+    "end": 79.689
+  }
+]
