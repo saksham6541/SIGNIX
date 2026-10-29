@@ -200,10 +200,10 @@
       "export_compensation_basis": "no_export_value_assumed",
       "feed_in_tariff_per_kwh": 3.0,
       "generation_input_kwh": 5010.0,
-      "input_fingerprint": "06e70e10a4884a485d50d6edb8c91f3864d14749e86cad32f6eaa4a48a96bf95",
+      "input_fingerprint": "bb07b64aae0fe0dcc1e45dea2184466085ab70822cdb93740f18acc6c53593ce",
       "inputs": {
         "annual_consumption_kwh": 6153.6,
-        "assumption_fingerprint": "04e4aad82cb9dc1326dfef0c72fa6469e6a4a77bf2ac08c6cf9cc6970b165acd",
+        "assumption_fingerprint": "52165417702c8f7276f1b4c0247957001171c4f296fd21c57758acf0dccd1b92",
         "battery_cost": 0.0,
         "feed_in_tariff_per_kwh": 3.0,
         "generation_kwh": 5010.0,
@@ -758,6 +758,19 @@
     "orientation_deg": 90.0,
     "orientation_factor": 0.653,
     "orientation_label": "East",
+    "orientation_provenance": {
+      "azimuth_convention": "degrees_clockwise_from_geographic_north",
+      "factor_model": "azimuth_only_planning_approximation",
+      "factor_unavailable_reason": null,
+      "global_direction_confidence": "estimated",
+      "global_direction_source": "footprint_longest_edge_heuristic",
+      "global_panel_azimuth_degrees": 90.0,
+      "panel_tilt_degrees": null,
+      "recommended_tilt_basis": "absolute_latitude_planning_recommendation_not_installed_tilt",
+      "roof_face_azimuth_degrees": null,
+      "roof_pitch_degrees": null,
+      "surface_details_path": null
+    },
     "orientation_source": "auto-detect",
     "panel_count": 11,
     "panel_estimate": {

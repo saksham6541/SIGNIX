@@ -622,6 +622,7 @@ def _apply_result_to_location(location, result, extra_updates=None):
     if extra_updates:
         extras.update(extra_updates)
     location.extras = extras
+    commercial_calculation_service.sync_saved_financing(location, result)
     db.session.add(location)
 
 
@@ -799,6 +800,9 @@ def clone_estimate_with_change(user_id, source_location_id, change, value, scena
             scenario_label=scenario_label,
             commit=False,
         )
+        if planning_track == "business" and "loan_rate_pct" in extras:
+            location.extras = {**location.extras, **commercial_calculation_service.validate_finance_preferences(extras)}
+            commercial_calculation_service.sync_saved_financing(location, result)
         db.session.commit()
     except (InvalidEstimateInputError, EstimationEngineError, EstimatePersistenceError):
         db.session.rollback()

@@ -338,9 +338,30 @@ function initSystemOptions() {
   }
 }
 
+function isBusinessAssessmentReady() {
+  const fields = document.getElementById('business-assessment-fields');
+  if (!fields) return true;
+  if (document.getElementById('start-estimation-btn')?.dataset.loading === 'true') return false;
+  const bill = document.getElementById('monthly-bill')?.value?.trim();
+  const units = document.getElementById('monthly_units_kwh')?.value?.trim();
+  if (!bill && !units) return false;
+  const billInput = document.getElementById('monthly-bill');
+  if (billInput && !billInput.checkValidity()) return false;
+  return Array.from(fields.querySelectorAll('input, select')).every(field =>
+    field.checkValidity() && !(field.name === 'ppa_rate_rs_per_kwh' && field.value !== '' && Number(field.value) <= 0));
+}
+window.SignixAssessmentReady = isBusinessAssessmentReady;
+
 function initEstimationButton() {
   const btn = document.getElementById('start-estimation-btn');
   if (!btn) return;
+  if (document.getElementById('business-assessment-fields')) {
+    const sync = () => { btn.disabled = !getCurrentPolygon() || !isBusinessAssessmentReady(); };
+    document.addEventListener('input', sync);
+    document.addEventListener('change', sync);
+    sync();
+  }
+
   const status = document.getElementById('estimate-action-status');
 
   function setEstimateStatus(message, tone = 'neutral') {
@@ -620,7 +641,12 @@ function initEstimationButton() {
     const userPriority = document.getElementById('user-priority')?.value || 'no_preference';
     const inverterPreference = document.getElementById('inverter-preference')?.value || 'auto';
 
+    if (!isBusinessAssessmentReady()) {
+      setEstimateStatus(window.SignixI18n.t('Enter a monthly bill or monthly units, and check the finance inputs.'), 'error');
+      return;
+    }
     document.getElementById('loading-panel').classList.remove('hidden');
+    btn.dataset.loading = 'true';
     btn.disabled = true;
     setEstimateStatus(window.SignixI18n.t('Generating the planning estimate…'), 'loading');
 
@@ -629,7 +655,12 @@ function initEstimationButton() {
         document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
         document.getElementById('assistant-csrf')?.value ||
         '';
-      const res = await fetch(ESTIMATE_URL, {
+      const businessFields = document.getElementById('business-assessment-fields');
+      const preferences = {};
+      businessFields?.querySelectorAll('[data-business-field]').forEach(field => {
+        preferences[field.name] = field.type === 'checkbox' ? field.checked : field.value;
+      });
+      const res = await fetch(businessFields?.dataset.estimateUrl || ESTIMATE_URL, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
@@ -639,6 +670,7 @@ function initEstimationButton() {
           'X-Requested-With': 'XMLHttpRequest',
         },
         body: JSON.stringify({
+          ...preferences,
           address: SignixFormStore.selectedAddress,
           latitude: SignixFormStore.selectedLatLng.lat,
           longitude: SignixFormStore.selectedLatLng.lng,
@@ -679,6 +711,11 @@ function initEstimationButton() {
       }
       if (data.redirect_url) {
         showEstimateResult(data);
+        const businessLink = document.getElementById('business-result-link');
+        if (businessLink && data.business_result_url) {
+          businessLink.href = data.business_result_url;
+          businessLink.classList.remove('hidden');
+        }
         setEstimateStatus(window.SignixI18n.t('Estimate complete. Review the snapshot below or open the full report.'), 'success');
         document.getElementById('estimate-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
@@ -689,7 +726,8 @@ function initEstimationButton() {
       setEstimateStatus(`Estimation failed: ${err && err.message ? err.message : 'network or server error.'}`, 'error');
     } finally {
       document.getElementById('loading-panel').classList.add('hidden');
-      btn.disabled = !getCurrentPolygon();
+      delete btn.dataset.loading;
+      btn.disabled = !getCurrentPolygon() || !isBusinessAssessmentReady();
     }
   });
 }

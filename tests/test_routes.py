@@ -401,7 +401,13 @@ def test_business_estimate_page_renders(client):
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
+<<<<<<< HEAD
     assert "Estimate accuracy" in html
+=======
+    assert 'id="map"' in html
+    assert 'id="business-assessment-fields"' in html
+    assert 'data-estimate-url="/business/estimate"' in html
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     assert "State" in html
 
 
@@ -441,7 +447,12 @@ def test_business_estimate_requires_location_and_usage(client):
     assert response.get_json()["error"] == "Monthly units or monthly bill is required"
 
 
+<<<<<<< HEAD
 def test_business_estimate_saves_valid_payload(client, app):
+=======
+def test_business_estimate_saves_valid_payload(client, app, monkeypatch):
+    monkeypatch.setattr(solar_logic, "fetch_solar_data", lambda *a, **kw: ({m: 5.0 for m in solar_logic.MONTH_NAMES}, None, "test_fixture", "low"))
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     payload = {
         "address": "Business rooftop",
         "latitude": 28.6139,
@@ -480,3 +491,10 @@ def test_business_estimate_saves_valid_payload(client, app):
         assert location.extras["business_type"] == "Shop"
         assert location.extras["monthly_units_kwh"] == 1200.0
         assert location.extras["include_depreciation_tax_benefit"] is True
+<<<<<<< HEAD
+=======
+        assert location.system_size > 0
+        assert location.annual_generation > 0
+        assert location.net_investment > 0
+        assert location.subsidy_amount == 0
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)

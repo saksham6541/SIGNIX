@@ -1971,7 +1971,7 @@ def build_financing_comparison(
     down_payment = round(net * dp_pct / 100.0, 2)
     loan_amount = round(net - down_payment, 2)
     tenure = max(1, int(dpa_tenure_years or 5))
-    rate = float(dpa_rate_pct or 10.0)
+    rate = float(10.0 if dpa_rate_pct is None else dpa_rate_pct)
     emi_info = calculate_emi(loan_amount, rate, tenure)
     monthly_emi = emi_info["monthly_emi"]
     annual_emi = round(monthly_emi * 12, 2)

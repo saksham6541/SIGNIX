@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 {% block title %}{{ _('Business estimate') }} · SIGNIX{% endblock %}
 {% block body_class %}biz-estimate-page{% endblock %}
@@ -104,13 +105,30 @@
       <section id="biz-section-business" class="biz-section">
         <div class="biz-section-header">
           <p class="biz-section-kicker">{{ _('Section 3') }}</p>
+=======
+{% extends "index.html" %}
+{% block assessment_fields %}
+<div id="business-assessment-fields" data-estimate-url="{{ url_for('pages.business_estimate') }}">
+  <div class="option-card">
+    <label for="monthly_units_kwh">{{ _('Monthly units (kWh)') }}</label>
+    <input id="monthly_units_kwh" name="monthly_units_kwh" data-business-field type="number" min="0" step="any">
+    <small>{{ _('Optional alternative to a monthly bill; used for sizing, never as solar generation.') }}</small>
+  </div>
+      <section id="biz-section-business" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Business details') }}</p>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
           <h2>{{ _('Business') }}</h2>
         </div>
 
         <div class="biz-inline-grid">
           <div class="biz-field-group">
             <label for="business_type">{{ _('Business type') }}</label>
+<<<<<<< HEAD
             <select id="business_type" name="business_type">
+=======
+            <select id="business_type" name="business_type" data-business-field>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
               <option value="">{{ _('Select business type') }}</option>
               <option value="Shop">{{ _('Shop') }}</option>
               <option value="Office">{{ _('Office') }}</option>
@@ -120,6 +138,7 @@
               <option value="Other">{{ _('Other') }}</option>
             </select>
           </div>
+<<<<<<< HEAD
           <div class="biz-field-group">
             <label for="daytime_power_use">{{ _('Daytime power use') }}</label>
             <select id="daytime_power_use" name="daytime_power_use">
@@ -129,20 +148,31 @@
               <option value="mostly_night">{{ _('Mostly night') }}</option>
             </select>
           </div>
+=======
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         </div>
 
         <div class="biz-inline-grid">
           <div class="biz-field-group">
             <label for="operating_days">{{ _('Operating days') }}</label>
+<<<<<<< HEAD
             <input id="operating_days" name="operating_days" type="number" min="1" max="365" placeholder="{{ _('e.g. 6') }}">
           </div>
           <div class="biz-field-group">
             <label for="operating_hours">{{ _('Operating hours') }}</label>
             <input id="operating_hours" name="operating_hours" type="text" placeholder="{{ _('e.g. 8am–6pm') }}">
+=======
+            <input id="operating_days" name="operating_days" data-business-field type="number" min="1" max="365" placeholder="{{ _('e.g. 6') }}">
+          </div>
+          <div class="biz-field-group">
+            <label for="operating_hours">{{ _('Operating hours') }}</label>
+            <input id="operating_hours" name="operating_hours" data-business-field type="text" placeholder="{{ _('e.g. 8am–6pm') }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
           </div>
         </div>
       </section>
 
+<<<<<<< HEAD
       <section id="biz-section-electricity" class="biz-section">
         <div class="biz-section-header">
           <p class="biz-section-kicker">{{ _('Section 4') }}</p>
@@ -198,34 +228,59 @@
       <section id="biz-section-finance" class="biz-section">
         <div class="biz-section-header">
           <p class="biz-section-kicker">{{ _('Section 6') }}</p>
+=======
+  <div class="option-card">
+    <label for="roof_ownership">{{ _('Roof ownership') }}</label>
+    <select id="roof_ownership" name="roof_ownership" data-business-field>
+      <option value="">{{ _('Not sure') }}</option><option value="own">{{ _('Own') }}</option><option value="rented">{{ _('Rented') }}</option>
+    </select>
+    <small>{{ _('For rented roofs, landlord permission is required.') }}</small>
+  </div>
+      <section id="biz-section-finance" class="biz-section">
+        <div class="biz-section-header">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
           <h2>{{ _('Finance preferences') }}</h2>
         </div>
 
         <div class="biz-inline-grid">
           <div class="biz-field-group">
+<<<<<<< HEAD
             <label for="tax_rate_pct">{{ _('Tax rate') }} (%)</label>
             <input id="tax_rate_pct" name="tax_rate_pct" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
           </div>
           <div class="biz-field-group">
             <label for="loan_rate_pct">{{ _('Loan interest rate') }} (%)</label>
             <input id="loan_rate_pct" name="loan_rate_pct" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+=======
+            <label for="loan_rate_pct">{{ _('Loan interest rate') }} (%)</label>
+            <input id="loan_rate_pct" name="loan_rate_pct" data-business-field type="number" step="any" min="0" max="100" placeholder="{{ _('Not sure') }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
           </div>
         </div>
 
         <div class="biz-inline-grid">
           <div class="biz-field-group">
             <label for="loan_tenure_years">{{ _('Loan tenure (years)') }}</label>
+<<<<<<< HEAD
             <input id="loan_tenure_years" name="loan_tenure_years" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
           </div>
           <div class="biz-field-group">
             <label for="ppa_rate_rs_per_kwh">{{ _('PPA rate (Rs/unit)') }}</label>
             <input id="ppa_rate_rs_per_kwh" name="ppa_rate_rs_per_kwh" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+=======
+            <input id="loan_tenure_years" name="loan_tenure_years" data-business-field type="number" step="1" min="1" max="25" placeholder="{{ _('Not sure') }}">
+          </div>
+          <div class="biz-field-group">
+            <label for="ppa_rate_rs_per_kwh">{{ _('PPA rate (Rs/unit)') }}</label>
+            <input id="ppa_rate_rs_per_kwh" name="ppa_rate_rs_per_kwh" data-business-field type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
           </div>
         </div>
 
         <div class="biz-inline-grid">
           <div class="biz-field-group">
             <label for="ppa_tenure_years">{{ _('PPA tenure (years)') }}</label>
+<<<<<<< HEAD
             <input id="ppa_tenure_years" name="ppa_tenure_years" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
           </div>
           <div class="biz-toggle-row">
@@ -233,10 +288,14 @@
               <input id="include_depreciation_tax_benefit" name="include_depreciation_tax_benefit" type="checkbox">
               <span>{{ _('Include depreciation tax benefit (confirm with your CA)') }}</span>
             </label>
+=======
+            <input id="ppa_tenure_years" name="ppa_tenure_years" data-business-field type="number" step="1" min="1" max="25" placeholder="{{ _('Not sure') }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
           </div>
         </div>
       </section>
 
+<<<<<<< HEAD
       <section id="biz-section-review" class="biz-section">
         <div class="biz-section-header">
           <p class="biz-section-kicker">{{ _('Section 7') }}</p>
@@ -420,4 +479,9 @@
     highlightSection();
   });
 </script>
+=======
+  <p class="field-help">{{ _('Tax benefits are not modelled. Confirm the depreciation schedule and eligibility with your CA.') }}</p>
+  <p class="field-help">{{ _('Blank loan inputs use the planning defaults: 20 percent down payment, 10 percent annual interest, 5 years. PPA requires a positive quoted rate; the default contract is 10 years with no escalation.') }}</p>
+</div>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 {% endblock %}

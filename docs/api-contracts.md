@@ -49,6 +49,18 @@ Optional supported fields include `battery_kwh`, `user_priority`, `inverter_pref
 
 Success includes the saved `location_id`, geometry/capacity, annual and monthly generation, costs, savings, assumptions, financing/report datasets, source confidence, and `report_url`. Treat response fields as server-derived; clients must not recalculate authoritative totals.
 
+The public `orientation_provenance` object distinguishes the global planning
+azimuth and its source/confidence from roof-face azimuth, roof pitch and installed
+panel tilt. Unknown angles are `null`; recommended tilt is not installed tilt.
+It also identifies the factor model and any reason a separate orientation factor
+is unavailable. Accepted-plane details, when present, live under
+`surface_generation.surfaces`. The same evidence is retained in saved generation
+provenance. The versioned surface-orientation model participates in the assumptions
+fingerprint, which in turn participates in the financial-input fingerprint;
+metadata/model changes can therefore invalidate saved results even when a given
+roof's numerical results are unchanged. See the
+[golden contract notes](../tests/goldens/README.md) for the verified fixture update.
+
 Invalid input returns `400`. Calculation or serialization failure returns `500`. An outdated local schema returns a `500` response that identifies the initialization problem without exposing credentials.
 
 ## Saved estimates and scenarios

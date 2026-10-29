@@ -30,11 +30,19 @@
         </div>
         <div>
           <dt>{{ _('System size') }}</dt>
+<<<<<<< HEAD
           <dd>{{ '{:,.1f}'.format(summary.system_size_kw) }} kW</dd>
         </div>
         <div>
           <dt>{{ _('Estimated yearly savings') }}</dt>
           <dd>₹{{ '{:,.0f}'.format(yearly_savings) }}</dd>
+=======
+          <dd>{% if commercial_comparison %}{{ '{:,.1f}'.format(summary.system_size_kw) }} kW{% else %}{{ _('Unavailable') }}{% endif %}</dd>
+        </div>
+        <div>
+          <dt>{{ _('Estimated yearly savings') }}</dt>
+          <dd>{% if commercial_comparison %}₹{{ '{:,.0f}'.format(yearly_savings) }}{% else %}{{ _('Unavailable') }}{% endif %}</dd>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         </div>
       </dl>
     </div>
@@ -46,6 +54,10 @@
         <strong>{{ installer_count }}</strong>
       </div>
       <form method="post" action="{{ url_for('pages.close_project', project_id=project.id) }}" class="biz-project-close-form" onsubmit="return confirm('{{ _('Close this project?') }}');">
+<<<<<<< HEAD
+=======
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         <button type="submit" class="btn-danger">{{ _('Close project') }}</button>
       </form>
     </aside>
@@ -53,6 +65,7 @@
 
   <div class="biz-panel">
     <h2>{{ _('Model comparison') }}</h2>
+<<<<<<< HEAD
     <div class="biz-model-table-wrap">
       <table class="biz-model-table">
         <thead>
@@ -93,6 +106,10 @@
         </tbody>
       </table>
     </div>
+=======
+    {% include '_commercial_comparison.html' %}
+
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
   </div>
 </section>
 {% endblock %}

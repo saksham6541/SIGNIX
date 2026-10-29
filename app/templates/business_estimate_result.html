@@ -8,6 +8,10 @@
     <p>{{ _('Indicative estimate only. Final design and price come from an installer’s site survey.') }}</p>
   </div>
 
+<<<<<<< HEAD
+=======
+  {% if project %}
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
   <nav class="biz-result-tabs" aria-label="{{ _('Commercial estimate tabs') }}">
     <button type="button" class="biz-result-tab active" data-tab="summary">{{ _('Summary') }}</button>
     <button type="button" class="biz-result-tab" data-tab="compare">{{ _('Compare models') }}</button>
@@ -26,11 +30,16 @@
         <strong>{{ project.annual_generation_kwh or 0 }} kWh</strong>
       </div>
       <div class="biz-result-card">
+<<<<<<< HEAD
         <span>{{ _('Yearly savings') }}</span>
+=======
+        <span>{{ _('Annual net operating benefit') }}</span>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         <strong>₹{{ '{:,.0f}'.format((project.models.buy.year_one_savings_inr or 0)) }}</strong>
       </div>
       <div class="biz-result-card">
         <span>{{ _('Payback') }}</span>
+<<<<<<< HEAD
         <strong>{{ project.models.buy.payback_years or '—' }} {{ _('years') if project.models.buy.payback_years else '' }}</strong>
       </div>
       <div class="biz-result-card">
@@ -44,6 +53,23 @@
         <li>{{ _('State tariff') }}: ₹{{ project.tariff_per_kwh or 0 }}/kWh</li>
         <li>{{ _('Orientation from drawing') }}</li>
         <li>{{ _('Cost per kW') }}: ₹{{ '{:,.0f}'.format(project.cost_range_inr.base_inr / (project.system_size_kw or 1)) }}</li>
+=======
+        <strong>{% if project.models.buy.payback_years is number %}{{ project.models.buy.payback_years }} {{ _('years') }}{% else %}{{ _('Not reached') }}{% endif %}</strong>
+      </div>
+      <div class="biz-result-card">
+        <span>{{ _('PV cost range') }}</span>
+        <strong>{% if project.cost_range_inr.low_inr is number and project.cost_range_inr.high_inr is number %}₹{{ '{:,.0f}'.format(project.cost_range_inr.low_inr) }}–₹{{ '{:,.0f}'.format(project.cost_range_inr.high_inr) }}{% else %}{{ _('Unavailable') }}{% endif %}</strong>
+      </div>
+    </div>
+    <p>{{ _('Solar-resource source') }}: {{ location.irradiance_source or _('Unavailable') }} · {{ _('Confidence') }}: {{ extras.irradiance_confidence or _('Unavailable') }}</p>
+    <a href="{{ url_for('pages.report', location_id=location.id) }}">{{ _('View full report and rooftop planner') }}</a>
+    <div class="biz-assumptions-box">
+      <h3>{{ _('Assumptions used') }}</h3>
+      <ul>
+        <li>{{ _('Commercial energy tariff') }}: ₹{{ project.tariff_per_kwh or 0 }}/kWh</li>
+        <li>{{ _('Orientation source') }}: {{ extras.orientation_source or _('Unavailable') }}</li>
+        <li>{{ _('Cost per kW') }}: {% if project.cost_range_inr.base_inr is number %}₹{{ '{:,.0f}'.format(project.cost_range_inr.base_inr / project.system_size_kw) }}{% else %}{{ _('Unavailable') }}{% endif %}</li>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         <li>{{ _('Energy charges only') }}</li>
         <li>{{ _('Demand charge savings are not included.') }}</li>
       </ul>
@@ -51,6 +77,7 @@
   </section>
 
   <section class="biz-result-panel" data-panel="compare">
+<<<<<<< HEAD
     <table class="biz-comparison-table">
       <thead>
         <tr>
@@ -76,11 +103,15 @@
       </tbody>
     </table>
     <p class="biz-model-note">{{ _('RESCO / PPA: Installers will quote the actual rate.') }}</p>
+=======
+    {% with commercial_comparison=project %}{% include '_commercial_comparison.html' %}{% endwith %}
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
   </section>
 
   <section class="biz-result-panel" data-panel="tax">
     <div class="biz-result-card wide">
       <h3>{{ _('Depreciation') }}</h3>
+<<<<<<< HEAD
       {% if project.depreciation_enabled %}
       <p>{{ _('Depreciation considered using the selected tax rate.') }}</p>
       <p>{{ _('Subject to ownership, business use and your tax regime. Confirm with your CA. Verify current rules.') }}</p>
@@ -93,6 +124,21 @@
   <section class="biz-result-panel" data-panel="next">
     <a class="biz-primary-button disabled" href="#" aria-disabled="true">{{ _('Download report (PDF)') }}</a>
     <form method="post" action="{{ url_for('pages.create_project') }}" class="biz-project-form">
+=======
+      <p>{{ _(project.depreciation_note) }}</p>
+    </div>
+  </section>
+
+  {% else %}
+  <p role="status">{{ _('This saved assessment has no usable calculated projection. Run a new commercial assessment; no results have been inferred from consumption.') }}</p>
+  <a href="{{ url_for('pages.business_estimate') }}">{{ _('New commercial assessment') }}</a>
+  {% endif %}
+  <section class="biz-result-panel{% if not project %} active{% endif %}" data-panel="next">
+    {% if project %}
+    <a class="biz-primary-button" href="{{ url_for('pages.download_pdf', location_id=location.id) }}">{{ _('Download report (PDF)') }}</a>
+    <form method="post" action="{{ url_for('pages.create_project') }}" class="biz-project-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
       <input type="hidden" name="location_id" value="{{ location.id }}">
       <div class="biz-form-grid">
         <label>
@@ -124,15 +170,27 @@
       <p class="biz-help-text">{{ _('Installers who already unlocked the lead keep their own records. SIGNIX cannot delete those records.') }}</p>
     </form>
 
+<<<<<<< HEAD
+=======
+    {% endif %}
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     {% if projects %}
       <div class="biz-project-list">
         {% for project in projects %}
           <div class="biz-project-card">
             <p><strong>{{ _('Project') }} #{{ project.id }}</strong> — {{ project.status|replace('_', ' ') }}</p>
             <form method="post" action="{{ url_for('pages.close_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Close this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
+<<<<<<< HEAD
               <button type="submit" class="biz-secondary-button">{{ _('Close project') }}</button>
             </form>
             <form method="post" action="{{ url_for('pages.delete_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Delete this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
+=======
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="biz-secondary-button">{{ _('Close project') }}</button>
+            </form>
+            <form method="post" action="{{ url_for('pages.delete_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Delete this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
               <button type="submit" class="biz-danger-button">{{ _('Delete project') }}</button>
             </form>
           </div>

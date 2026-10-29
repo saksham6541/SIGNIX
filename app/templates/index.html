@@ -426,7 +426,10 @@
     </div>
   </div>
 
+  {% block assessment_fields %}{% endblock %}
+
   <div class="options-actions">
+    <a id="business-result-link" class="btn-secondary hidden">{{ _('Compare commercial models and create a project') }}</a>
     <button id="start-estimation-btn" type="button" class="btn-primary-lg" disabled>{{ _('Start Estimation') }} →</button>
     <p id="estimate-action-status" class="estimate-action-status" role="status" aria-live="polite">{{ _('Draw a roof boundary to enable the estimate.') }}</p>
   </div>

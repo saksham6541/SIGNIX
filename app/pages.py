@@ -1,7 +1,12 @@
 import re
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 from datetime import date, datetime, timezone
 
 from flask import (
+    current_app,
     Blueprint,
     abort,
     flash,
@@ -22,7 +27,13 @@ from app.models import ApplicationTrackerEvent, Project, UserLocation, db
 from app.report_generator import generate_pdf_report
 from app.installer_export import build_installer_package_zip
 from app.services import location_service
+<<<<<<< HEAD
 from app.services.commercial_calculation_service import calculate_commercial_project
+=======
+from app.services.commercial_calculation_service import project_for_location, validate_finance_preferences
+from app.services import estimation_service
+from sqlalchemy.exc import SQLAlchemyError
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 from app.solar_logic import calculate_environmental_equivalents
 from app.forms import INDIAN_STATES
 
@@ -181,7 +192,7 @@ def plan(planning_track):
 
 @pages_bp.route("/survey/<planning_track>")
 @login_required
-def survey(planning_track):
+def survey(planning_track, template_name="index.html"):
     track = _planning_track_or_404(planning_track)
     # The authenticated survey route is the authoritative track selector.
     # Estimation APIs use this server-side value rather than trusting a
@@ -194,7 +205,7 @@ def survey(planning_track):
     ):
         default_property_type = current_user.default_property_type
     return render_template(
-        "index.html",
+        template_name,
         planning_track=planning_track,
         track=track,
         default_tariff_per_kwh=current_user.default_tariff_per_kwh,
@@ -232,6 +243,7 @@ def _finite_float(value, field_name, *, minimum=None, maximum=None, allow_none=F
 
 
 def _save_business_estimate_payload(payload):
+<<<<<<< HEAD
     if not isinstance(payload, dict):
         raise ValueError("Request body must be a JSON object")
 
@@ -384,12 +396,94 @@ def _save_business_estimate_payload(payload):
     db.session.commit()
     session["planning_track"] = "business"
     return location
+=======
+    """Validate first, then calculate and persist the entire assessment atomically."""
+    if not isinstance(payload, dict):
+        raise ValueError("Request body must be a JSON object")
+    payload = dict(payload)
+    if not isinstance(payload.get("address"), str) or not payload["address"].strip():
+        raise ValueError("Address is required")
+    # Normal form submissions serialize the same Leaflet coordinate arrays as JSON.
+    for field in ("polygon", "obstructions"):
+        if isinstance(payload.get(field), str):
+            try:
+                payload[field] = json.loads(payload[field] or "[]")
+            except ValueError as exc:
+                raise ValueError(f"{field} must contain valid JSON coordinates") from exc
+    if not isinstance(payload.get("polygon"), list):
+        raise ValueError("polygon must be an array of coordinates")
+    if not isinstance(payload.get("obstructions", []), list):
+        raise ValueError("obstructions must be an array of polygons")
+    for field in ("state", "load_profile", "net_metering_mode", "business_type", "daytime_power_use"):
+        if payload.get(field) is not None and not isinstance(payload[field], str):
+            raise ValueError(f"{field} must be text")
+    preferences = validate_finance_preferences(payload)
+    units = _finite_float(payload.get("monthly_units_kwh"), "monthly_units_kwh", minimum=0, allow_none=True)
+    bill = _finite_float(payload.get("monthly_bill", payload.get("monthly_bill_rs")),
+                         "monthly_bill", minimum=0, allow_none=True)
+    if units is None and bill is None:
+        raise ValueError("Monthly units or monthly bill is required")
+    payload["monthly_bill"] = bill
+    if "orientation" not in payload and payload.get("orientation_deg") not in (None, ""):
+        payload["orientation"] = payload["orientation_deg"]
+    if "load_profile" not in payload:
+        payload["load_profile"] = {"mostly_daytime": "day_heavy", "mixed": "flat",
+                                   "mostly_night": "evening_heavy"}.get(payload.get("daytime_power_use"), "day_heavy")
+    inputs = estimation_service.prepare_estimate_inputs(payload, planning_track="business")
+    if inputs["tariff_per_kwh"] <= 0:
+        raise ValueError("A positive commercial energy tariff is required")
+    # Units are a demand/sizing input only, never a solar-generation measurement.
+    if bill is None:
+        inputs["monthly_bill"] = units * inputs["tariff_per_kwh"]
+    metadata = {}
+    for field in ("business_type", "operating_hours", "daytime_power_use", "roof_ownership", "tariff_category"):
+        value = payload.get(field)
+        if value is not None and (not isinstance(value, str) or len(value) > 128):
+            raise ValueError(f"{field} must be text of at most 128 characters")
+        metadata[field] = value
+    for field, minimum, maximum in (("operating_days", 1, 365), ("sanctioned_load_kw", 0, None)):
+        metadata[field] = _finite_float(payload.get(field), field, minimum=minimum, maximum=maximum, allow_none=True)
+    try:
+        result, location = estimation_service.create_estimate(current_user.id, **inputs, commit=False)
+        location.extras = {**location.extras, **metadata, **preferences,
+                           "monthly_units_kwh": units, "monthly_bill_rs": bill,
+                           "source": "business_estimate_page"}
+        comparison = project_for_location(location)
+        # Shared reports and the commercial result use the identical financing flows.
+        location.extras = {**location.extras, "financing_comparison": comparison["financing_comparison"]}
+        result["financing_comparison"] = comparison["financing_comparison"]
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    session["planning_track"] = "business"
+    return result, location
+
+
+def _business_estimate_response(*, confirm=False):
+    payload = request.get_json(silent=True) if request.is_json else request.form.to_dict(flat=True)
+    try:
+        result, location = _save_business_estimate_payload(payload)
+    except (ValueError, estimation_service.InvalidEstimateInputError) as exc:
+        return jsonify({"error": str(exc)}), 400
+    except (estimation_service.EstimationEngineError, estimation_service.EstimatePersistenceError, SQLAlchemyError):
+        db.session.rollback()
+        current_app.logger.warning("Commercial assessment failed; no assessment was saved")
+        return jsonify({"error": "The assessment could not be calculated or saved. Please retry."}), 503
+    destination = url_for("pages.business_estimate_result", location_id=location.id)
+    if confirm:
+        return redirect(destination)
+    return jsonify({**result, "status": "saved", "location_id": location.id,
+                    "planning_track": "business", "business_result_url": destination,
+                    "redirect_url": url_for("pages.report", location_id=location.id)})
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 
 
 @pages_bp.route("/business/estimate", methods=["GET", "POST"])
 @login_required
 def business_estimate():
     if request.method == "POST":
+<<<<<<< HEAD
         payload = request.get_json(silent=True) or request.form.to_dict(flat=True)
         try:
             location = _save_business_estimate_payload(payload)
@@ -460,6 +554,38 @@ def business_estimate_result(location_id):
         extras=extras,
         projects=project_rows,
         consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
+=======
+        return _business_estimate_response()
+    return survey("business", template_name="business_estimate.html")
+
+
+@pages_bp.post("/business/estimate/confirm")
+@login_required
+def business_estimate_confirm():
+    return _business_estimate_response(confirm=True)
+
+
+def _commercial_comparison_or_none(location):
+    try:
+        return project_for_location(location)
+    except (ValueError, TypeError, KeyError):
+        # Old placeholder assessments do not become real estimates on a GET.
+        return None
+
+
+@pages_bp.get("/business/estimate/result/<int:location_id>")
+@login_required
+def business_estimate_result(location_id):
+    location = db.session.get(UserLocation, location_id)
+    if not _project_is_business(location):
+        abort(404)
+    session["planning_track"] = "business"
+    project_rows = Project.query.filter_by(user_id=current_user.id, location_id=location.id).order_by(Project.created_at.desc()).all()
+    return render_template(
+        "business_estimate_result.html", planning_track="business", location=location,
+        project=_commercial_comparison_or_none(location), extras=location.extras or {},
+        projects=project_rows, consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     )
 
 
@@ -681,6 +807,10 @@ def project_detail(project_id):
         yearly_savings=yearly_savings,
         status_label=active_status,
         installer_count=summary["installer_count"],
+<<<<<<< HEAD
+=======
+        commercial_comparison=_commercial_comparison_or_none(location),
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     )
 
 
@@ -747,8 +877,14 @@ def create_project():
         project.consent_timestamp = datetime.now(timezone.utc)
         project.consent_text_version = Config.PROJECT_CONSENT_TEXT_VERSION
         if project.status == "closed":
+<<<<<<< HEAD
             project.status = "assessment_done"
             project.closed_at = None
+=======
+            db.session.rollback()
+            flash(_("A closed project cannot be reopened by resubmitting this form."), "error")
+            return redirect(url_for("pages.business_estimate_result", location_id=location.id))
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         if project.status == "assessment_done":
             project.transition_status("user", current_user.id, "under_review", note="Project created")
 

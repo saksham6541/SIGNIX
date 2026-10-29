@@ -1,0 +1,22 @@
+{% macro money(value) -%}
+  {% if value is number %}₹{{ '{:,.0f}'.format(value) }}{% else %}{{ _('Unavailable') }}{% endif %}
+{%- endmacro %}
+{% if commercial_comparison %}
+<div class="biz-model-table-wrap">
+<table class="biz-comparison-table">
+  <thead><tr><th>{{ _('Model') }}</th><th>{{ _('Upfront investment') }}</th><th>{{ _('Year-one net cash flow') }}</th><th>{{ _('10-year cumulative cash flow') }}</th><th>{{ _('25-year cumulative cash flow') }}</th><th>{{ _('Payback') }}</th></tr></thead>
+  <tbody>
+  {% for key, model in commercial_comparison.models.items() %}
+    <tr><td>{{ _(model.name) }}</td><td>{{ money(model.upfront_cost_inr) }}</td><td>{{ money(model.year_one_savings_inr) }}</td><td>{{ money(model.total_after_10_years) }}</td><td>{{ money(model.total_after_25_years) }}</td><td>{% if model.payback_years is number %}{{ model.payback_years }} {{ _('years') }}{% elif key == 'resco' %}{{ _('Not applicable') }}{% else %}{{ _('Not reached') }}{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p>{{ _('Cumulative cash flow includes upfront investment. Buy and Loan include O&M; Loan also deducts financing payments. Values are nominal, not discounted.') }}</p>
+<p>{{ _('Annual O&M reserve') }}: {{ money(commercial_comparison.models.buy.annual_om_inr) }}. {{ _('Annual tariff escalation') }}: {{ commercial_comparison.financing_comparison.assumptions.tariff_escalation_pct }}%.</p>
+<p>{{ _('Loan') }}: {{ money(commercial_comparison.models.loan.monthly_emi_inr) }} {{ _('per month') }}; {{ _('Total repayment') }}: {{ money(commercial_comparison.models.loan.total_repayment_inr) }}.</p>
+<p>{{ _('RESCO / PPA: Installers will quote the actual rate.') }} {{ _('Contract years') }}: {{ commercial_comparison.models.resco.contract_years }}.</p>
+{% for note in commercial_comparison.models.resco.notes %}<p>{{ _(note) }}</p>{% endfor %}
+{% else %}
+<p role="status">{{ _('Model-specific projections are unavailable for this saved assessment. Run a new commercial assessment to calculate them.') }}</p>
+{% endif %}

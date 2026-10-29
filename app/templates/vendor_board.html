@@ -60,6 +60,10 @@
         <p><strong>{{ _('Email') }}:</strong> {{ project.email or _('Not provided') }}</p>
         <p><strong>{{ _('Address') }}:</strong> {{ project.location.address or _('Not provided') }}</p>
         <p><strong>{{ _('Full report') }}:</strong> {{ _('Available to this vendor') }}</p>
+<<<<<<< HEAD
+=======
+        <p>{{ _('Your lead outcome') }}: {% if item.outcome == 'won' %}{{ _('Won') }}{% elif item.outcome == 'lost' %}{{ _('Lost') }}{% else %}{{ _('Not recorded') }}{% endif %}</p>
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         <form method="post" action="{{ url_for('auth.vendor_lead_status', project_id=project.id) }}" style="display:flex; gap: 8px; margin-top: 10px;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" name="outcome" value="won" class="btn-dashboard-cta">{{ _('Mark won') }}</button>

@@ -18,6 +18,7 @@
         {% if loc.inverter_type %} · {{ _('Inverter: %(inverter)s', inverter=loc.inverter_type|ui_label) }}{% endif %}
       </p>
     </div>
+    {% if loc.planning_track == 'business' %}<a class="rpt-action-button" href="{{ url_for('pages.business_estimate_result', location_id=loc.id) }}">{{ _('Commercial models and project') }}</a>{% endif %}
     <a class="rpt-primary-download" href="{{ url_for('pages.download_pdf', location_id=loc.id, mode='summary') }}">
       {{ _('Download PDF') }} <span aria-hidden="true">↓</span>
     </a>

@@ -13,8 +13,8 @@ a small absolute/relative tolerance).
 ---------------------------------------------------------------------------
 How to regenerate golden files after a *deliberate* behavior change
 ---------------------------------------------------------------------------
-If you intentionally change estimation math, subsidy policy, or sizing
-rules — and the new numbers are correct — regenerate goldens instead of
+If you intentionally change estimation math, subsidy policy, sizing rules,
+or the public provenance contract — and the new output is verified — update goldens instead of
 weakening assertions:
 
   cd /path/to/SIGNIX-main
@@ -31,6 +31,8 @@ the goldens. Geometry and bill inputs are frozen inside each JSON file.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
+import hashlib
 import json
 import math
 import os
@@ -140,6 +142,65 @@ def test_estimate_pipeline_matches_golden(golden_path: Path):
     golden = _load_golden(golden_path)
     live = _run_pipeline(golden["inputs"], golden["irradiance_fixture"])
     _assert_matches_golden(golden, live)
+
+
+def _fingerprint(value):
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+@pytest.mark.parametrize(
+    "case,azimuth,source,confidence",
+    [
+        ("bangalore_mid_with_obstruction", 90.0, "footprint_longest_edge_heuristic", "estimated"),
+        ("delhi_backup_battery", 180.0, "user_specified", "user_specified_unverified"),
+        ("delhi_small_roof", 180.0, "user_specified", "user_specified_unverified"),
+    ],
+)
+def test_golden_provenance_semantics_and_hash_integrity(case, azimuth, source, confidence):
+    """Directions are planning inputs, not measured roof planes or installed tilt."""
+    from app.estimate import _json_safe
+
+    golden = _load_golden(GOLDEN_DIR / f"{case}.json")
+    result = _run_pipeline(golden["inputs"], golden["irradiance_fixture"])
+    orientation = result["orientation_provenance"]
+    assert orientation["azimuth_convention"] == "degrees_clockwise_from_geographic_north"
+    assert orientation["global_panel_azimuth_degrees"] == result["orientation_deg"] == azimuth
+    assert orientation["global_direction_source"] == source
+    assert orientation["global_direction_confidence"] == confidence
+    for field in ("roof_face_azimuth_degrees", "roof_pitch_degrees", "panel_tilt_degrees"):
+        assert orientation[field] is None
+    assert orientation["recommended_tilt_basis"] == "absolute_latitude_planning_recommendation_not_installed_tilt"
+    assert orientation["factor_model"] == "azimuth_only_planning_approximation"
+    assert orientation["factor_unavailable_reason"] is None
+    assert orientation["surface_details_path"] is None
+    assert solar_logic.generation_provenance_for_result(result)["orientation"] == orientation
+    serialized = json.loads(json.dumps(_json_safe(result), allow_nan=False))
+    assert serialized["orientation_provenance"] == orientation
+
+    financial = result["financial_provenance"]
+    assert financial["inputs"]["assumption_fingerprint"] == _fingerprint(solar_logic.calculation_assumptions())
+    assert financial["input_fingerprint"] == _fingerprint(financial["inputs"])
+    assert serialized["financial_provenance"] == financial
+
+
+def test_orientation_model_version_invalidates_both_hashes_without_changing_numbers(monkeypatch):
+    """Versioned evidence invalidates saved results even when this roof's yield is unchanged."""
+    golden = _load_golden(GOLDEN_DIR / "delhi_small_roof.json")
+    before = _run_pipeline(golden["inputs"], golden["irradiance_fixture"])
+    assumptions = deepcopy(solar_logic.calculation_assumptions())
+    assumptions["surface_orientation_model_version"] += ".regression_probe"
+    monkeypatch.setattr(solar_logic, "calculation_assumptions", lambda: assumptions)
+    after = _run_pipeline(golden["inputs"], golden["irradiance_fixture"])
+
+    expected = deepcopy(before)
+    financial = expected["financial_provenance"]
+    financial["inputs"]["assumption_fingerprint"] = _fingerprint(assumptions)
+    financial["input_fingerprint"] = _fingerprint(financial["inputs"])
+    assert financial["inputs"]["assumption_fingerprint"] != before["financial_provenance"]["inputs"]["assumption_fingerprint"]
+    assert financial["input_fingerprint"] != before["financial_provenance"]["input_fingerprint"]
+    assert after == expected
 
 
 # ---------------------------------------------------------------------------

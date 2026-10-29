@@ -303,7 +303,7 @@ function recalculateAreas() {
 
   updateAreaReadout(roofArea, obstructedArea, usableArea, systemSizeKw);
   const btn = document.getElementById('start-estimation-btn');
-  if (btn) btn.disabled = !SignixMapStore.roofPolygonLatLngs;
+  if (btn) btn.disabled = !SignixMapStore.roofPolygonLatLngs || (window.SignixAssessmentReady && !window.SignixAssessmentReady());
   const status = document.getElementById('estimate-action-status');
   if (status) {
     status.textContent = SignixMapStore.roofPolygonLatLngs

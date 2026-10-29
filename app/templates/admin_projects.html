@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Project review') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+{% block content %}
+<section class="dashboard-hero">
+  <h1>{{ _('Project review') }}</h1>
+  <a href="{{ url_for('auth.admin_vendors') }}">{{ _('Vendor review') }}</a>
+</section>
+<section class="biz-panel">
+  {% if open_projects is defined %}<p>{{ _('Open projects') }}: {{ open_projects|length }} · {{ _('Unlocked leads') }}: {{ unlocked_count }}</p>{% endif %}
+  {% for project in projects %}
+  <article class="biz-project-card">
+    <h2>{{ project.location.address or _('Location not provided') }}</h2>
+    <p>{{ project.contact_name }} · {{ project.email or _('Not provided') }}</p>
+    <form method="post" action="{{ url_for('auth.admin_project_approve', project_id=project.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-primary">{{ _('Approve project') }}</button>
+    </form>
+    <form method="post" action="{{ url_for('auth.admin_project_reject', project_id=project.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="reason-{{ project.id }}">{{ _('Rejection reason') }}</label>
+      <input id="reason-{{ project.id }}" name="reason" maxlength="1000" required>
+      <button type="submit" class="btn-danger">{{ _('Reject project') }}</button>
+    </form>
+  </article>
+  {% else %}<p>{{ _('No projects awaiting review.') }}</p>{% endfor %}
+</section>
+{% endblock %}

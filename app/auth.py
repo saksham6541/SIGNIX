@@ -1,4 +1,8 @@
 import re
+<<<<<<< HEAD
+=======
+from datetime import datetime, timezone
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 from functools import wraps
 from urllib.parse import urlsplit
 
@@ -237,9 +241,19 @@ def vendor_board():
     vendor_profile = current_user.vendor_profile or {}
     lead_candidates = Project.query.filter_by(status="open_to_vendors").order_by(Project.created_at.desc()).all()
     leads = []
+<<<<<<< HEAD
     unlocked_project_ids = {
         item.project_id for item in VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id).all()
     }
+=======
+    unlocks = {item.project_id: item for item in VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id).all()}
+    unlocked_project_ids = set(unlocks)
+    outcomes = {}
+    for event in AdminActionLog.query.filter_by(
+        actor_user_id=current_user.id, target_type="vendor_lead_unlock", action="vendor_lead_outcome"
+    ).order_by(AdminActionLog.id.desc()).all():
+        outcomes.setdefault(event.target_id, event.detail)
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     for project in lead_candidates:
         if not project.location:
             continue
@@ -273,13 +287,21 @@ def vendor_board():
         if not _lead_service_match(project, vendor_profile):
             continue
         unlock_count = VendorLeadUnlock.query.filter_by(project_id=project.id).count()
+<<<<<<< HEAD
         if unlock_count >= Config.VENDOR_MAX_LEADS_PER_PROJECT:
+=======
+        if unlock_count >= Config.VENDOR_MAX_LEADS_PER_PROJECT and project.id not in unlocked_project_ids:
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
             continue
         leads.append({
             "project": project,
             "summary": summary,
             "unlock_count": unlock_count,
             "unlocked": project.id in unlocked_project_ids,
+<<<<<<< HEAD
+=======
+            "outcome": outcomes.get(unlocks[project.id].id) if project.id in unlocks else None,
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
             "unlock_cost": _vendor_unlock_cost(project),
         })
 
@@ -353,11 +375,17 @@ def vendor_unlock_project(project_id):
 @require_approved_vendor
 def vendor_lead_status(project_id):
     project = Project.query.get_or_404(project_id)
+<<<<<<< HEAD
     if not VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id, project_id=project.id).first():
+=======
+    unlock = VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id, project_id=project.id).first()
+    if unlock is None:
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         flash(_("Unlock the lead before marking its status."), "error")
         return redirect(url_for("auth.vendor_board"))
 
     outcome = (request.form.get("outcome") or "").strip().lower()
+<<<<<<< HEAD
     if outcome == "won":
         project.status = "vendor_connected"
         flash(_("Lead marked as won."), "success")
@@ -367,6 +395,21 @@ def vendor_lead_status(project_id):
     else:
         flash(_("Choose a valid lead outcome."), "error")
         return redirect(url_for("auth.vendor_board"))
+=======
+    if outcome not in {"won", "lost"}:
+        flash(_("Choose a valid lead outcome."), "error")
+        return redirect(url_for("auth.vendor_board"))
+    previous = AdminActionLog.query.filter_by(
+        actor_user_id=current_user.id, target_type="vendor_lead_unlock", target_id=unlock.id,
+        action="vendor_lead_outcome",
+    ).order_by(AdminActionLog.id.desc()).first()
+    if previous is None or previous.detail != outcome:
+        db.session.add(AdminActionLog(
+            actor_user_id=current_user.id, action="vendor_lead_outcome",
+            target_type="vendor_lead_unlock", target_id=unlock.id, detail=outcome,
+        ))
+    flash(_("Your lead outcome was recorded. The project status is unchanged."), "success")
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     db.session.commit()
     return redirect(url_for("auth.vendor_board"))
 
@@ -382,7 +425,11 @@ def admin_overview():
     lost = sum(1 for project in projects if project.status == "closed")
     unlocked = VendorLeadUnlock.query.count()
     return render_template(
+<<<<<<< HEAD
         "admin_overview.html",
+=======
+        "admin_projects.html",
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         projects=under_review,
         open_projects=open_projects,
         won_count=won,
@@ -407,8 +454,11 @@ def admin_project_approve(project_id):
     if project.status != "under_review":
         flash(_("Only projects in under-review can be approved."), "error")
         return redirect(url_for("auth.admin_projects"))
+<<<<<<< HEAD
     project.status = "open_to_vendors"
     project.updated_at = datetime.now(timezone.utc)
+=======
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     project.transition_status("admin", current_user.id, "open_to_vendors", note="Approved by admin")
     _log_admin_action(
         "approve_project",
@@ -430,9 +480,12 @@ def admin_project_reject(project_id):
         flash(_("Only projects in under-review can be rejected."), "error")
         return redirect(url_for("auth.admin_projects"))
     reason = (request.form.get("reason") or "").strip() or "Rejected by admin"
+<<<<<<< HEAD
     project.status = "closed"
     project.closed_at = datetime.now(timezone.utc)
     project.updated_at = datetime.now(timezone.utc)
+=======
+>>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     project.transition_status("admin", current_user.id, "closed", note=reason)
     _log_admin_action(
         "reject_project",
