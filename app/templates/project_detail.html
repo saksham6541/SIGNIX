@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ summary.site_name }} · {{ _('Project') }}{% endblock %}
+{% block body_class %}product-business{% endblock %}
+
+{% block content %}
+<section class="biz-project-detail">
+  <header class="biz-project-detail-head">
+    <div>
+      <p class="console-index">{{ _('PROJECT DETAIL') }}</p>
+      <h1>{{ summary.site_name }}</h1>
+    </div>
+    <span class="biz-chip biz-chip-status">{{ status_label }}</span>
+  </header>
+
+  <div class="biz-project-detail-layout">
+    <div class="biz-panel">
+      <h2>{{ _('Assessment summary') }}</h2>
+      <dl class="biz-summary-list">
+        <div>
+          <dt>{{ _('Address') }}</dt>
+          <dd>{{ location.address }}</dd>
+        </div>
+        <div>
+          <dt>{{ _('City / PIN') }}</dt>
+          <dd>{{ summary.city or _('Not provided') }}{% if summary.pin %} · {{ summary.pin }}{% endif %}</dd>
+        </div>
+        <div>
+          <dt>{{ _('Business type') }}</dt>
+          <dd>{{ summary.business_type }}</dd>
+        </div>
+        <div>
+          <dt>{{ _('System size') }}</dt>
+          <dd>{{ '{:,.1f}'.format(summary.system_size_kw) }} kW</dd>
+        </div>
+        <div>
+          <dt>{{ _('Estimated yearly savings') }}</dt>
+          <dd>₹{{ '{:,.0f}'.format(yearly_savings) }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <aside class="biz-panel">
+      <h2>{{ _('Status') }}</h2>
+      <div class="biz-status-box">
+        <span>{{ _('Installer count') }}</span>
+        <strong>{{ installer_count }}</strong>
+      </div>
+      <form method="post" action="{{ url_for('pages.close_project', project_id=project.id) }}" class="biz-project-close-form" onsubmit="return confirm('{{ _('Close this project?') }}');">
+        <button type="submit" class="btn-danger">{{ _('Close project') }}</button>
+      </form>
+    </aside>
+  </div>
+
+  <div class="biz-panel">
+    <h2>{{ _('Model comparison') }}</h2>
+    <div class="biz-model-table-wrap">
+      <table class="biz-model-table">
+        <thead>
+          <tr>
+            <th>{{ _('Model') }}</th>
+            <th>{{ _('Upfront cost') }}</th>
+            <th>{{ _('Year-one savings') }}</th>
+            <th>{{ _('10-year total') }}</th>
+            <th>{{ _('25-year total') }}</th>
+            <th>{{ _('Payback') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ _('Buy') }}</td>
+            <td>₹{{ '{:,.0f}'.format((location.system_cost or 0)) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings * 10) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings * 25) }}</td>
+            <td>{{ _('Indicative') }}</td>
+          </tr>
+          <tr>
+            <td>{{ _('Buy with loan') }}</td>
+            <td>₹{{ '{:,.0f}'.format((location.net_investment or 0)) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings * 10) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings * 25) }}</td>
+            <td>{{ _('Variable') }}</td>
+          </tr>
+          <tr>
+            <td>{{ _('RESCO / PPA') }}</td>
+            <td>{{ _('₹0 upfront') }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings * 10) }}</td>
+            <td>₹{{ '{:,.0f}'.format(yearly_savings * 25) }}</td>
+            <td>{{ _('Installer quote') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

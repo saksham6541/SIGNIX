@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Business estimate') }} · SIGNIX{% endblock %}
+{% block body_class %}biz-estimate-page{% endblock %}
+
+{% block content %}
+<div class="biz-result-wrap">
+  <div class="biz-result-banner">
+    <p>{{ _('Indicative estimate only. Final design and price come from an installer’s site survey.') }}</p>
+  </div>
+
+  <nav class="biz-result-tabs" aria-label="{{ _('Commercial estimate tabs') }}">
+    <button type="button" class="biz-result-tab active" data-tab="summary">{{ _('Summary') }}</button>
+    <button type="button" class="biz-result-tab" data-tab="compare">{{ _('Compare models') }}</button>
+    <button type="button" class="biz-result-tab" data-tab="tax">{{ _('Tax') }}</button>
+    <button type="button" class="biz-result-tab" data-tab="next">{{ _('Next steps') }}</button>
+  </nav>
+
+  <section class="biz-result-panel active" data-panel="summary">
+    <div class="biz-result-summary-grid">
+      <div class="biz-result-card">
+        <span>{{ _('System size') }}</span>
+        <strong>{{ project.system_size_kw or 0 }} kW</strong>
+      </div>
+      <div class="biz-result-card">
+        <span>{{ _('Yearly generation') }}</span>
+        <strong>{{ project.annual_generation_kwh or 0 }} kWh</strong>
+      </div>
+      <div class="biz-result-card">
+        <span>{{ _('Yearly savings') }}</span>
+        <strong>₹{{ '{:,.0f}'.format((project.models.buy.year_one_savings_inr or 0)) }}</strong>
+      </div>
+      <div class="biz-result-card">
+        <span>{{ _('Payback') }}</span>
+        <strong>{{ project.models.buy.payback_years or '—' }} {{ _('years') if project.models.buy.payback_years else '' }}</strong>
+      </div>
+      <div class="biz-result-card">
+        <span>{{ _('Cost range') }}</span>
+        <strong>₹{{ '{:,.0f}'.format(project.cost_range_inr.low_inr or 0) }}–₹{{ '{:,.0f}'.format(project.cost_range_inr.high_inr or 0) }}</strong>
+      </div>
+    </div>
+    <div class="biz-assumptions-box">
+      <h3>{{ _('Assumptions used') }}</h3>
+      <ul>
+        <li>{{ _('State tariff') }}: ₹{{ project.tariff_per_kwh or 0 }}/kWh</li>
+        <li>{{ _('Orientation from drawing') }}</li>
+        <li>{{ _('Cost per kW') }}: ₹{{ '{:,.0f}'.format(project.cost_range_inr.base_inr / (project.system_size_kw or 1)) }}</li>
+        <li>{{ _('Energy charges only') }}</li>
+        <li>{{ _('Demand charge savings are not included.') }}</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="biz-result-panel" data-panel="compare">
+    <table class="biz-comparison-table">
+      <thead>
+        <tr>
+          <th>{{ _('Model') }}</th>
+          <th>{{ _('Upfront cost') }}</th>
+          <th>{{ _('Year-one savings') }}</th>
+          <th>{{ _('Total after 10 years') }}</th>
+          <th>{{ _('Total after 25 years') }}</th>
+          <th>{{ _('Payback') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, model in project.models.items() %}
+        <tr>
+          <td>{{ model.name }}{% if model.model_label %}<br><small>{{ model.model_label }}</small>{% endif %}</td>
+          <td>₹{{ '{:,.0f}'.format(model.upfront_cost_inr or 0) }}</td>
+          <td>₹{{ '{:,.0f}'.format(model.year_one_savings_inr or 0) }}</td>
+          <td>₹{{ '{:,.0f}'.format(model.total_after_10_years or 0) }}</td>
+          <td>₹{{ '{:,.0f}'.format(model.total_after_25_years or 0) }}</td>
+          <td>{{ model.payback_years if model.payback_years is not none else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="biz-model-note">{{ _('RESCO / PPA: Installers will quote the actual rate.') }}</p>
+  </section>
+
+  <section class="biz-result-panel" data-panel="tax">
+    <div class="biz-result-card wide">
+      <h3>{{ _('Depreciation') }}</h3>
+      {% if project.depreciation_enabled %}
+      <p>{{ _('Depreciation considered using the selected tax rate.') }}</p>
+      <p>{{ _('Subject to ownership, business use and your tax regime. Confirm with your CA. Verify current rules.') }}</p>
+      {% else %}
+      <p>{{ _('Depreciation not included by default.') }}</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="biz-result-panel" data-panel="next">
+    <a class="biz-primary-button disabled" href="#" aria-disabled="true">{{ _('Download report (PDF)') }}</a>
+    <form method="post" action="{{ url_for('pages.create_project') }}" class="biz-project-form">
+      <input type="hidden" name="location_id" value="{{ location.id }}">
+      <div class="biz-form-grid">
+        <label>
+          {{ _('Contact name') }}
+          <input type="text" name="contact_name" value="{{ current_user.display_name }}" required>
+        </label>
+        <label>
+          {{ _('Phone') }}
+          <input type="tel" name="phone" placeholder="{{ _('Optional') }}">
+        </label>
+        <label class="biz-full-width">
+          {{ _('Email') }}
+          <input type="email" name="email" value="{{ current_user.email }}" required>
+        </label>
+        <label class="biz-full-width">
+          {{ _('Note') }}
+          <textarea name="note" rows="3" placeholder="{{ _('Optional') }}"></textarea>
+        </label>
+      </div>
+      <label class="biz-consent-box">
+        <input type="checkbox" name="consent_given" value="1" required>
+        <span>{{ _('Your details are shared with selected installers only if you choose to.') }}</span>
+      </label>
+      <label class="biz-consent-box">
+        <input type="checkbox" name="consent_fee" value="1" required>
+        <span>{{ _('SIGNIX may receive a fee from installers.') }}</span>
+      </label>
+      <button type="submit" class="biz-primary-button">{{ _('Create solar project') }}</button>
+      <p class="biz-help-text">{{ _('Installers who already unlocked the lead keep their own records. SIGNIX cannot delete those records.') }}</p>
+    </form>
+
+    {% if projects %}
+      <div class="biz-project-list">
+        {% for project in projects %}
+          <div class="biz-project-card">
+            <p><strong>{{ _('Project') }} #{{ project.id }}</strong> — {{ project.status|replace('_', ' ') }}</p>
+            <form method="post" action="{{ url_for('pages.close_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Close this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
+              <button type="submit" class="biz-secondary-button">{{ _('Close project') }}</button>
+            </form>
+            <form method="post" action="{{ url_for('pages.delete_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Delete this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
+              <button type="submit" class="biz-danger-button">{{ _('Delete project') }}</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.biz-result-tab');
+    const panels = document.querySelectorAll('.biz-result-panel');
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(btn => btn.classList.toggle('active', btn === tab));
+        panels.forEach(panel => panel.classList.toggle('active', panel.dataset.panel === tab.dataset.tab));
+      });
+    });
+  });
+</script>
+{% endblock %}

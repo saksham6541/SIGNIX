@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Business estimate') }} · SIGNIX{% endblock %}
+{% block body_class %}biz-estimate-page{% endblock %}
+
+{% block content %}
+<div class="biz-estimate-layout">
+  <aside class="biz-estimate-sidebar">
+    <div class="biz-accuracy-card" aria-live="polite">
+      <p class="biz-accuracy-label">{{ _('Estimate accuracy') }}</p>
+      <div class="biz-meter" aria-hidden="true">
+        <span id="biz-meter-fill" class="biz-meter-fill"></span>
+      </div>
+      <div class="biz-meter-scale">
+        <span>{{ _('Basic') }}</span>
+        <span>{{ _('Good') }}</span>
+        <span>{{ _('High') }}</span>
+      </div>
+      <strong id="biz-meter-state" class="biz-meter-state">{{ _('Basic') }}</strong>
+    </div>
+
+    <nav class="biz-section-nav" aria-label="{{ _('Business estimate sections') }}">
+      <a href="#biz-section-location" class="biz-section-link active">{{ _('1. Location') }}</a>
+      <a href="#biz-section-roof" class="biz-section-link">{{ _('2. Roof') }}</a>
+      <a href="#biz-section-business" class="biz-section-link">{{ _('3. Business') }}</a>
+      <a href="#biz-section-electricity" class="biz-section-link">{{ _('4. Electricity') }}</a>
+      <a href="#biz-section-roof-ownership" class="biz-section-link">{{ _('5. Roof ownership') }}</a>
+      <a href="#biz-section-finance" class="biz-section-link">{{ _('6. Finance') }}</a>
+    </nav>
+  </aside>
+
+  <main class="biz-estimate-main">
+    <form id="biz-estimate-form" class="biz-estimate-form" method="post" action="{{ url_for('pages.business_estimate_confirm') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" id="polygon" name="polygon" value="">
+      <input type="hidden" id="obstructions" name="obstructions" value="">
+
+      <section id="biz-section-location" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 1') }}</p>
+          <h2>{{ _('Location') }}</h2>
+        </div>
+
+        <div class="biz-field-group">
+          <label for="address">{{ _('Address') }}</label>
+          <input id="address" name="address" type="text" placeholder="{{ _('Enter your business address') }}" required>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="latitude">{{ _('Latitude') }}</label>
+            <input id="latitude" name="latitude" type="number" step="any" required>
+          </div>
+          <div class="biz-field-group">
+            <label for="longitude">{{ _('Longitude') }}</label>
+            <input id="longitude" name="longitude" type="number" step="any" required>
+          </div>
+        </div>
+
+        <div class="biz-state-row">
+          <span>{{ _('State') }}: <strong id="biz-state-display">{{ default_state or _('Not detected') }}</strong> (<button type="button" id="biz-state-toggle" class="biz-inline-button">{{ _('change') }}</button>)</span>
+          <input id="state" name="state" type="text" value="{{ default_state or '' }}" class="biz-state-input" aria-label="{{ _('State') }}">
+        </div>
+
+        <div class="biz-field-group">
+          <label for="maps-link">{{ _('Google Maps link') }}</label>
+          <input id="maps-link" type="text" placeholder="{{ _('Paste a Maps link to prefill the site pin') }}">
+        </div>
+      </section>
+
+      <section id="biz-section-roof" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 2') }}</p>
+          <h2>{{ _('Roof') }}</h2>
+        </div>
+
+        <div class="biz-grid-two">
+          <div class="biz-annotation-card">
+            <p>{{ _('Usable area is calculated automatically from the roof drawing and obstructions.') }}</p>
+            <div class="biz-surface-box">
+              <span id="biz-roof-area">{{ _('Roof area: --') }}</span>
+              <span id="biz-usable-area">{{ _('Usable area: --') }}</span>
+            </div>
+          </div>
+          <div class="biz-field-group">
+            <label for="shade_chip">{{ _('Shade chip') }}</label>
+            <select id="shade_chip" name="shade_chip">
+              <option value="">{{ _('None') }}</option>
+              <option value="some">{{ _('Some') }}</option>
+              <option value="lots">{{ _('A lot') }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="biz-field-group">
+          <label>{{ _('Roof orientation') }}</label>
+          <div class="biz-orientation-pill">
+            <span id="orientation-label">{{ _('Auto-detected from drawing') }}</span>
+          </div>
+          <input id="orientation_deg" name="orientation_deg" type="hidden" value="">
+          <input id="orientation_label" name="orientation_label" type="hidden" value="">
+        </div>
+      </section>
+
+      <section id="biz-section-business" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 3') }}</p>
+          <h2>{{ _('Business') }}</h2>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="business_type">{{ _('Business type') }}</label>
+            <select id="business_type" name="business_type">
+              <option value="">{{ _('Select business type') }}</option>
+              <option value="Shop">{{ _('Shop') }}</option>
+              <option value="Office">{{ _('Office') }}</option>
+              <option value="Hotel">{{ _('Hotel') }}</option>
+              <option value="School or institution">{{ _('School or institution') }}</option>
+              <option value="Small factory">{{ _('Small factory') }}</option>
+              <option value="Other">{{ _('Other') }}</option>
+            </select>
+          </div>
+          <div class="biz-field-group">
+            <label for="daytime_power_use">{{ _('Daytime power use') }}</label>
+            <select id="daytime_power_use" name="daytime_power_use">
+              <option value="">{{ _('Mixed') }}</option>
+              <option value="mostly_daytime">{{ _('Mostly daytime') }}</option>
+              <option value="mixed">{{ _('Mixed') }}</option>
+              <option value="mostly_night">{{ _('Mostly night') }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="operating_days">{{ _('Operating days') }}</label>
+            <input id="operating_days" name="operating_days" type="number" min="1" max="365" placeholder="{{ _('e.g. 6') }}">
+          </div>
+          <div class="biz-field-group">
+            <label for="operating_hours">{{ _('Operating hours') }}</label>
+            <input id="operating_hours" name="operating_hours" type="text" placeholder="{{ _('e.g. 8am–6pm') }}">
+          </div>
+        </div>
+      </section>
+
+      <section id="biz-section-electricity" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 4') }}</p>
+          <h2>{{ _('Electricity') }}</h2>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="monthly_units_kwh">{{ _('Monthly units (kWh)') }}</label>
+            <input id="monthly_units_kwh" name="monthly_units_kwh" type="number" step="any" min="0">
+          </div>
+          <div class="biz-field-group">
+            <label for="monthly_bill_rs">{{ _('Monthly bill (Rs)') }}</label>
+            <input id="monthly_bill_rs" name="monthly_bill_rs" type="number" step="any" min="0">
+          </div>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="sanctioned_load_kw">{{ _('Sanctioned load / contract demand (kW)') }}</label>
+            <input id="sanctioned_load_kw" name="sanctioned_load_kw" type="number" step="any" min="0">
+          </div>
+          <div class="biz-field-group">
+            <label for="tariff_category">{{ _('Tariff category') }}</label>
+            <select id="tariff_category" name="tariff_category">
+              <option value="">{{ _('Not sure') }}</option>
+              <option value="LT-1">LT-1</option>
+              <option value="LT-2">LT-2</option>
+              <option value="HT">HT</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section id="biz-section-roof-ownership" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 5') }}</p>
+          <h2>{{ _('Roof ownership') }}</h2>
+        </div>
+
+        <div class="biz-field-group">
+          <label for="roof_ownership">{{ _('Roof ownership') }}</label>
+          <select id="roof_ownership" name="roof_ownership">
+            <option value="">{{ _('Not sure') }}</option>
+            <option value="own">{{ _('Own') }}</option>
+            <option value="rented">{{ _('Rented') }}</option>
+          </select>
+        </div>
+
+        <p id="biz-rented-note" class="biz-note hidden">{{ _('The landlord\'s permission will be needed.') }}</p>
+      </section>
+
+      <section id="biz-section-finance" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 6') }}</p>
+          <h2>{{ _('Finance preferences') }}</h2>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="tax_rate_pct">{{ _('Tax rate') }} (%)</label>
+            <input id="tax_rate_pct" name="tax_rate_pct" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+          </div>
+          <div class="biz-field-group">
+            <label for="loan_rate_pct">{{ _('Loan interest rate') }} (%)</label>
+            <input id="loan_rate_pct" name="loan_rate_pct" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+          </div>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="loan_tenure_years">{{ _('Loan tenure (years)') }}</label>
+            <input id="loan_tenure_years" name="loan_tenure_years" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+          </div>
+          <div class="biz-field-group">
+            <label for="ppa_rate_rs_per_kwh">{{ _('PPA rate (Rs/unit)') }}</label>
+            <input id="ppa_rate_rs_per_kwh" name="ppa_rate_rs_per_kwh" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+          </div>
+        </div>
+
+        <div class="biz-inline-grid">
+          <div class="biz-field-group">
+            <label for="ppa_tenure_years">{{ _('PPA tenure (years)') }}</label>
+            <input id="ppa_tenure_years" name="ppa_tenure_years" type="number" step="any" min="0" placeholder="{{ _('Not sure') }}">
+          </div>
+          <div class="biz-toggle-row">
+            <label for="include_depreciation_tax_benefit" class="biz-toggle-label">
+              <input id="include_depreciation_tax_benefit" name="include_depreciation_tax_benefit" type="checkbox">
+              <span>{{ _('Include depreciation tax benefit (confirm with your CA)') }}</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section id="biz-section-review" class="biz-section">
+        <div class="biz-section-header">
+          <p class="biz-section-kicker">{{ _('Section 7') }}</p>
+          <h2>{{ _('Review and confirm') }}</h2>
+        </div>
+
+        <div class="biz-review-grid">
+          <div class="biz-summary-card">
+            <h3>{{ _('Your entries') }}</h3>
+            <div class="biz-summary-list">
+              <div class="biz-summary-row" data-summary-field="address" data-edit-target="#biz-section-location">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Address') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-location" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="state" data-edit-target="#biz-section-location">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('State') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-location" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="business_type" data-edit-target="#biz-section-business">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Business type') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-business" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="daytime_power_use" data-edit-target="#biz-section-business">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Daytime power use') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-business" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="monthly_units_kwh" data-edit-target="#biz-section-electricity">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Monthly units (kWh)') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-electricity" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="monthly_bill_rs" data-edit-target="#biz-section-electricity">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Monthly bill (Rs)') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-electricity" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="roof_ownership" data-edit-target="#biz-section-roof-ownership">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Roof ownership') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-roof-ownership" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="tax_rate_pct" data-edit-target="#biz-section-finance">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Tax rate') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-finance" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="loan_rate_pct" data-edit-target="#biz-section-finance">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('Loan rate') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-finance" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+              <div class="biz-summary-row" data-summary-field="ppa_rate_rs_per_kwh" data-edit-target="#biz-section-finance">
+                <div class="biz-summary-meta"><span class="biz-summary-label">{{ _('PPA rate') }}</span></div>
+                <div class="biz-summary-value-wrap"><strong class="biz-summary-value biz-summary-empty">{{ _('Not provided') }}</strong><small class="biz-summary-help">{{ _('Adding this improves accuracy') }}</small></div>
+                <a href="#biz-section-finance" class="biz-summary-edit">{{ _('Edit') }}</a>
+              </div>
+            </div>
+          </div>
+
+          <aside class="biz-review-side-panel">
+            <div class="biz-use-box">
+              <h3>{{ _('What we will use') }}</h3>
+              <ul>
+                <li><span>{{ _('Savings basis') }}</span><strong>{{ _('Energy charges only') }}</strong></li>
+                <li><span>{{ _('Depreciation') }}</span><strong id="biz-depreciation-status">{{ _('Not included') }}</strong></li>
+                <li><span>{{ _('Sizing basis') }}</span><strong id="biz-sizing-basis">{{ _('Units or bill') }}</strong></li>
+              </ul>
+            </div>
+            <div class="biz-warning-box">
+              <h3>{{ _('Soft warnings') }}</h3>
+              <ul id="biz-warning-list" class="biz-warning-list"></ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <div class="biz-form-actions biz-confirm-actions">
+        <button type="submit" id="biz-confirm-button" class="biz-primary-button" disabled title="{{ _('Missing: address, roof, monthly units or bill') }}">{{ _('Confirm and see my estimate') }}</button>
+      </div>
+    </form>
+
+  </main>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('biz-estimate-form');
+    const stateInput = document.getElementById('state');
+    const stateDisplay = document.getElementById('biz-state-display');
+    const stateToggle = document.getElementById('biz-state-toggle');
+    const roofOwnership = document.getElementById('roof_ownership');
+    const rentNote = document.getElementById('biz-rented-note');
+    const meterFill = document.getElementById('biz-meter-fill');
+    const meterState = document.getElementById('biz-meter-state');
+    const sections = [...document.querySelectorAll('.biz-section')];
+    const links = [...document.querySelectorAll('.biz-section-link')];
+    const trackedFields = [
+      'address', 'latitude', 'longitude', 'business_type', 'operating_days',
+      'operating_hours', 'daytime_power_use', 'monthly_units_kwh', 'monthly_bill_rs',
+      'sanctioned_load_kw', 'tariff_category', 'roof_ownership', 'tax_rate_pct',
+      'loan_rate_pct', 'loan_tenure_years', 'ppa_rate_rs_per_kwh', 'ppa_tenure_years'
+    ];
+
+    const updateStateDisplay = () => {
+      const value = (stateInput.value || '').trim();
+      stateDisplay.textContent = value || '{{ _("Not detected") }}';
+    };
+
+    stateToggle.addEventListener('click', function () {
+      stateInput.focus();
+      stateInput.select();
+      stateInput.classList.add('biz-state-input--active');
+    });
+
+    stateInput.addEventListener('input', updateStateDisplay);
+    roofOwnership.addEventListener('change', function () {
+      rentNote.classList.toggle('hidden', this.value !== 'rented');
+    });
+
+    const computeMeter = () => {
+      let filled = 0;
+      trackedFields.forEach((fieldName) => {
+        const field = document.getElementById(fieldName);
+        if (!field) return;
+        const value = (field.value || '').trim();
+        if (value && value !== 'Not sure') {
+          filled += 1;
+        }
+      });
+      const percent = Math.min(100, (filled / trackedFields.length) * 100);
+      meterFill.style.width = percent + '%';
+      const level = percent >= 65 ? 'High' : percent >= 35 ? 'Good' : 'Basic';
+      meterState.textContent = level;
+      meterFill.dataset.level = level;
+    };
+
+    const highlightSection = () => {
+      let activeIndex = 0;
+      sections.forEach((section, index) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= 180) {
+          activeIndex = index;
+        }
+      });
+      links.forEach((link, index) => {
+        link.classList.toggle('active', index === activeIndex);
+      });
+    };
+
+    form.addEventListener('submit', function (event) {
+      const address = document.getElementById('address').value.trim();
+      const latitude = document.getElementById('latitude').value.trim();
+      const longitude = document.getElementById('longitude').value.trim();
+      const units = document.getElementById('monthly_units_kwh').value.trim();
+      const bill = document.getElementById('monthly_bill_rs').value.trim();
+      const hasRequiredLocation = Boolean(address && latitude && longitude);
+      const hasRequiredUsage = Boolean(units || bill);
+      if (!hasRequiredLocation || !hasRequiredUsage) {
+        event.preventDefault();
+        alert('{{ _("Please provide the property location and either monthly units or monthly bill.") }}');
+      }
+    });
+
+    sections.forEach((section) => {
+      section.addEventListener('click', () => highlightSection());
+    });
+    window.addEventListener('scroll', highlightSection, { passive: true });
+    window.addEventListener('resize', highlightSection);
+
+    document.querySelectorAll('input, select').forEach((field) => {
+      field.addEventListener('input', computeMeter);
+      field.addEventListener('change', computeMeter);
+    });
+
+    updateStateDisplay();
+    computeMeter();
+    highlightSection();
+  });
+</script>
+{% endblock %}

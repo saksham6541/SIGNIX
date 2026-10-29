@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Vendor review') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero dashboard-hero-split gt-dashboard-hero">
+  <div>
+    <p class="console-index">{{ _('ADMIN') }}</p>
+    <h1>{{ _('Vendor review') }}</h1>
+    <p class="tagline">{{ _('Approve or suspend registered vendors.') }}</p>
+  </div>
+</section>
+
+<section class="gt-card" style="padding: 24px; margin: 0 auto; max-width: 1100px;">
+  {% if vendors %}
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding:8px;">{{ _('Company') }}</th>
+        <th style="text-align:left; padding:8px;">{{ _('Contact') }}</th>
+        <th style="text-align:left; padding:8px;">{{ _('Status') }}</th>
+        <th style="text-align:left; padding:8px;">{{ _('Actions') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vendor in vendors %}
+      <tr>
+        <td style="padding:8px; border-top:1px solid #e5e5e5;">{{ vendor.vendor_profile.company_name if vendor.vendor_profile else vendor.display_name }}</td>
+        <td style="padding:8px; border-top:1px solid #e5e5e5;">{{ vendor.vendor_profile.contact_person if vendor.vendor_profile else vendor.display_name }}</td>
+        <td style="padding:8px; border-top:1px solid #e5e5e5;">{{ vendor.vendor_status or _('pending') }}</td>
+        <td style="padding:8px; border-top:1px solid #e5e5e5;">
+          {% if vendor.vendor_status != 'approved' %}
+          <form method="post" action="{{ url_for('auth.admin_vendor_approve', user_id=vendor.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-dashboard-cta">{{ _('Approve') }}</button>
+          </form>
+          {% endif %}
+          {% if vendor.vendor_status != 'suspended' %}
+          <form method="post" action="{{ url_for('auth.admin_vendor_suspend', user_id=vendor.id) }}" style="display:inline; margin-left:8px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-danger">{{ _('Suspend') }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>{{ _('No vendors registered yet.') }}</p>
+  {% endif %}
+</section>
+{% endblock %}

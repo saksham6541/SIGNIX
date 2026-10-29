@@ -4,7 +4,14 @@ from app.models import ApplicationTrackerEvent, db
 
 
 def initialize_database():
-    """Create the schema and wipe legacy unowned locations once."""
+    """Create the schema and add new columns safely without dropping data.
+
+    This project does not use Alembic or any other migration framework. Schema
+    changes therefore follow an additive pattern: create tables when missing,
+    then add missing columns via ALTER TABLE only when the column is absent.
+    Existing tables are never dropped or recreated in place, so existing data is
+    preserved while new features can be shipped incrementally.
+    """
     db.create_all()
     ApplicationTrackerEvent.__table__.create(bind=db.engine, checkfirst=True)
     inspector = inspect(db.engine)

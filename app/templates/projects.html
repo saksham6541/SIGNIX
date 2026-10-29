@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Projects') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+
+{% block content %}
+<section class="biz-projects-page">
+  <header class="biz-projects-header">
+    <div>
+      <p class="console-index">{{ _('BUSINESS PROJECTS') }}</p>
+      <h1>{{ _('Projects') }}</h1>
+    </div>
+    <a class="btn-dashboard-cta" href="{{ url_for('pages.business_estimate') }}">{{ _('New assessment') }} <span aria-hidden="true">→</span></a>
+  </header>
+
+  <div class="biz-projects-toolbar">
+    <form method="get" action="{{ url_for('pages.business_projects') }}" class="biz-project-search">
+      <input type="search" name="q" value="{{ search_query }}" placeholder="{{ _('Search by name, city or PIN') }}" aria-label="{{ _('Search by name, city or PIN') }}">
+    </form>
+
+    <div class="biz-status-chips" aria-label="{{ _('Project filters') }}">
+      {% set filter_values = [('all', _('All')), ('assessment_done', _('Assessment done')), ('under_review', _('Under review')), ('open_to_vendors', _('Open to vendors')), ('vendor_connected', _('Vendor connected')), ('decision', _('Decision')), ('installation', _('Installation')), ('closed', _('Closed'))] %}
+      {% for key, label in filter_values %}
+        {% set count = status_counts.get(key, 0) %}
+        <a href="{{ url_for('pages.business_projects', status=key) }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="biz-status-chip {% if selected_status == key %}active{% endif %}">
+          <span>{{ label }}</span>
+          <span class="biz-status-count">{{ count }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if projects and projects|length >= 2 %}
+  <div class="biz-projects-totals" aria-label="{{ _('Project totals') }}">
+    <div class="biz-total-card">
+      <span>{{ _('Total capacity') }}</span>
+      <strong>{{ '{:,.1f}'.format(totals.capacity_kw) }} kW</strong>
+    </div>
+    <div class="biz-total-card">
+      <span>{{ _('Total yearly savings') }}</span>
+      <strong>₹{{ '{:,.0f}'.format(totals.yearly_savings) }}</strong>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if projects %}
+  <div class="biz-projects-grid">
+    {% for project in projects %}
+    {% set summary = project_summaries[project.id] %}
+    <article class="biz-project-card">
+      <div class="biz-project-head">
+        <div>
+          <p class="console-index">{{ _('PROJECT') }}</p>
+          <h3>{{ summary.site_name }}</h3>
+        </div>
+        <span class="biz-chip biz-chip-status">{{ project_status_labels.get(project.status, project.status.replace('_', ' ').title()) }}</span>
+      </div>
+
+      <div class="biz-project-meta">
+        <div>
+          <span class="biz-meta-label">{{ _('Location') }}</span>
+          <strong>{{ summary.city or _('Not provided') }}{% if summary.pin %} · {{ summary.pin }}{% endif %}</strong>
+        </div>
+      </div>
+
+      <div class="biz-project-tags">
+        <span class="biz-chip">{{ summary.business_type }}</span>
+      </div>
+
+      <dl class="biz-project-facts">
+        <div>
+          <dt>{{ _('System size') }}</dt>
+          <dd>{{ '{:,.1f}'.format(summary.system_size_kw) }} kW</dd>
+        </div>
+        <div>
+          <dt>{{ _('Yearly savings') }}</dt>
+          <dd>₹{{ '{:,.0f}'.format(summary.yearly_savings) }}</dd>
+        </div>
+        <div>
+          <dt>{{ _('Installers') }}</dt>
+          <dd>{{ summary.installer_count }}</dd>
+        </div>
+        <div>
+          <dt>{{ _('Posted') }}</dt>
+          <dd>{{ project.created_at.strftime('%d %b %Y') if project.created_at else _('Unknown') }}</dd>
+        </div>
+      </dl>
+
+      <div class="biz-project-actions">
+        <a href="{{ url_for('pages.business_project_detail', project_id=project.id) }}" class="btn-primary">{{ _('View project') }}</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <section class="biz-project-empty-state" aria-labelledby="biz-project-empty-title">
+    <h2 id="biz-project-empty-title">{{ _('You have not created a project yet.') }}</h2>
+    <a href="{{ url_for('pages.business_estimate') }}" class="btn-grad">{{ _('Start a new assessment') }}</a>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

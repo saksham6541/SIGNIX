@@ -99,6 +99,32 @@ class Config:
         os.environ.get("DEFAULT_COMMERCIAL_TARIFF", DEFAULT_TARIFF)
     )
     DEFAULT_FEED_IN_TARIFF = 3.0  # ₹/kWh indicative export / FIT rate
+    PROJECT_CONSENT_TEXT_VERSION = "solar-project-consent-v1"
+    PROJECT_CONSENT_TEXT = (
+        "Your details are shared with selected installers only if you choose to."
+    )
+    VENDOR_STARTING_CREDITS = float(os.environ.get("VENDOR_STARTING_CREDITS", "10"))
+    VENDOR_MAX_LEADS_PER_PROJECT = _bounded_int(
+        "VENDOR_MAX_LEADS_PER_PROJECT", 3, 1, 10
+    )
+    VENDOR_LEAD_UNLOCK_COSTS = {
+        "small": float(os.environ.get("VENDOR_UNLOCK_SMALL_COST", "1")),
+        "medium": float(os.environ.get("VENDOR_UNLOCK_MEDIUM_COST", "2")),
+        "large": float(os.environ.get("VENDOR_UNLOCK_LARGE_COST", "4")),
+    }
+    BUSINESS_REVIEW_WARNING_CONFIG = {
+        "avg_rate_gap_ratio": 0.35,
+        "roof_usage_min_ratio": 0.65,
+        "marker_distance_meters": 12.0,
+    }
+    COMMERCIAL_DEPRECIATION_CONFIG = {
+        "tax_rate_note": (
+            "Subject to ownership, business use and your tax regime. "
+            "Confirm with your CA. Verify current rules."
+        ),
+        "minimum_rate_pct": 0.0,
+        "maximum_rate_pct": 100.0,
+    }
     DAILY_UNITS_PER_KW_LOW = 4.0
     DAILY_UNITS_PER_KW_HIGH = 5.5
     MONTHLY_UNITS_PER_KW = 135.0  # ~4.5 units/day × 30

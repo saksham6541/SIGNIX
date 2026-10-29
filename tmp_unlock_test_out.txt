@@ -1,0 +1,184 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_________ test_vendor_unlock_charges_once_and_ledger_matches_balance __________
+
+app = <Flask 'app'>
+
+    def test_vendor_unlock_charges_once_and_ledger_matches_balance(app):
+        with app.app_context():
+            buyer = User.query.filter_by(email="test@example.com").first()
+            location = UserLocation(
+                user_id=buyer.id,
+                address="12 MG Road, Bengaluru",
+                latitude=12.97,
+                longitude=77.59,
+                extras={
+                    "planning_track": "business",
+                    "city": "Bengaluru",
+                    "pincode": "560001",
+                    "business_type": "Shop",
+                    "preferred_model": "Buy",
+                    "system_size_kw": 12.0,
+                    "roof_area_sqm": 120.0,
+                    "monthly_units_kwh": 1600,
+                    "monthly_bill_rs": 18000,
+                },
+            )
+            db.session.add(location)
+            db.session.flush()
+            project = Project(
+                user_id=buyer.id,
+                location_id=location.id,
+                owner="Buyer",
+                status="open_to_vendors",
+                contact_name="Buyer",
+                phone="9999999999",
+                email="buyer@example.com",
+                consent_given=True,
+                consent_timestamp=datetime.now(timezone.utc),
+            )
+            vendor = User(
+                email="vendor101@example.com",
+                password_hash=generate_password_hash("unused"),
+                display_name="Vendor One",
+                role="vendor",
+                vendor_status="approved",
+                vendor_profile={"service_area": "Bengaluru,560001", "capacity_range": "5-25 kW"},
+                vendor_credits_balance=10.0,
+            )
+            db.session.add_all([project, vendor])
+            db.session.commit()
+            project_id = project.id
+            vendor_id = vendor.id
+    
+        vendor_client = app.test_client()
+        response = vendor_client.post(
+            "/login",
+            data={"email": "vendor101@example.com", "password": "unused"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 302
+    
+>       unlock_response = vendor_client.post(
+            f"/vendor/board/{project_id}/unlock",
+            data={"csrf_token": "ignored"},
+            follow_redirects=False,
+        )
+
+tests\test_project_status.py:269: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\werkzeug\test.py:1171: in post
+    return self.open(*args, **kw)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\testing.py:235: in open
+    response = super().open(
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\werkzeug\test.py:1120: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\werkzeug\test.py:992: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\werkzeug\test.py:1268: in run_wsgi_app
+    app_rv = app(environ, start_response)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py:1498: in __call__
+    return self.wsgi_app(environ, start_response)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py:1476: in wsgi_app
+    response = self.handle_exception(e)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py:1473: in wsgi_app
+    response = self.full_dispatch_request()
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py:882: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py:880: in full_dispatch_request
+    rv = self.dispatch_request()
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py:865: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_login\utils.py:290: in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_login\utils.py:290: in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+app\auth.py:39: in wrapper
+    return view_func(*args, **kwargs)
+app\auth.py:52: in wrapper
+    return view_func(*args, **kwargs)
+app\auth.py:294: in vendor_unlock_project
+    with db.session.begin():
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\scoping.py:443: in begin
+    return self._proxied.begin(nested=nested)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.session.Session object at 0x00000268F89ABDA0>
+nested = False
+
+    def begin(self, nested: bool = False) -> SessionTransaction:
+        """Begin a transaction, or nested transaction,
+        on this :class:`.Session`, if one is not already begun.
+    
+        The :class:`_orm.Session` object features **autobegin** behavior,
+        so that normally it is not necessary to call the
+        :meth:`_orm.Session.begin`
+        method explicitly. However, it may be used in order to control
+        the scope of when the transactional state is begun.
+    
+        When used to begin the outermost transaction, an error is raised
+        if this :class:`.Session` is already inside of a transaction.
+    
+        :param nested: if True, begins a SAVEPOINT transaction and is
+         equivalent to calling :meth:`~.Session.begin_nested`. For
+         documentation on SAVEPOINT transactions, please see
+         :ref:`session_begin_nested`.
+    
+        :return: the :class:`.SessionTransaction` object.  Note that
+         :class:`.SessionTransaction`
+         acts as a Python context manager, allowing :meth:`.Session.begin`
+         to be used in a "with" block.  See :ref:`session_explicit_begin` for
+         an example.
+    
+        .. seealso::
+    
+            :ref:`session_autobegin`
+    
+            :ref:`unitofwork_transaction`
+    
+            :meth:`.Session.begin_nested`
+    
+    
+        """
+    
+        trans = self._transaction
+        if trans is None:
+            trans = self._autobegin_t(begin=True)
+    
+            if not nested:
+                return trans
+    
+        assert trans is not None
+    
+        if nested:
+            trans = trans._begin(nested=nested)
+            assert self._transaction is trans
+            self._nested_transaction = trans
+        else:
+>           raise sa_exc.InvalidRequestError(
+                "A transaction is already begun on this Session."
+            )
+E           sqlalchemy.exc.InvalidRequestError: A transaction is already begun on this Session.
+
+..\..\AppData\Local\Programs\Python\Python312\Lib\site-packages\sqlalchemy\orm\session.py:1928: InvalidRequestError
+============================== warnings summary ===============================
+tests/test_project_status.py::test_vendor_unlock_charges_once_and_ledger_matches_balance
+  C:\Users\Pc\Downloads\SIGNIX\tests\conftest.py:65: SAWarning: relationship 'VendorLeadUnlock.vendor_user' will copy column users.id to column vendor_lead_unlocks.vendor_user_id, which conflicts with relationship(s): 'User.vendor_unlocks' (copies users.id to vendor_lead_unlocks.vendor_user_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="vendor_unlocks"' to the 'VendorLeadUnlock.vendor_user' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+    User(
+
+tests/test_project_status.py::test_vendor_unlock_charges_once_and_ledger_matches_balance
+  C:\Users\Pc\Downloads\SIGNIX\tests\conftest.py:65: SAWarning: relationship 'VendorCreditLedger.vendor_user' will copy column users.id to column vendor_credit_ledger.vendor_user_id, which conflicts with relationship(s): 'User.vendor_credit_ledger' (copies users.id to vendor_credit_ledger.vendor_user_id). If this is not the intention, consider if these relationships should be linked with back_populates, or if viewonly=True should be applied to one or more if they are read-only. For the less common case that foreign key constraints are partially overlapping, the orm.foreign() annotation can be used to isolate the columns that should be written towards.   To silence this warning, add the parameter 'overlaps="vendor_credit_ledger"' to the 'VendorCreditLedger.vendor_user' relationship. (Background on this warning at: https://sqlalche.me/e/20/qzyx) (This warning originated from the `configure_mappers()` process, which was invoked automatically in response to a user-initiated operation.)
+    User(
+
+tests/test_project_status.py::test_vendor_unlock_charges_once_and_ledger_matches_balance
+  C:\Users\Pc\AppData\Local\Programs\Python\Python312\Lib\site-packages\wtforms\fields\choices.py:624: DeprecationWarning: Passing SelectField choices as tuples is deprecated and will be removed in wtforms 3.4. Please use SelectChoice instead.
+    super().__init__(label, validators, **kwargs)
+
+tests/test_project_status.py::test_vendor_unlock_charges_once_and_ledger_matches_balance
+  C:\Users\Pc\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_sqlalchemy\query.py:30: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    rv = self.get(ident)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_project_status.py::test_vendor_unlock_charges_once_and_ledger_matches_balance
+1 failed, 4 warnings in 3.43s

@@ -394,3 +394,89 @@ def test_legacy_invalid_obstructions_are_rejected_before_recalculation(client, a
         saved = db.session.get(UserLocation, legacy_id)
         assert saved.roof_group_id is None
         assert UserLocation.query.count() == before
+
+
+def test_business_estimate_page_renders(client):
+    response = client.get("/business/estimate")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Estimate accuracy" in html
+    assert "State" in html
+
+
+def test_business_estimate_requires_location_and_usage(client):
+    response = client.post(
+        "/business/estimate",
+        json={
+            "address": "",
+            "latitude": 28.6139,
+            "longitude": 77.2090,
+            "polygon": [
+                [28.6139, 77.2090],
+                [28.6139, 77.2092],
+                [28.6141, 77.2092],
+                [28.6141, 77.2090],
+            ],
+        },
+    )
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "Address is required"
+
+    response = client.post(
+        "/business/estimate",
+        json={
+            "address": "Business rooftop",
+            "latitude": 28.6139,
+            "longitude": 77.2090,
+            "polygon": [
+                [28.6139, 77.2090],
+                [28.6139, 77.2092],
+                [28.6141, 77.2092],
+                [28.6141, 77.2090],
+            ],
+        },
+    )
+    assert response.status_code == 400
+    assert response.get_json()["error"] == "Monthly units or monthly bill is required"
+
+
+def test_business_estimate_saves_valid_payload(client, app):
+    payload = {
+        "address": "Business rooftop",
+        "latitude": 28.6139,
+        "longitude": 77.2090,
+        "polygon": [
+            [28.6139, 77.2090],
+            [28.6139, 77.2092],
+            [28.6141, 77.2092],
+            [28.6141, 77.2090],
+        ],
+        "state": "Maharashtra",
+        "business_type": "Shop",
+        "daytime_power_use": "mixed",
+        "operating_days": 6,
+        "operating_hours": "9am-6pm",
+        "monthly_units_kwh": 1200,
+        "roof_ownership": "own",
+        "tax_rate_pct": 25,
+        "loan_rate_pct": 9.5,
+        "loan_tenure_years": 6,
+        "ppa_rate_rs_per_kwh": 5.5,
+        "ppa_tenure_years": 7,
+        "include_depreciation_tax_benefit": "on",
+    }
+
+    response = client.post("/business/estimate", json=payload)
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "saved"
+    assert data["location_id"] > 0
+    with app.app_context():
+        location = db.session.get(UserLocation, data["location_id"])
+        assert location is not None
+        assert location.extras["planning_track"] == "business"
+        assert location.extras["business_type"] == "Shop"
+        assert location.extras["monthly_units_kwh"] == 1200.0
+        assert location.extras["include_depreciation_tax_benefit"] is True

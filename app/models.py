@@ -7,6 +7,55 @@ from flask_login import UserMixin
 db = SQLAlchemy()
 
 
+PROJECT_STATUS_CHOICES = (
+    "assessment_done",
+    "under_review",
+    "open_to_vendors",
+    "vendor_connected",
+    "decision",
+    "installation",
+    "closed",
+)
+
+PROJECT_STATUS_PERMISSIONS = {
+    "user": {"assessment_done", "under_review", "open_to_vendors", "closed"},
+    "vendor": {"open_to_vendors", "vendor_connected", "decision", "closed"},
+    "admin": {
+        "under_review",
+        "open_to_vendors",
+        "vendor_connected",
+        "decision",
+        "installation",
+        "closed",
+    },
+    "system": {"assessment_done", "under_review", "open_to_vendors"},
+}
+
+PROJECT_STATUS_TRANSITIONS = {
+    "user": {
+        "assessment_done": {"under_review", "open_to_vendors", "closed"},
+        "under_review": {"open_to_vendors", "closed"},
+        "open_to_vendors": {"closed"},
+    },
+    "vendor": {
+        "open_to_vendors": {"vendor_connected", "closed"},
+        "vendor_connected": {"decision", "closed"},
+        "decision": {"closed"},
+    },
+    "admin": {
+        "under_review": {"open_to_vendors"},
+        "open_to_vendors": {"vendor_connected"},
+        "vendor_connected": {"decision"},
+        "decision": {"installation"},
+        "installation": {"closed"},
+    },
+    "system": {
+        "assessment_done": {"assessment_done", "under_review"},
+        "under_review": {"open_to_vendors"},
+    },
+}
+
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
@@ -15,6 +64,10 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     display_name = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    role = db.Column(db.String(32), nullable=False, default="user", index=True)
+    vendor_status = db.Column(db.String(32), nullable=True, index=True)
+    vendor_profile = db.Column(db.JSON, nullable=True)
+    vendor_credits_balance = db.Column(db.Float, nullable=False, default=0.0)
     default_tariff_per_kwh = db.Column(db.Float, nullable=True)
     default_state = db.Column(db.String(128), nullable=True)
     default_property_type = db.Column(db.String(32), nullable=True)
@@ -25,6 +78,33 @@ class User(UserMixin, db.Model):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    projects = db.relationship(
+        "Project",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    vendor_unlocks = db.relationship(
+        "VendorLeadUnlock",
+        foreign_keys="VendorLeadUnlock.vendor_user_id",
+        cascade="all, delete-orphan",
+    )
+    vendor_credit_ledger = db.relationship(
+        "VendorCreditLedger",
+        foreign_keys="VendorCreditLedger.vendor_user_id",
+        cascade="all, delete-orphan",
+    )
+
+    @property
+    def is_admin(self):
+        return self.role == "admin"
+
+    @property
+    def is_vendor(self):
+        return self.role == "vendor"
+
+    @property
+    def is_vendor_approved(self):
+        return self.role == "vendor" and (self.vendor_status or "pending") == "approved"
 
 
 class UserLocation(db.Model):
@@ -121,6 +201,11 @@ class UserLocation(db.Model):
         back_populates="location",
         cascade="all, delete-orphan",
         order_by="ApplicationTrackerEvent.created_at",
+    )
+    projects = db.relationship(
+        "Project",
+        back_populates="location",
+        cascade="all, delete-orphan",
     )
 
     def to_dict(self):
@@ -314,6 +399,286 @@ class ApplicationTrackerEvent(db.Model):
     note = db.Column(db.String(1000), nullable=True)
     created_at = db.Column(
         db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
+
+
+class VendorLeadUnlock(db.Model):
+    __tablename__ = "vendor_lead_unlocks"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "vendor_user_id",
+            "project_id",
+            name="uq_vendor_lead_unlock_vendor_project",
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    vendor_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    vendor_user = db.relationship(
+        "User",
+        foreign_keys=[vendor_user_id],
+        overlaps="vendor_unlocks",
+    )
+    project_id = db.Column(
+        db.Integer,
+        db.ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    project = db.relationship("Project", back_populates="vendor_unlocks")
+    credits_charged = db.Column(db.Float, nullable=False, default=0.0)
+    unlocked_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    source = db.Column(db.String(64), nullable=False, default="lead_unlock")
+
+
+class VendorCreditLedger(db.Model):
+    __tablename__ = "vendor_credit_ledger"
+
+    id = db.Column(db.Integer, primary_key=True)
+    vendor_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    vendor_user = db.relationship(
+        "User",
+        foreign_keys=[vendor_user_id],
+        overlaps="vendor_credit_ledger",
+    )
+    project_id = db.Column(
+        db.Integer,
+        db.ForeignKey("projects.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    delta = db.Column(db.Float, nullable=False, default=0.0)
+    balance_after = db.Column(db.Float, nullable=False, default=0.0)
+    reason = db.Column(db.String(128), nullable=False)
+    note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
+class AdminActionLog(db.Model):
+    __tablename__ = "admin_action_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    actor_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    actor_user = db.relationship("User", foreign_keys=[actor_user_id])
+    action = db.Column(db.String(64), nullable=False, index=True)
+    target_type = db.Column(db.String(64), nullable=True, index=True)
+    target_id = db.Column(db.Integer, nullable=True, index=True)
+    detail = db.Column(db.Text, nullable=True)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
+class VendorRefundRequest(db.Model):
+    __tablename__ = "vendor_refund_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    vendor_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    vendor_user = db.relationship("User", foreign_keys=[vendor_user_id])
+    project_id = db.Column(
+        db.Integer,
+        db.ForeignKey("projects.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    project = db.relationship("Project", foreign_keys=[project_id])
+    issue_type = db.Column(db.String(64), nullable=False, default="duplicate")
+    reason = db.Column(db.Text, nullable=True)
+    amount = db.Column(db.Float, nullable=False, default=0.0)
+    status = db.Column(db.String(32), nullable=False, default="pending", index=True)
+    reviewed_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    reviewed_by_user = db.relationship("User", foreign_keys=[reviewed_by_user_id])
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
+class Project(db.Model):
+    """Commercial project record tied to a user and their saved estimate."""
+
+    __tablename__ = "projects"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "location_id",
+            name="uq_projects_location",
+        ),
+        CheckConstraint(
+            "status IN ('assessment_done', 'under_review', 'open_to_vendors', "
+            "'vendor_connected', 'decision', 'installation', 'closed')",
+            name="ck_projects_status",
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user = db.relationship("User", back_populates="projects")
+
+    location_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user_locations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+        unique=True,
+    )
+    location = db.relationship("UserLocation", back_populates="projects")
+
+    owner = db.Column(db.String(128), nullable=False, default="")
+    location_link = db.Column(db.String(512), nullable=True)
+    status = db.Column(
+        db.String(32),
+        nullable=False,
+        default="assessment_done",
+        index=True,
+    )
+    contact_name = db.Column(db.String(128), nullable=True)
+    phone = db.Column(db.String(64), nullable=True)
+    email = db.Column(db.String(320), nullable=True)
+    note = db.Column(db.Text, nullable=True)
+    consent_given = db.Column(db.Boolean, nullable=False, default=False)
+    consent_timestamp = db.Column(db.DateTime, nullable=True)
+    consent_text_version = db.Column(db.String(64), nullable=True)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    closed_at = db.Column(db.DateTime, nullable=True)
+
+    status_logs = db.relationship(
+        "ProjectStatusLog",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="ProjectStatusLog.changed_at",
+    )
+    vendor_unlocks = db.relationship(
+        "VendorLeadUnlock",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        order_by="VendorLeadUnlock.unlocked_at",
+    )
+
+    @classmethod
+    def allowed_statuses_for(cls, actor_role):
+        return set(PROJECT_STATUS_PERMISSIONS.get(actor_role, set()))
+
+    @classmethod
+    def is_valid_transition(cls, actor_role, from_status, to_status):
+        if actor_role not in PROJECT_STATUS_PERMISSIONS:
+            return False
+        if to_status not in PROJECT_STATUS_PERMISSIONS[actor_role]:
+            return False
+        allowed_targets = PROJECT_STATUS_TRANSITIONS.get(actor_role, {}).get(
+            from_status, set()
+        )
+        return to_status in allowed_targets or (
+            from_status == to_status and to_status in allowed_targets.union({to_status})
+        )
+
+    def transition_status(self, actor_role, actor_user_id, to_status, *, note=None):
+        if not self.is_valid_transition(actor_role, self.status, to_status):
+            raise ValueError(
+                f"Status change from {self.status} to {to_status} is not allowed for {actor_role}."
+            )
+
+        previous_status = self.status
+        self.status = to_status
+        if to_status == "closed":
+            self.closed_at = datetime.now(timezone.utc)
+        elif previous_status == "closed":
+            self.closed_at = None
+        self.updated_at = datetime.now(timezone.utc)
+
+        log = ProjectStatusLog(
+            project_id=self.id,
+            actor_role=actor_role,
+            actor_user_id=actor_user_id,
+            from_status=previous_status,
+            to_status=to_status,
+            note=note,
+        )
+        db.session.add(log)
+        return log
+
+
+class ProjectStatusLog(db.Model):
+    """Tracks status changes for a project by actor role and user."""
+
+    __tablename__ = "project_status_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(
+        db.Integer,
+        db.ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    project = db.relationship("Project", back_populates="status_logs")
+
+    actor_role = db.Column(db.String(32), nullable=False)
+    actor_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    actor_user = db.relationship("User", foreign_keys=[actor_user_id])
+
+    from_status = db.Column(db.String(32), nullable=False)
+    to_status = db.Column(db.String(32), nullable=False)
+    note = db.Column(db.Text, nullable=True)
+    changed_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
     )
 
 

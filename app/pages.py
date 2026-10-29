@@ -1,4 +1,5 @@
-from datetime import date
+import re
+from datetime import date, datetime, timezone
 
 from flask import (
     Blueprint,
@@ -17,10 +18,11 @@ from flask_login import current_user, login_required
 
 from app.application_checklist import build_pm_surya_ghar_guidance
 from app.config import Config
-from app.models import ApplicationTrackerEvent, UserLocation, db
+from app.models import ApplicationTrackerEvent, Project, UserLocation, db
 from app.report_generator import generate_pdf_report
 from app.installer_export import build_installer_package_zip
 from app.services import location_service
+from app.services.commercial_calculation_service import calculate_commercial_project
 from app.solar_logic import calculate_environmental_equivalents
 from app.forms import INDIAN_STATES
 
@@ -97,6 +99,17 @@ def _psg_rule_context():
         "per_kw_extra_2_to_3": Config.SUBSIDY_EXTRA_2_TO_3,
         "cap": Config.SUBSIDY_CAP,
     }
+
+
+def _project_is_business(location):
+    if location is None or location.user_id != current_user.id:
+        return False
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    track = str(extras.get("planning_track") or "").strip().lower()
+    if track == "business":
+        return True
+    property_type = str(extras.get("property_type") or "").strip().lower()
+    return property_type in {"commercial", "industrial", "msme", "factory"}
 
 
 @pages_bp.route("/")
@@ -196,6 +209,577 @@ def survey(planning_track):
         else None,
         psg_rule=_psg_rule_context(),
     )
+
+
+def _finite_float(value, field_name, *, minimum=None, maximum=None, allow_none=False):
+    if value in (None, ""):
+        if allow_none:
+            return None
+        raise ValueError(f"{field_name} is required")
+    if isinstance(value, bool):
+        raise ValueError(f"{field_name} must be a finite number")
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be a finite number")
+    if number != number or number in (float("inf"), float("-inf")):
+        raise ValueError(f"{field_name} must be a finite number")
+    if minimum is not None and number < minimum:
+        raise ValueError(f"{field_name} must be at least {minimum:g}")
+    if maximum is not None and number > maximum:
+        raise ValueError(f"{field_name} must be at most {maximum:g}")
+    return number
+
+
+def _save_business_estimate_payload(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("Request body must be a JSON object")
+
+    address = (payload.get("address") or "").strip()
+    if not address:
+        raise ValueError("Address is required")
+
+    try:
+        latitude = _finite_float(
+            payload.get("latitude"), "latitude", minimum=-90, maximum=90
+        )
+        longitude = _finite_float(
+            payload.get("longitude"), "longitude", minimum=-180, maximum=180
+        )
+    except ValueError as exc:
+        raise ValueError(str(exc)) from exc
+
+    polygon = payload.get("polygon") or []
+    if not isinstance(polygon, list) or len(polygon) < 3:
+        raise ValueError("A rooftop polygon with at least 3 points is required")
+
+    for point in polygon:
+        if not isinstance(point, (list, tuple)) or len(point) < 2:
+            raise ValueError("Each polygon point must include latitude and longitude")
+        try:
+            float(point[0])
+            float(point[1])
+        except (TypeError, ValueError):
+            raise ValueError("Polygon coordinates must be numeric")
+
+    monthly_units = payload.get("monthly_units_kwh")
+    monthly_bill = payload.get("monthly_bill_rs")
+    if monthly_units in (None, "") and monthly_bill in (None, ""):
+        raise ValueError("Monthly units or monthly bill is required")
+
+    if monthly_units not in (None, ""):
+        try:
+            _finite_float(monthly_units, "monthly_units_kwh", minimum=0)
+        except ValueError as exc:
+            raise ValueError(str(exc)) from exc
+    if monthly_bill not in (None, ""):
+        try:
+            _finite_float(monthly_bill, "monthly_bill_rs", minimum=0)
+        except ValueError as exc:
+            raise ValueError(str(exc)) from exc
+
+    state = (payload.get("state") or "").strip() or current_user.default_state
+    business_type = (payload.get("business_type") or "").strip() or None
+    roof_ownership = (payload.get("roof_ownership") or "").strip() or None
+    daytime_power_use = (payload.get("daytime_power_use") or "").strip() or None
+    operating_hours = payload.get("operating_hours")
+    if operating_hours not in (None, ""):
+        operating_hours = str(operating_hours).strip() or None
+
+    roof_shape = {
+        "type": "Polygon",
+        "coordinates": [[float(point[1]), float(point[0])] for point in polygon],
+    }
+    obstructions = payload.get("obstructions") or []
+    obstructions_payload = None
+    if isinstance(obstructions, list) and obstructions:
+        obstructions_payload = {
+            "type": "MultiPolygon",
+            "coordinates": [
+                [[float(obs_point[1]), float(obs_point[0])] for obs_point in obstruction]
+                for obstruction in obstructions
+                if isinstance(obstruction, (list, tuple))
+            ],
+        }
+
+    extras = {
+        "planning_track": "business",
+        "property_type": "commercial",
+        "state": state,
+        "business_type": business_type,
+        "operating_days": payload.get("operating_days"),
+        "operating_hours": operating_hours,
+        "daytime_power_use": daytime_power_use,
+        "monthly_units_kwh": (
+            float(monthly_units) if monthly_units not in (None, "") else None
+        ),
+        "monthly_bill_rs": (
+            float(monthly_bill) if monthly_bill not in (None, "") else None
+        ),
+        "sanctioned_load_kw": payload.get("sanctioned_load_kw"),
+        "tariff_category": payload.get("tariff_category"),
+        "tariff_per_kwh": payload.get("tariff_per_kwh"),
+        "roof_ownership": roof_ownership,
+        "shade_chip": payload.get("shade_chip"),
+        "tax_rate_pct": payload.get("tax_rate_pct"),
+        "loan_rate_pct": payload.get("loan_rate_pct"),
+        "loan_tenure_years": payload.get("loan_tenure_years"),
+        "ppa_rate_rs_per_kwh": payload.get("ppa_rate_rs_per_kwh"),
+        "ppa_tenure_years": payload.get("ppa_tenure_years"),
+        "include_depreciation_tax_benefit": bool(
+            payload.get("include_depreciation_tax_benefit")
+        ),
+        "roof_area_sqm": payload.get("roof_area_sqm"),
+        "usable_area_sqm": payload.get("usable_area_sqm"),
+        "orientation_deg": payload.get("orientation_deg"),
+        "orientation_label": payload.get("orientation_label"),
+        "source": "business_estimate_page",
+    }
+
+    location = UserLocation(
+        user_id=current_user.id,
+        address=address,
+        latitude=latitude,
+        longitude=longitude,
+        polygon_geojson=roof_shape,
+        obstructions_geojson=obstructions_payload,
+        system_size=0.0,
+        annual_generation=0.0,
+        monthly_data={},
+        roof_area_sqm=(
+            float(payload.get("roof_area_sqm"))
+            if payload.get("roof_area_sqm") not in (None, "")
+            else None
+        ),
+        obstructed_area_sqm=(
+            float(payload.get("obstructed_area_sqm"))
+            if payload.get("obstructed_area_sqm") not in (None, "")
+            else None
+        ),
+        usable_area_sqm=(
+            float(payload.get("usable_area_sqm"))
+            if payload.get("usable_area_sqm") not in (None, "")
+            else None
+        ),
+        system_cost=0.0,
+        subsidy_amount=0.0,
+        net_investment=0.0,
+        monthly_savings=0.0,
+        co2_reduction_tons=0.0,
+        irradiance_source=None,
+        orientation_deg=(
+            float(payload.get("orientation_deg"))
+            if payload.get("orientation_deg") not in (None, "")
+            else None
+        ),
+        orientation_label=(payload.get("orientation_label") or None),
+        orientation_factor=(
+            float(payload.get("orientation_factor"))
+            if payload.get("orientation_factor") not in (None, "")
+            else None
+        ),
+        extras=extras,
+    )
+    db.session.add(location)
+    db.session.commit()
+    session["planning_track"] = "business"
+    return location
+
+
+@pages_bp.route("/business/estimate", methods=["GET", "POST"])
+@login_required
+def business_estimate():
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or request.form.to_dict(flat=True)
+        try:
+            location = _save_business_estimate_payload(payload)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({
+            "status": "saved",
+            "location_id": location.id,
+            "planning_track": "business",
+        })
+
+    session["planning_track"] = "business"
+    return render_template(
+        "business_estimate.html",
+        planning_track="business",
+        default_state=current_user.default_state,
+        business_warning_config=Config.BUSINESS_REVIEW_WARNING_CONFIG,
+    )
+
+
+@pages_bp.route("/business/estimate/confirm", methods=["POST"])
+@login_required
+def business_estimate_confirm():
+    payload = request.get_json(silent=True) or request.form.to_dict(flat=True)
+    try:
+        location = _save_business_estimate_payload(payload)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return redirect(
+        url_for("pages.business_estimate_result", location_id=location.id)
+    )
+
+
+@pages_bp.route("/business/estimate/result/<int:location_id>")
+@login_required
+def business_estimate_result(location_id):
+    location = db.session.get(UserLocation, location_id)
+    if location is None or location.user_id != current_user.id:
+        abort(404)
+    session["planning_track"] = "business"
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    monthly_units = extras.get("monthly_units_kwh")
+    monthly_bill = extras.get("monthly_bill_rs")
+    annual_generation = float(extras.get("annual_generation_kwh") or 0.0) or (
+        float(monthly_units or 0.0) * 12.0 if monthly_units not in (None, "") else 0.0
+    )
+    project = calculate_commercial_project(
+        system_size_kw=extras.get("system_size_kw") or extras.get("roof_area_sqm") and (float(extras.get("roof_area_sqm") or 0.0) / 10.0),
+        annual_generation_kwh=annual_generation,
+        tariff_per_kwh=extras.get("tariff_per_kwh") or Config.DEFAULT_COMMERCIAL_TARIFF,
+        roof_capacity_kw=extras.get("roof_area_sqm") and (float(extras.get("roof_area_sqm") or 0.0) / 10.0),
+        down_payment_pct=extras.get("down_payment_pct") or 20.0,
+        loan_rate_pct=extras.get("loan_rate_pct") or 10.0,
+        loan_tenure_years=extras.get("loan_tenure_years") or 5,
+        ppa_rate_rs_per_kwh=extras.get("ppa_rate_rs_per_kwh"),
+        ppa_tenure_years=extras.get("ppa_tenure_years") or 10,
+        ppa_escalation_pct=extras.get("ppa_escalation_pct") or 0.0,
+        tax_rate_pct=extras.get("tax_rate_pct") or 0.0,
+        include_depreciation_tax_benefit=bool(extras.get("include_depreciation_tax_benefit")),
+        annual_tariff_escalation=Config.DEFAULT_TARIFF,
+    )
+    project_rows = Project.query.filter_by(user_id=current_user.id, location_id=location.id).order_by(Project.created_at.desc()).all()
+    return render_template(
+        "business_estimate_result.html",
+        planning_track="business",
+        location=location,
+        project=project,
+        extras=extras,
+        projects=project_rows,
+        consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
+    )
+
+
+def _project_location_context(project):
+    location = project.location
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    location_context = extras.get("location_context") if isinstance(extras.get("location_context"), dict) else {}
+    city = (
+        (extras.get("city") or location_context.get("city") or location.address or "")
+        .strip()
+    )
+    pin = (extras.get("pincode") or location_context.get("pincode") or "")
+    if not pin:
+        match = re.search(r"\b(\d{6})\b", location.address or "")
+        if match:
+            pin = match.group(1)
+    if not city and location.address:
+        city = location.address
+    business_type = (
+        extras.get("business_type")
+        or extras.get("property_type")
+        or "Commercial"
+    )
+    return {
+        "site_name": project.owner or (location.address or "Project"),
+        "city": city,
+        "pin": pin,
+        "business_type": str(business_type).replace("_", " ").title(),
+        "system_size_kw": float(location.system_size or extras.get("system_size_kw") or 0.0),
+        "yearly_savings": float(
+            extras.get("annual_net_benefit")
+            or (location.monthly_savings * 12 if location.monthly_savings else 0.0)
+            or 0.0
+        ),
+        "installer_count": 0,
+        "posted_date": project.created_at.date().isoformat() if project.created_at else None,
+    }
+
+
+def _project_status_label(status):
+    labels = {
+        "assessment_done": "Assessment done",
+        "under_review": "Under review",
+        "open_to_vendors": "Open to vendors",
+        "vendor_connected": "Vendor connected",
+        "decision": "Decision",
+        "installation": "Installation",
+        "closed": "Closed",
+    }
+    return labels.get(status, status.replace("_", " ").title())
+
+
+@pages_bp.get("/api/projects")
+@login_required
+def api_projects():
+    projects = Project.query.filter_by(user_id=current_user.id).order_by(Project.created_at.desc()).all()
+    return jsonify(
+        {
+            "projects": [
+                {
+                    "id": project.id,
+                    "location_id": project.location_id,
+                    "status": project.status,
+                    "contact_name": project.contact_name,
+                    "email": project.email,
+                    "phone": project.phone,
+                    "closed_at": project.closed_at.isoformat() if project.closed_at else None,
+                }
+                for project in projects
+            ]
+        }
+    )
+
+
+@pages_bp.route("/business/projects")
+@login_required
+def business_projects():
+    status_filter = (request.args.get("status") or "all").strip().lower()
+    query = (request.args.get("q") or "").strip().lower()
+    projects = Project.query.filter_by(user_id=current_user.id).order_by(Project.created_at.desc()).all()
+
+    filtered_projects = []
+    for project in projects:
+        summary = _project_location_context(project)
+        text = " ".join(
+            [
+                project.owner or "",
+                project.contact_name or "",
+                summary["site_name"] or "",
+                summary["city"] or "",
+                summary["pin"] or "",
+                project.status or "",
+                summary["business_type"] or "",
+            ]
+        ).lower()
+        if status_filter != "all" and project.status != status_filter:
+            continue
+        if query and query not in text:
+            continue
+        filtered_projects.append(project)
+
+    status_counts = {
+        "all": len(projects),
+        "assessment_done": 0,
+        "under_review": 0,
+        "open_to_vendors": 0,
+        "vendor_connected": 0,
+        "decision": 0,
+        "installation": 0,
+        "closed": 0,
+    }
+    for project in projects:
+        status_counts[project.status] = status_counts.get(project.status, 0) + 1
+
+    project_summaries = {project.id: _project_location_context(project) for project in filtered_projects}
+    totals = {
+        "capacity_kw": sum(project_summaries[project.id]["system_size_kw"] for project in filtered_projects),
+        "yearly_savings": sum(project_summaries[project.id]["yearly_savings"] for project in filtered_projects),
+    }
+
+    session["planning_track"] = "business"
+    return render_template(
+        "projects.html",
+        planning_track="business",
+        projects=filtered_projects,
+        project_summaries=project_summaries,
+        project_status_labels={status: _project_status_label(status) for status in status_counts if status != "all"},
+        selected_status=status_filter,
+        search_query=query,
+        status_counts=status_counts,
+        totals=totals,
+        active_nav="projects",
+        project_context={
+            "page_title": "Projects",
+            "business_track": True,
+        },
+    )
+
+
+@pages_bp.route("/projects")
+@login_required
+def projects_page():
+    status_filter = (request.args.get("status") or "all").strip().lower()
+    query = (request.args.get("q") or "").strip().lower()
+    projects = Project.query.filter_by(user_id=current_user.id).order_by(Project.created_at.desc()).all()
+
+    filtered_projects = []
+    for project in projects:
+        summary = _project_location_context(project)
+        text = " ".join(
+            [
+                project.owner or "",
+                project.contact_name or "",
+                summary["site_name"] or "",
+                summary["city"] or "",
+                summary["pin"] or "",
+                project.status or "",
+                summary["business_type"] or "",
+            ]
+        ).lower()
+        if status_filter != "all" and project.status != status_filter:
+            continue
+        if query and query not in text:
+            continue
+        filtered_projects.append(project)
+
+    status_counts = {
+        "all": len(projects),
+        "assessment_done": 0,
+        "under_review": 0,
+        "open_to_vendors": 0,
+        "vendor_connected": 0,
+        "decision": 0,
+        "installation": 0,
+        "closed": 0,
+    }
+    for project in projects:
+        status_counts[project.status] = status_counts.get(project.status, 0) + 1
+
+    totals = {
+        "capacity_kw": sum(_project_location_context(project)["system_size_kw"] for project in filtered_projects),
+        "yearly_savings": sum(_project_location_context(project)["yearly_savings"] for project in filtered_projects),
+    }
+
+    return jsonify({
+        "projects": [
+            {
+                "id": project.id,
+                "location_id": project.location_id,
+                "status": project.status,
+                "owner": project.owner,
+                "site_name": _project_location_context(project)["site_name"],
+                "city": _project_location_context(project)["city"],
+                "pin": _project_location_context(project)["pin"],
+                "system_size_kw": _project_location_context(project)["system_size_kw"],
+                "yearly_savings": _project_location_context(project)["yearly_savings"],
+            }
+            for project in filtered_projects
+        ],
+        "counts": status_counts,
+    })
+
+
+@pages_bp.route("/projects/<int:project_id>")
+@login_required
+def project_detail(project_id):
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
+    location = project.location
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    summary = _project_location_context(project)
+    active_status = _project_status_label(project.status)
+    yearly_savings = summary["yearly_savings"]
+    return render_template(
+        "project_detail.html",
+        project=project,
+        location=location,
+        extras=extras,
+        summary=summary,
+        yearly_savings=yearly_savings,
+        status_label=active_status,
+        installer_count=summary["installer_count"],
+    )
+
+
+@pages_bp.route("/business/projects/<int:project_id>")
+@login_required
+def business_project_detail(project_id):
+    return project_detail(project_id)
+
+
+@pages_bp.post("/projects/create")
+@login_required
+def create_project():
+    location_id = request.form.get("location_id")
+    if location_id is None and request.is_json:
+        payload = request.get_json(silent=True) or {}
+        location_id = payload.get("location_id")
+    try:
+        location_id = int(location_id)
+    except (TypeError, ValueError):
+        flash(_("Choose a valid commercial assessment to turn into a project."), "error")
+        return redirect(url_for("pages.dashboard"))
+
+    location = db.session.get(UserLocation, location_id)
+    if location is None or location.user_id != current_user.id or not _project_is_business(location):
+        abort(400)
+
+    contact_name = (request.form.get("contact_name") or "").strip() or current_user.display_name
+    phone = (request.form.get("phone") or "").strip()
+    email = (request.form.get("email") or "").strip() or current_user.email
+    note = (request.form.get("note") or "").strip()
+    consent_given = request.form.get("consent_given") in {"1", "true", "yes", "on"}
+    consent_fee = request.form.get("consent_fee") in {"1", "true", "yes", "on"}
+    if not consent_given or not consent_fee:
+        flash(_("Both consent statements are required before a project can be created."), "error")
+        return redirect(url_for("pages.business_estimate_result", location_id=location.id))
+
+    project = Project.query.filter_by(user_id=current_user.id, location_id=location.id).first()
+    if project is None:
+        project = Project(
+            user_id=current_user.id,
+            location_id=location.id,
+            owner=current_user.display_name or contact_name,
+            location_link=url_for("pages.business_estimate_result", location_id=location.id, _external=True),
+            status="assessment_done",
+            consent_given=True,
+            consent_timestamp=datetime.now(timezone.utc),
+            consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
+            contact_name=contact_name,
+            phone=phone or None,
+            email=email or None,
+            note=note or None,
+        )
+        db.session.add(project)
+        db.session.flush()
+        project.transition_status("user", current_user.id, "under_review", note="Project created")
+    else:
+        project.owner = current_user.display_name or contact_name
+        project.location_link = url_for("pages.business_estimate_result", location_id=location.id, _external=True)
+        project.contact_name = contact_name
+        project.phone = phone or None
+        project.email = email or None
+        project.note = note or None
+        project.consent_given = True
+        project.consent_timestamp = datetime.now(timezone.utc)
+        project.consent_text_version = Config.PROJECT_CONSENT_TEXT_VERSION
+        if project.status == "closed":
+            project.status = "assessment_done"
+            project.closed_at = None
+        if project.status == "assessment_done":
+            project.transition_status("user", current_user.id, "under_review", note="Project created")
+
+    db.session.commit()
+    flash(_("Project created and sent for review."), "success")
+    return redirect(url_for("pages.business_estimate_result", location_id=location.id))
+
+
+@pages_bp.post("/projects/<int:project_id>/close")
+@login_required
+def close_project(project_id):
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
+    try:
+        project.transition_status("user", current_user.id, "closed", note="Project closed by user")
+    except ValueError:
+        flash(_("Project cannot be closed from its current status."), "error")
+        return redirect(url_for("pages.business_estimate_result", location_id=project.location_id))
+    db.session.commit()
+    flash(_("Project closed. Installers who already unlocked it keep their own records."), "success")
+    return redirect(url_for("pages.business_estimate_result", location_id=project.location_id))
+
+
+@pages_bp.post("/projects/<int:project_id>/delete")
+@login_required
+def delete_project(project_id):
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
+    location_id = project.location_id
+    db.session.delete(project)
+    db.session.commit()
+    flash(_("Project deleted. Installers who already unlocked it keep their own records."), "success")
+    return redirect(url_for("pages.business_estimate_result", location_id=location_id))
 
 
 @pages_bp.route("/dashboard")

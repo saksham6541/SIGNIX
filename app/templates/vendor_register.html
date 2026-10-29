@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Vendor registration') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+
+{% block content %}
+<section class="auth-page login-page signup-page" aria-label="{{ _('Vendor registration') }}">
+  <div class="login-layout">
+    <section class="login-form-panel" aria-labelledby="vendor-registration-heading">
+      <div class="login-form-card">
+        <header class="login-form-heading">
+          <p class="login-eyebrow">{{ _('VENDOR REGISTRATION') }}</p>
+          <h2 id="vendor-registration-heading">{{ _('Register as a vendor') }}</h2>
+          <p>{{ _('Share your company details and we will review your request before the lead board is enabled.') }}</p>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="form-error auth-alert login-alert" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="post" class="auth-form login-form" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="form-field-group login-field-group">
+            <label for="company_name" class="form-label login-label">{{ _('Company name') }}</label>
+            <div class="login-input-wrap">
+              <input id="company_name" name="company_name" class="auth-input login-control" value="{{ profile.company_name or '' }}" required>
+            </div>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="contact_person" class="form-label login-label">{{ _('Contact person') }}</label>
+            <input id="contact_person" name="contact_person" class="auth-input login-control" value="{{ profile.contact_person or '' }}" required>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="phone" class="form-label login-label">{{ _('Phone') }}</label>
+            <input id="phone" name="phone" class="auth-input login-control" value="{{ profile.phone or '' }}" required>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="email" class="form-label login-label">{{ _('Email') }}</label>
+            <input id="email" name="email" class="auth-input login-control" type="email" value="{{ profile.email or current_user.email }}" required>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="gst_number" class="form-label login-label">{{ _('GST number') }}</label>
+            <input id="gst_number" name="gst_number" class="auth-input login-control" value="{{ profile.gst_number or '' }}" required>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="service_area" class="form-label login-label">{{ _('Service area') }}</label>
+            <input id="service_area" name="service_area" class="auth-input login-control" value="{{ profile.service_area or '' }}" required>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="capacity_range" class="form-label login-label">{{ _('Capacity range') }}</label>
+            <input id="capacity_range" name="capacity_range" class="auth-input login-control" value="{{ profile.capacity_range or '' }}" required>
+          </div>
+
+          <div class="form-field-group login-field-group">
+            <label for="past_project_references" class="form-label login-label">{{ _('Past project references') }}</label>
+            <textarea id="past_project_references" name="past_project_references" class="auth-input login-control" rows="4" required>{{ profile.past_project_references or '' }}</textarea>
+          </div>
+
+          <button type="submit" class="btn-dashboard-cta" style="width:100%;">{{ _('Submit registration') }}</button>
+        </form>
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

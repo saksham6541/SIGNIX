@@ -1,8 +1,10 @@
 # filename: app/__init__.py
+import click
 from flask import Flask, session
 from flask_babel import Babel, get_locale, get_translations, gettext as _
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect, CSRFError
+from werkzeug.security import generate_password_hash
 
 from app.config import BASE_DIR, Config
 from app.models import db
@@ -124,6 +126,29 @@ def create_app():
     app.register_blueprint(roof_ai_bp)
     app.register_blueprint(roof_model_bp)
     app.register_blueprint(rooftop_design_bp)
+
+    @app.cli.command("create-admin")
+    @click.option("--email", prompt=True, help="Admin email address")
+    @click.option("--name", default="Admin User", show_default=True, help="Display name")
+    @click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True, help="Admin password")
+    def create_admin(email, name, password):
+        from app.models import User
+
+        normalized_email = (email or "").strip().lower()
+        if not normalized_email:
+            raise click.ClickException("Admin email is required.")
+        if User.query.filter_by(email=normalized_email).first():
+            raise click.ClickException(f"User with email '{normalized_email}' already exists.")
+
+        admin = User(
+            email=normalized_email,
+            display_name=name.strip() or "Admin User",
+            password_hash=generate_password_hash(password),
+            role="admin",
+        )
+        db.session.add(admin)
+        db.session.commit()
+        click.echo(f"Created admin user: {normalized_email}")
 
     # CSRF is enforced on unsafe methods (POST/PUT/PATCH/DELETE) app-wide.
     # estimate_bp and locations_bp were previously exempted; that exemption is

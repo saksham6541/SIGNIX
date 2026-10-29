@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Vendor lead board') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+
+{% block content %}
+<section class="dashboard-hero dashboard-hero-split gt-dashboard-hero">
+  <div>
+    <p class="console-index">{{ _('VENDOR LEAD BOARD') }}</p>
+    <h1>{{ _('Approved vendor dashboard') }}</h1>
+    <p class="tagline">{{ _('This is the lead board for approved vendors only.') }}</p>
+  </div>
+  <div class="gt-card" style="min-width: 220px;">
+    <p class="console-index">{{ _('CREDITS') }}</p>
+    <h3>{{ '{:,.1f}'.format(credit_balance) }}</h3>
+  </div>
+</section>
+
+<section class="gt-card" style="padding: 24px; margin: 0 auto; max-width: 980px;">
+  <form method="get" class="biz-project-search" style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 18px;">
+    <input type="search" name="city" value="{{ filters.city }}" placeholder="{{ _('City or PIN') }}" aria-label="{{ _('City or PIN') }}">
+    <input type="search" name="capacity" value="{{ filters.capacity }}" placeholder="{{ _('Capacity') }}" aria-label="{{ _('Capacity') }}">
+    <input type="search" name="business_type" value="{{ filters.business_type }}" placeholder="{{ _('Business type') }}" aria-label="{{ _('Business type') }}">
+    <input type="search" name="preferred_model" value="{{ filters.preferred_model }}" placeholder="{{ _('Preferred model') }}" aria-label="{{ _('Preferred model') }}">
+    <input type="date" name="posted_date" value="{{ filters.posted_date }}" aria-label="{{ _('Posted date') }}">
+    <button type="submit" class="btn-dashboard-cta">{{ _('Apply') }}</button>
+  </form>
+
+  {% if leads %}
+  <div class="biz-projects-grid">
+    {% for item in leads %}
+    {% set project = item.project %}
+    {% set summary = item.summary %}
+    <article class="biz-project-card" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="biz-project-head">
+        <div>
+          <p class="console-index">{{ _('LEAD') }}</p>
+          <h3>{{ summary.city or _('Unknown location') }}{% if summary.pin %} · {{ summary.pin }}{% endif %}</h3>
+        </div>
+      </div>
+
+      <dl class="biz-project-facts" style="grid-template-columns:repeat(2, minmax(0, 1fr));">
+        <div><dt>{{ _('Roof size') }}</dt><dd>{{ summary.roof_area_sqm or '—' }}</dd></div>
+        <div><dt>{{ _('System size') }}</dt><dd>{{ '%.1f kW'|format(summary.system_size_kw or 0) }}</dd></div>
+        <div><dt>{{ _('Monthly units') }}</dt><dd>{{ summary.monthly_units if summary.monthly_units is not none else _('N/A') }}</dd></div>
+        <div><dt>{{ _('Monthly bill') }}</dt><dd>{{ '₹%.0f'|format(summary.monthly_bill) if summary.monthly_bill is not none else _('N/A') }}</dd></div>
+        <div><dt>{{ _('Business type') }}</dt><dd>{{ summary.business_type or _('Not provided') }}</dd></div>
+        <div><dt>{{ _('Preferred model') }}</dt><dd>{{ summary.preferred_model or _('Not provided') }}</dd></div>
+        <div><dt>{{ _('Timeline') }}</dt><dd>{{ _('As soon as possible') }}</dd></div>
+        <div><dt>{{ _('Posted') }}</dt><dd>{{ summary.posted_date or _('Unknown') }}</dd></div>
+      </dl>
+
+      <div class="biz-project-meta">
+        <span>{{ _('Unlocked by') }} {{ item.unlock_count }} / {{ max_unlocks }}</span>
+      </div>
+
+      {% if item.unlocked %}
+      <div class="gt-card" style="padding: 12px; background: #f5f5f5;">
+        <p><strong>{{ _('Contact') }}:</strong> {{ project.contact_name or _('Not provided') }}</p>
+        <p><strong>{{ _('Phone') }}:</strong> {{ project.phone or _('Not provided') }}</p>
+        <p><strong>{{ _('Email') }}:</strong> {{ project.email or _('Not provided') }}</p>
+        <p><strong>{{ _('Address') }}:</strong> {{ project.location.address or _('Not provided') }}</p>
+        <p><strong>{{ _('Full report') }}:</strong> {{ _('Available to this vendor') }}</p>
+        <form method="post" action="{{ url_for('auth.vendor_lead_status', project_id=project.id) }}" style="display:flex; gap: 8px; margin-top: 10px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="outcome" value="won" class="btn-dashboard-cta">{{ _('Mark won') }}</button>
+          <button type="submit" name="outcome" value="lost" class="btn-danger">{{ _('Mark lost') }}</button>
+        </form>
+      </div>
+      {% else %}
+      <form method="post" action="{{ url_for('auth.vendor_unlock_project', project_id=project.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-dashboard-cta">{{ _('Unlock lead') }} ({{ item.unlock_cost }} credits)</button>
+      </form>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>{{ _('No leads are currently available for your service area and capacity range.') }}</p>
+  {% endif %}
+</section>
+{% endblock %}

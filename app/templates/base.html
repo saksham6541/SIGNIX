@@ -53,6 +53,12 @@
         <!-- 2. New Estimate -->
         <div class="nav-group">
           <span class="nav-group-title">{{ _('New Estimate') }}</span>
+          {% if active_planning_track == 'business' %}
+          <a href="{{ url_for('pages.business_projects') }}" class="nav-item {% if request.endpoint in ('pages.business_projects', 'pages.business_project_detail') %}active{% endif %}">
+            <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></span>
+            <span>{{ _('Projects') }}</span>
+          </a>
+          {% endif %}
           <a href="{{ url_for('pages.survey', planning_track=active_planning_track) }}" class="nav-item {% if request.endpoint in ('pages.plan', 'pages.survey') %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></span>
             <span>{{ _('New Business Estimate') if active_planning_track == 'business' else _('New Home Estimate') }}</span>

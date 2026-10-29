@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Vendor approval pending') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+
+{% block content %}
+<section class="auth-page login-page signup-page" aria-label="{{ _('Vendor approval pending') }}">
+  <div class="login-layout">
+    <section class="login-form-panel" aria-labelledby="vendor-pending-heading">
+      <div class="login-form-card">
+        <header class="login-form-heading">
+          <p class="login-eyebrow">{{ _('VENDOR STATUS') }}</p>
+          <h2 id="vendor-pending-heading">{{ _('Pending approval') }}</h2>
+          <p>{{ _('Your vendor registration has been received. Our admin team is reviewing it before you can access the lead board.') }}</p>
+        </header>
+
+        <div class="form-error auth-alert login-alert" role="alert">
+          {{ _('Your account is pending approval. Please check back later.') }}
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}
