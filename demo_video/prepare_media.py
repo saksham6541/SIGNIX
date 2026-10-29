@@ -70,4 +70,3 @@ for s in scenes:
   d.text((1880,19),'DEMO INPUTS • MOCK WEATHER • PRELIMINARY ESTIMATES',font=font(19),fill='#EFC17A',anchor='ra')
  im.save(P/(s['name']+'-overlay.png'))
 print('Prepared',total,'seconds; synchronized narration and',len(entries),'subtitles.')
-
