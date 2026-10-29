@@ -43,11 +43,7 @@ PROJECT_STATUS_TRANSITIONS = {
         "decision": {"closed"},
     },
     "admin": {
-<<<<<<< HEAD
-        "under_review": {"open_to_vendors"},
-=======
         "under_review": {"open_to_vendors", "closed"},
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         "open_to_vendors": {"vendor_connected"},
         "vendor_connected": {"decision"},
         "decision": {"installation"},

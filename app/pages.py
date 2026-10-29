@@ -1,8 +1,5 @@
 import re
-<<<<<<< HEAD
-=======
 import json
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 from datetime import date, datetime, timezone
 
 from flask import (
@@ -27,13 +24,9 @@ from app.models import ApplicationTrackerEvent, Project, UserLocation, db
 from app.report_generator import generate_pdf_report
 from app.installer_export import build_installer_package_zip
 from app.services import location_service
-<<<<<<< HEAD
-from app.services.commercial_calculation_service import calculate_commercial_project
-=======
 from app.services.commercial_calculation_service import project_for_location, validate_finance_preferences
 from app.services import estimation_service
 from sqlalchemy.exc import SQLAlchemyError
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 from app.solar_logic import calculate_environmental_equivalents
 from app.forms import INDIAN_STATES
 
@@ -243,160 +236,6 @@ def _finite_float(value, field_name, *, minimum=None, maximum=None, allow_none=F
 
 
 def _save_business_estimate_payload(payload):
-<<<<<<< HEAD
-    if not isinstance(payload, dict):
-        raise ValueError("Request body must be a JSON object")
-
-    address = (payload.get("address") or "").strip()
-    if not address:
-        raise ValueError("Address is required")
-
-    try:
-        latitude = _finite_float(
-            payload.get("latitude"), "latitude", minimum=-90, maximum=90
-        )
-        longitude = _finite_float(
-            payload.get("longitude"), "longitude", minimum=-180, maximum=180
-        )
-    except ValueError as exc:
-        raise ValueError(str(exc)) from exc
-
-    polygon = payload.get("polygon") or []
-    if not isinstance(polygon, list) or len(polygon) < 3:
-        raise ValueError("A rooftop polygon with at least 3 points is required")
-
-    for point in polygon:
-        if not isinstance(point, (list, tuple)) or len(point) < 2:
-            raise ValueError("Each polygon point must include latitude and longitude")
-        try:
-            float(point[0])
-            float(point[1])
-        except (TypeError, ValueError):
-            raise ValueError("Polygon coordinates must be numeric")
-
-    monthly_units = payload.get("monthly_units_kwh")
-    monthly_bill = payload.get("monthly_bill_rs")
-    if monthly_units in (None, "") and monthly_bill in (None, ""):
-        raise ValueError("Monthly units or monthly bill is required")
-
-    if monthly_units not in (None, ""):
-        try:
-            _finite_float(monthly_units, "monthly_units_kwh", minimum=0)
-        except ValueError as exc:
-            raise ValueError(str(exc)) from exc
-    if monthly_bill not in (None, ""):
-        try:
-            _finite_float(monthly_bill, "monthly_bill_rs", minimum=0)
-        except ValueError as exc:
-            raise ValueError(str(exc)) from exc
-
-    state = (payload.get("state") or "").strip() or current_user.default_state
-    business_type = (payload.get("business_type") or "").strip() or None
-    roof_ownership = (payload.get("roof_ownership") or "").strip() or None
-    daytime_power_use = (payload.get("daytime_power_use") or "").strip() or None
-    operating_hours = payload.get("operating_hours")
-    if operating_hours not in (None, ""):
-        operating_hours = str(operating_hours).strip() or None
-
-    roof_shape = {
-        "type": "Polygon",
-        "coordinates": [[float(point[1]), float(point[0])] for point in polygon],
-    }
-    obstructions = payload.get("obstructions") or []
-    obstructions_payload = None
-    if isinstance(obstructions, list) and obstructions:
-        obstructions_payload = {
-            "type": "MultiPolygon",
-            "coordinates": [
-                [[float(obs_point[1]), float(obs_point[0])] for obs_point in obstruction]
-                for obstruction in obstructions
-                if isinstance(obstruction, (list, tuple))
-            ],
-        }
-
-    extras = {
-        "planning_track": "business",
-        "property_type": "commercial",
-        "state": state,
-        "business_type": business_type,
-        "operating_days": payload.get("operating_days"),
-        "operating_hours": operating_hours,
-        "daytime_power_use": daytime_power_use,
-        "monthly_units_kwh": (
-            float(monthly_units) if monthly_units not in (None, "") else None
-        ),
-        "monthly_bill_rs": (
-            float(monthly_bill) if monthly_bill not in (None, "") else None
-        ),
-        "sanctioned_load_kw": payload.get("sanctioned_load_kw"),
-        "tariff_category": payload.get("tariff_category"),
-        "tariff_per_kwh": payload.get("tariff_per_kwh"),
-        "roof_ownership": roof_ownership,
-        "shade_chip": payload.get("shade_chip"),
-        "tax_rate_pct": payload.get("tax_rate_pct"),
-        "loan_rate_pct": payload.get("loan_rate_pct"),
-        "loan_tenure_years": payload.get("loan_tenure_years"),
-        "ppa_rate_rs_per_kwh": payload.get("ppa_rate_rs_per_kwh"),
-        "ppa_tenure_years": payload.get("ppa_tenure_years"),
-        "include_depreciation_tax_benefit": bool(
-            payload.get("include_depreciation_tax_benefit")
-        ),
-        "roof_area_sqm": payload.get("roof_area_sqm"),
-        "usable_area_sqm": payload.get("usable_area_sqm"),
-        "orientation_deg": payload.get("orientation_deg"),
-        "orientation_label": payload.get("orientation_label"),
-        "source": "business_estimate_page",
-    }
-
-    location = UserLocation(
-        user_id=current_user.id,
-        address=address,
-        latitude=latitude,
-        longitude=longitude,
-        polygon_geojson=roof_shape,
-        obstructions_geojson=obstructions_payload,
-        system_size=0.0,
-        annual_generation=0.0,
-        monthly_data={},
-        roof_area_sqm=(
-            float(payload.get("roof_area_sqm"))
-            if payload.get("roof_area_sqm") not in (None, "")
-            else None
-        ),
-        obstructed_area_sqm=(
-            float(payload.get("obstructed_area_sqm"))
-            if payload.get("obstructed_area_sqm") not in (None, "")
-            else None
-        ),
-        usable_area_sqm=(
-            float(payload.get("usable_area_sqm"))
-            if payload.get("usable_area_sqm") not in (None, "")
-            else None
-        ),
-        system_cost=0.0,
-        subsidy_amount=0.0,
-        net_investment=0.0,
-        monthly_savings=0.0,
-        co2_reduction_tons=0.0,
-        irradiance_source=None,
-        orientation_deg=(
-            float(payload.get("orientation_deg"))
-            if payload.get("orientation_deg") not in (None, "")
-            else None
-        ),
-        orientation_label=(payload.get("orientation_label") or None),
-        orientation_factor=(
-            float(payload.get("orientation_factor"))
-            if payload.get("orientation_factor") not in (None, "")
-            else None
-        ),
-        extras=extras,
-    )
-    db.session.add(location)
-    db.session.commit()
-    session["planning_track"] = "business"
-    return location
-=======
     """Validate first, then calculate and persist the entire assessment atomically."""
     if not isinstance(payload, dict):
         raise ValueError("Request body must be a JSON object")
@@ -476,85 +315,12 @@ def _business_estimate_response(*, confirm=False):
     return jsonify({**result, "status": "saved", "location_id": location.id,
                     "planning_track": "business", "business_result_url": destination,
                     "redirect_url": url_for("pages.report", location_id=location.id)})
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
 
 
 @pages_bp.route("/business/estimate", methods=["GET", "POST"])
 @login_required
 def business_estimate():
     if request.method == "POST":
-<<<<<<< HEAD
-        payload = request.get_json(silent=True) or request.form.to_dict(flat=True)
-        try:
-            location = _save_business_estimate_payload(payload)
-        except ValueError as exc:
-            return jsonify({"error": str(exc)}), 400
-        return jsonify({
-            "status": "saved",
-            "location_id": location.id,
-            "planning_track": "business",
-        })
-
-    session["planning_track"] = "business"
-    return render_template(
-        "business_estimate.html",
-        planning_track="business",
-        default_state=current_user.default_state,
-        business_warning_config=Config.BUSINESS_REVIEW_WARNING_CONFIG,
-    )
-
-
-@pages_bp.route("/business/estimate/confirm", methods=["POST"])
-@login_required
-def business_estimate_confirm():
-    payload = request.get_json(silent=True) or request.form.to_dict(flat=True)
-    try:
-        location = _save_business_estimate_payload(payload)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-    return redirect(
-        url_for("pages.business_estimate_result", location_id=location.id)
-    )
-
-
-@pages_bp.route("/business/estimate/result/<int:location_id>")
-@login_required
-def business_estimate_result(location_id):
-    location = db.session.get(UserLocation, location_id)
-    if location is None or location.user_id != current_user.id:
-        abort(404)
-    session["planning_track"] = "business"
-    extras = location.extras if isinstance(location.extras, dict) else {}
-    monthly_units = extras.get("monthly_units_kwh")
-    monthly_bill = extras.get("monthly_bill_rs")
-    annual_generation = float(extras.get("annual_generation_kwh") or 0.0) or (
-        float(monthly_units or 0.0) * 12.0 if monthly_units not in (None, "") else 0.0
-    )
-    project = calculate_commercial_project(
-        system_size_kw=extras.get("system_size_kw") or extras.get("roof_area_sqm") and (float(extras.get("roof_area_sqm") or 0.0) / 10.0),
-        annual_generation_kwh=annual_generation,
-        tariff_per_kwh=extras.get("tariff_per_kwh") or Config.DEFAULT_COMMERCIAL_TARIFF,
-        roof_capacity_kw=extras.get("roof_area_sqm") and (float(extras.get("roof_area_sqm") or 0.0) / 10.0),
-        down_payment_pct=extras.get("down_payment_pct") or 20.0,
-        loan_rate_pct=extras.get("loan_rate_pct") or 10.0,
-        loan_tenure_years=extras.get("loan_tenure_years") or 5,
-        ppa_rate_rs_per_kwh=extras.get("ppa_rate_rs_per_kwh"),
-        ppa_tenure_years=extras.get("ppa_tenure_years") or 10,
-        ppa_escalation_pct=extras.get("ppa_escalation_pct") or 0.0,
-        tax_rate_pct=extras.get("tax_rate_pct") or 0.0,
-        include_depreciation_tax_benefit=bool(extras.get("include_depreciation_tax_benefit")),
-        annual_tariff_escalation=Config.DEFAULT_TARIFF,
-    )
-    project_rows = Project.query.filter_by(user_id=current_user.id, location_id=location.id).order_by(Project.created_at.desc()).all()
-    return render_template(
-        "business_estimate_result.html",
-        planning_track="business",
-        location=location,
-        project=project,
-        extras=extras,
-        projects=project_rows,
-        consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
-=======
         return _business_estimate_response()
     return survey("business", template_name="business_estimate.html")
 
@@ -585,7 +351,6 @@ def business_estimate_result(location_id):
         "business_estimate_result.html", planning_track="business", location=location,
         project=_commercial_comparison_or_none(location), extras=location.extras or {},
         projects=project_rows, consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     )
 
 
@@ -807,10 +572,7 @@ def project_detail(project_id):
         yearly_savings=yearly_savings,
         status_label=active_status,
         installer_count=summary["installer_count"],
-<<<<<<< HEAD
-=======
         commercial_comparison=_commercial_comparison_or_none(location),
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     )
 
 
@@ -877,14 +639,9 @@ def create_project():
         project.consent_timestamp = datetime.now(timezone.utc)
         project.consent_text_version = Config.PROJECT_CONSENT_TEXT_VERSION
         if project.status == "closed":
-<<<<<<< HEAD
-            project.status = "assessment_done"
-            project.closed_at = None
-=======
             db.session.rollback()
             flash(_("A closed project cannot be reopened by resubmitting this form."), "error")
             return redirect(url_for("pages.business_estimate_result", location_id=location.id))
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
         if project.status == "assessment_done":
             project.transition_status("user", current_user.id, "under_review", note="Project created")
 

@@ -4,24 +4,11 @@ from app.models import db
 
 
 def initialize_database():
-<<<<<<< HEAD
-    """Create the schema and add new columns safely without dropping data.
-
-    This project does not use Alembic or any other migration framework. Schema
-    changes therefore follow an additive pattern: create tables when missing,
-    then add missing columns via ALTER TABLE only when the column is absent.
-    Existing tables are never dropped or recreated in place, so existing data is
-    preserved while new features can be shipped incrementally.
-    """
-    db.create_all()
-    ApplicationTrackerEvent.__table__.create(bind=db.engine, checkfirst=True)
-=======
     """Create a fresh schema, or validate an existing one without migrating it.
 
     Existing installations must be backed up and explicitly migrated by an
     operator. Startup must never alter or recreate their tables.
     """
->>>>>>> bf9e4f7 (Complete commercial solar workflow and financial repairs)
     inspector = inspect(db.engine)
     existing = set(inspector.get_table_names())
     if existing:
