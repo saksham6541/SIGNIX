@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ _('My Unlocked Leads') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor-leads.css') }}">{% endblock %}
+{% block content %}<section class="vendor-leads">
+<h1>{{ _('My Unlocked Leads') }}</h1>{% include '_vendor_lead_nav.html' %}
+{% for entry in items %}<article class="gt-card lead-card">
+  {% if entry.project %}
+  <h2>{{ _(entry.item.business_type) if entry.item.business_type else _('Commercial project') }}</h2>
+  <a href="{{ url_for('auth.vendor_lead_detail', project_id=entry.unlock.project_id) }}">{{ _('Open lead') }}</a>
+  {% with project=entry.project, unlock=entry.unlock, outcome=entry.outcome, outcome_events=entry.outcome_events %}{% include '_vendor_unlocked.html' %}{% endwith %}
+  {% else %}<p>{{ _('This lead is no longer available.') }}</p><p>{{ _('Unlocked') }}: {{ entry.unlock.unlocked_at }} · {{ _('Credits charged') }}: {{ entry.unlock.credits_charged }}</p>{% endif %}
+</article>{% else %}<p>{{ _('No unlocked leads yet.') }}</p>{% endfor %}
+{% if pagination.has_prev %}<a href="{{ url_for('auth.vendor_unlocked_leads', page=pagination.prev_num) }}">{{ _('Previous') }}</a>{% endif %}
+{% if pagination.has_next %}<a href="{{ url_for('auth.vendor_unlocked_leads', page=pagination.next_num) }}">{{ _('Next') }}</a>{% endif %}
+</section>{% endblock %}

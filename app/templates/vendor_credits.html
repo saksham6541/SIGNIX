@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Credits') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor-leads.css') }}">{% endblock %}
+{% block content %}<section class="vendor-leads">
+<h1>{{ _('Credits') }}</h1>{% include '_vendor_lead_nav.html' %}
+<section class="gt-card lead-card">
+<p>{{ _('Current balance') }}: {{ summary.balance if summary.balance is not none else _('Not provided') }}</p>
+<p>{{ _('Historical opening balance') }}: {{ summary.opening if summary.opening is not none else _('Not provided') }}</p>
+<p>{{ _('The opening balance is derived from existing records, not a new grant or payment.') }}</p>
+{% if not summary.reconciled %}<p role="alert">{{ _('Credit history needs administrator review.') }}</p>{% endif %}
+<p>{{ _('Configured unlock costs') }}: ≤10 kW: {{ credit_costs.small }} · &gt;10–50 kW: {{ credit_costs.medium }} · &gt;50 kW: {{ credit_costs.large }} {{ _('credits') }}</p>
+</section>
+<h2>{{ _('Credit transactions') }}</h2>
+{% for transaction in transactions.items %}<article class="gt-card lead-card">
+<p>{{ _('Transaction reference') }}: {{ transaction.id }} · {{ transaction.created_at }}</p>
+<p>{{ _('Credits added / deducted') }}: {{ transaction.delta }} · {{ _('Balance after') }}: {{ transaction.balance_after }}</p>
+<p>{{ _('Lead unlock') if transaction.reason == 'lead_unlock' else _('Starting credits') if transaction.reason == 'approved_vendor_credits' else _('Approved credit request') if transaction.reason == 'credit_request_approved' else _('Historical transaction') }}</p>
+</article>{% else %}<p>{{ _('No credit transactions yet.') }}</p>{% endfor %}
+{% if transactions.has_prev %}<a href="{{ url_for('auth.vendor_credits', page=transactions.prev_num) }}">{{ _('Previous') }}</a>{% endif %}
+{% if transactions.has_next %}<a href="{{ url_for('auth.vendor_credits', page=transactions.next_num) }}">{{ _('Next') }}</a>{% endif %}
+<section class="gt-card lead-card"><h2>{{ _('Request credits') }}</h2><p>{{ _('This is not a payment. Credits are added only after administrator approval.') }}</p>
+<form method="post" novalidate action="{{ url_for('auth.vendor_request_credits') }}" class="lead-filters">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div><label for="credit-amount">{{ _('Requested credits') }}</label><input id="credit-amount" name="amount" type="number" min="0.01" max="1000000" step="any" required></div>
+<div><label for="credit-reason">{{ _('Reason') }}</label><input id="credit-reason" name="reason" maxlength="1000" required></div>
+<button class="btn-dashboard-cta" type="submit">{{ _('Request credits') }}</button>
+</form>
+<h2>{{ _('Credit requests (latest 50)') }}</h2>
+{% for item in credit_requests %}<p>#{{ item.id }} · {{ item.created_at }} · {{ item.amount }} {{ _('credits') }} · {{ _('Pending') if item.status == 'pending' else _('Approved') if item.status == 'approved' else _('Rejected') }}{% if item.reviewed_at %} · {{ item.reviewed_at }}{% endif %}</p>{% else %}<p>{{ _('No credit requests yet.') }}</p>{% endfor %}
+</section></section>{% endblock %}

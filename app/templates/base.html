@@ -37,6 +37,15 @@
       </div>
 
       <nav class="side-nav">
+        {% if current_user.is_authenticated and current_user.role == 'vendor' %}
+        <div class="nav-group">
+          <span class="nav-group-title">{{ _('Installer navigation') }}</span>
+          <a href="{{ url_for('auth.vendor_board') }}" class="nav-item{% if request.endpoint == 'auth.vendor_board' %} active{% endif %}">{{ _('Lead Board') }}</a>
+          <a href="{{ url_for('auth.vendor_saved_leads') }}" class="nav-item{% if request.endpoint == 'auth.vendor_saved_leads' %} active{% endif %}">{{ _('Saved Leads') }}</a>
+          <a href="{{ url_for('auth.vendor_unlocked_leads') }}" class="nav-item{% if request.endpoint == 'auth.vendor_unlocked_leads' %} active{% endif %}">{{ _('My Unlocked Leads') }}</a>
+          <a href="{{ url_for('auth.vendor_credits') }}" class="nav-item{% if request.endpoint == 'auth.vendor_credits' %} active{% endif %}">{{ _('Credits') }}</a>
+        </div>
+        {% endif %}
         <!-- 1. Home -->
         <div class="nav-group">
           <span class="nav-group-title">{{ _('Home') }}</span>

@@ -1,0 +1,31 @@
+/* Installer discovery shares the existing SIGNIX tokens and card primitives. */
+.vendor-leads { max-width: 1280px; margin: 0 auto; }
+.lead-nav, .lead-pagination { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; align-items: center; }
+.lead-nav a { padding: 10px 2px; border-bottom: 3px solid transparent; }
+.lead-nav a[aria-current] { border-color: var(--accent-amber); font-weight: 700; }
+.vendor-leads a { color: var(--indigo); text-underline-offset: 4px; }
+.vendor-leads a:hover { color: var(--accent-orange); }
+.lead-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 24px; }
+.lead-filters label { display: block; font-weight: 600; margin-bottom: 7px; }
+.lead-filters input, .lead-filters select { width: 100%; min-width: 0; min-height: 44px; background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font: inherit; }
+.lead-filter-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.lead-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.lead-card { padding: 24px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.lead-card h2 { font-size: 1.25rem; margin: 4px 0; }
+.lead-card-heading, .lead-card-footer { display: flex; align-items: start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.lead-card-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); font-size: .9rem; }
+.lead-card .biz-project-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.lead-card dd, .lead-location { overflow-wrap: anywhere; }
+.lead-bookmark { min-height: 44px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--indigo); font: inherit; cursor: pointer; }
+.lead-bookmark[aria-pressed="true"] { border-color: var(--indigo); background: var(--bg); font-weight: 600; }
+.lead-bookmark:hover { border-color: var(--accent-orange); }
+.lead-bookmark:active { background: var(--bg); }
+.vendor-leads :is(button, a, input, select):focus-visible { outline: 3px solid var(--accent-amber); outline-offset: 3px; }
+.lead-bookmark:disabled { opacity: .65; cursor: wait; }
+.lead-error { color: #9b2525; display: block; }
+.lead-filters [aria-invalid="true"] { border-color: #9b2525; }
+.lead-feedback { min-height: 1.75em; margin: 12px 0; }
+.lead-count { font-weight: 700; margin-top: 24px; }
+.lead-empty { padding: 32px; }
+@media (max-width: 1050px) { .lead-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .lead-grid, .lead-filters { grid-template-columns: minmax(0, 1fr); } .lead-card, .lead-filters { padding: 18px; } }

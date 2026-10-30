@@ -402,6 +402,23 @@ class ApplicationTrackerEvent(db.Model):
     )
 
 
+class VendorSavedLead(db.Model):
+    """A vendor's private bookmark, independent of credit/unlock state."""
+
+    __tablename__ = "vendor_saved_leads"
+    __table_args__ = (
+        db.UniqueConstraint("vendor_user_id", "project_id", name="uq_vendor_saved_lead"),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    vendor_user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"),
+                               nullable=False, index=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.id", ondelete="CASCADE"),
+                           nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    vendor = db.relationship("User", backref=db.backref("saved_leads", cascade="all, delete-orphan"))
+    project = db.relationship("Project", backref=db.backref("saved_leads", cascade="all, delete-orphan"))
+
+
 class VendorLeadUnlock(db.Model):
     __tablename__ = "vendor_lead_unlocks"
     __table_args__ = (

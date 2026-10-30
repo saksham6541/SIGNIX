@@ -50,4 +50,14 @@
   <p>{{ _('No vendors registered yet.') }}</p>
   {% endif %}
 </section>
+<section class="gt-card" style="padding:24px">
+<h2>{{ _('Pending credit requests') }}</h2>
+{% for item in credit_requests %}<article>
+<p>#{{ item.id }} · {{ item.vendor_user.display_name }} · {{ item.amount }} {{ _('credits') }} · {{ item.created_at }}</p><p>{{ item.reason }}</p>
+<form method="post" novalidate action="{{ url_for('auth.admin_credit_request_review', request_id=item.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button type="submit" name="decision" value="approved" class="btn-dashboard-cta">{{ _('Approve') }}</button>
+<button type="submit" name="decision" value="rejected" class="btn-danger">{{ _('Reject') }}</button>
+</form></article>{% else %}<p>{{ _('No pending credit requests.') }}</p>{% endfor %}
+</section>
 {% endblock %}

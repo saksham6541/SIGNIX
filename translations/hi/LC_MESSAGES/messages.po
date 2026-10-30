@@ -8196,3 +8196,538 @@ msgstr "✓ संरचनाएँ लागू की गईं"
 
 #~ msgid "· SIGNIX"
 #~ msgstr "· SIGNIX"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Saved Leads"
+msgstr "सहेजी गई लीड"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Lead Board"
+msgstr "लीड बोर्ड"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Installer navigation"
+msgstr "इंस्टॉलर नेविगेशन"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Browse commercial solar projects and save leads for later."
+msgstr "व्यावसायिक सौर परियोजनाएँ देखें और लीड बाद के लिए सहेजें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Locality / area"
+msgstr "मोहल्ला / क्षेत्र"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Minimum capacity"
+msgstr "न्यूनतम क्षमता"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Maximum capacity"
+msgstr "अधिकतम क्षमता"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Minimum monthly bill"
+msgstr "न्यूनतम मासिक बिल"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Maximum monthly bill"
+msgstr "अधिकतम मासिक बिल"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Pay per unit / PPA"
+msgstr "प्रति यूनिट भुगतान / पीपीए"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Last 7 days"
+msgstr "पिछले 7 दिन"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Last 30 days"
+msgstr "पिछले 30 दिन"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Newest first"
+msgstr "सबसे नई पहले"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Oldest first"
+msgstr "सबसे पुरानी पहले"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Capacity: low to high"
+msgstr "क्षमता: कम से अधिक"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Capacity: high to low"
+msgstr "क्षमता: अधिक से कम"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Monthly bill: low to high"
+msgstr "मासिक बिल: कम से अधिक"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Monthly bill: high to low"
+msgstr "मासिक बिल: अधिक से कम"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Apply filters"
+msgstr "फ़िल्टर लागू करें"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Clear Filters"
+msgstr "फ़िल्टर हटाएँ"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Check the highlighted filters and try again."
+msgstr "चिह्नित फ़िल्टर जाँचें और फिर प्रयास करें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+#, python-format
+msgid "Results: %(count)s"
+msgstr "परिणाम: %(count)s"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Only city, area and PIN are shown before unlocking. Missing details are not inferred."
+msgstr "अनलॉक करने से पहले केवल शहर, क्षेत्र और पिन दिखाए जाते हैं। अनुपलब्ध विवरण का अनुमान नहीं लगाया जाता।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "No saved leads yet"
+msgstr "अभी कोई लीड सहेजी नहीं गई है"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "No matching leads"
+msgstr "कोई मेल खाती लीड नहीं मिली"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Save a lead from the Lead Board, or clear your filters to see saved leads."
+msgstr "लीड बोर्ड से लीड सहेजें, या सहेजी गई लीड देखने के लिए फ़िल्टर हटाएँ।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Try clearing filters. Available leads must match your service area."
+msgstr "फ़िल्टर हटाकर देखें। उपलब्ध लीड आपके सेवा क्षेत्र में होनी चाहिए।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Pagination"
+msgstr "पृष्ठ नेविगेशन"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+#, python-format
+msgid "Page %(page)s of %(pages)s"
+msgstr "पृष्ठ %(page)s / %(pages)s"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Commercial project"
+msgstr "व्यावसायिक परियोजना"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Business type not provided"
+msgstr "व्यवसाय का प्रकार नहीं दिया गया"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Save lead"
+msgstr "लीड सहेजें"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Unsave lead"
+msgstr "सहेजी गई लीड हटाएँ"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+#, python-format
+msgid "Unlock cost: %(cost)s credits"
+msgstr "अनलॉक शुल्क: %(cost)s क्रेडिट"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Unlock cost unavailable"
+msgstr "अनलॉक शुल्क उपलब्ध नहीं है"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Open lead"
+msgstr "लीड खोलें"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "This lead is no longer available. You can remove its bookmark."
+msgstr "यह लीड अब उपलब्ध नहीं है। आप इसे सहेजी गई सूची से हटा सकते हैं।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Updating saved lead…"
+msgstr "सहेजी गई लीड अपडेट हो रही है…"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Could not update saved leads. Please try again."
+msgstr "सहेजी गई लीड अपडेट नहीं हो सकी। कृपया फिर प्रयास करें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Choose save or unsave."
+msgstr "लीड सहेजने या हटाने का विकल्प चुनें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "This lead is no longer available."
+msgstr "यह लीड अब उपलब्ध नहीं है।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Lead saved."
+msgstr "लीड सहेजी गई।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Lead removed from saved leads."
+msgstr "लीड सहेजी गई सूची से हटा दी गई।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Enter one value of at most 100 characters."
+msgstr "अधिकतम 100 अक्षरों का एक मान दर्ज करें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Enter a finite, non-negative number."
+msgstr "एक सीमित, शून्य या धनात्मक संख्या दर्ज करें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Maximum must be at least the minimum."
+msgstr "अधिकतम मान न्यूनतम मान से कम नहीं होना चाहिए।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Enter a six-digit PIN code."
+msgstr "छह अंकों का पिन कोड दर्ज करें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Choose one of the listed options."
+msgstr "दिए गए विकल्पों में से एक चुनें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Choose a valid page number."
+msgstr "मान्य पृष्ठ संख्या चुनें।"
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "credits"
+msgstr "क्रेडिट"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "All"
+msgstr "सभी"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Approved vendor dashboard"
+msgstr "स्वीकृत विक्रेता डैशबोर्ड"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Business type"
+msgstr "व्यवसाय का प्रकार"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Buy"
+msgstr "खरीदें"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Buy with loan"
+msgstr "ऋण लेकर खरीदें"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "CREDITS"
+msgstr "क्रेडिट"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "City"
+msgstr "शहर"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Hotel"
+msgstr "होटल"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Monthly bill"
+msgstr "मासिक बिल"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Next"
+msgstr "अगला"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Office"
+msgstr "कार्यालय"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Other"
+msgstr "अन्य"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Posted"
+msgstr "प्रकाशित"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Preferred model"
+msgstr "पसंदीदा वित्तीय मॉडल"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Previous"
+msgstr "पिछला"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Roof size"
+msgstr "छत का क्षेत्रफल"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "School or institution"
+msgstr "स्कूल या संस्थान"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Shop"
+msgstr "दुकान"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Small factory"
+msgstr "छोटा कारखाना"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Sort by"
+msgstr "क्रम चुनें"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Timeline"
+msgstr "स्थापना की समय-सीमा"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Unlock lead"
+msgstr "लीड अनलॉक करें"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Contact"
+msgstr "संपर्क"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Phone"
+msgstr "फ़ोन"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Full report"
+msgstr "पूरी रिपोर्ट"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Available to this vendor"
+msgstr "इस विक्रेता के लिए उपलब्ध"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Your lead outcome"
+msgstr "आपकी लीड का परिणाम"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Won"
+msgstr "प्राप्त"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Lost"
+msgstr "नहीं मिली"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Not recorded"
+msgstr "दर्ज नहीं है"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Mark won"
+msgstr "प्राप्त के रूप में दर्ज करें"
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Mark lost"
+msgstr "नहीं मिली के रूप में दर्ज करें"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "My Unlocked Leads"
+msgstr "मेरी अनलॉक की गई लीड"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credits"
+msgstr "क्रेडिट"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Unlocked"
+msgstr "अनलॉक किया गया"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credits charged"
+msgstr "काटे गए क्रेडिट"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Interested"
+msgstr "रुचि है"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Follow-up needed"
+msgstr "फॉलो-अप आवश्यक"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Outcome history (latest 50)"
+msgstr "परिणाम इतिहास (नवीनतम 50)"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No unlocked leads yet."
+msgstr "अभी कोई लीड अनलॉक नहीं की गई है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Current balance"
+msgstr "वर्तमान शेष"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Historical opening balance"
+msgstr "ऐतिहासिक प्रारंभिक शेष"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "The opening balance is derived from existing records, not a new grant or payment."
+msgstr "प्रारंभिक शेष मौजूदा रिकॉर्ड से निकाला गया है; यह नया अनुदान या भुगतान नहीं है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit history needs administrator review."
+msgstr "क्रेडिट इतिहास की व्यवस्थापक द्वारा समीक्षा आवश्यक है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Configured unlock costs"
+msgstr "निर्धारित अनलॉक शुल्क"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit transactions"
+msgstr "क्रेडिट लेनदेन"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Transaction reference"
+msgstr "लेनदेन संदर्भ"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credits added / deducted"
+msgstr "जोड़े गए / काटे गए क्रेडिट"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Balance after"
+msgstr "लेनदेन के बाद शेष"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Lead unlock"
+msgstr "लीड अनलॉक"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Starting credits"
+msgstr "प्रारंभिक क्रेडिट"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Approved credit request"
+msgstr "स्वीकृत क्रेडिट अनुरोध"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Historical transaction"
+msgstr "ऐतिहासिक लेनदेन"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No credit transactions yet."
+msgstr "अभी कोई क्रेडिट लेनदेन नहीं हुआ है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Request credits"
+msgstr "क्रेडिट का अनुरोध करें"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "This is not a payment. Credits are added only after administrator approval."
+msgstr "यह भुगतान नहीं है। व्यवस्थापक की स्वीकृति के बाद ही क्रेडिट जोड़े जाते हैं।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Requested credits"
+msgstr "अनुरोधित क्रेडिट"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Reason"
+msgstr "कारण"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit requests (latest 50)"
+msgstr "क्रेडिट अनुरोध (नवीनतम 50)"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Pending"
+msgstr "लंबित"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Approved"
+msgstr "स्वीकृत"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Rejected"
+msgstr "अस्वीकृत"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No credit requests yet."
+msgstr "अभी कोई क्रेडिट अनुरोध नहीं है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Pending credit requests"
+msgstr "लंबित क्रेडिट अनुरोध"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No pending credit requests."
+msgstr "कोई क्रेडिट अनुरोध लंबित नहीं है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Reject"
+msgstr "अस्वीकार करें"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Enter a valid credit amount."
+msgstr "क्रेडिट की मान्य राशि दर्ज करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Access denied."
+msgstr "पहुँच की अनुमति नहीं है।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "You do not have enough credits to unlock this lead."
+msgstr "इस लीड को अनलॉक करने के लिए आपके पास पर्याप्त क्रेडिट नहीं हैं।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit balance changed. Please try again."
+msgstr "क्रेडिट शेष बदल गया है। कृपया फिर प्रयास करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Unlock cost unavailable. Please contact an administrator."
+msgstr "अनलॉक शुल्क उपलब्ध नहीं है। कृपया व्यवस्थापक से संपर्क करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Choose a valid lead outcome."
+msgstr "लीड का मान्य परिणाम चुनें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Unlock the lead before marking its status."
+msgstr "लीड की स्थिति दर्ज करने से पहले उसे अनलॉक करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Provide a reason and request at most 1,000,000 credits."
+msgstr "कारण बताएँ और अधिकतम 1,000,000 क्रेडिट का अनुरोध करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Choose approve or reject."
+msgstr "स्वीकार या अस्वीकार करने का विकल्प चुनें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit request not found."
+msgstr "क्रेडिट अनुरोध नहीं मिला।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Approve the vendor before granting credits."
+msgstr "क्रेडिट देने से पहले विक्रेता को स्वीकृत करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit operation failed. No partial changes were saved. Please try again."
+msgstr "क्रेडिट कार्रवाई विफल रही। कोई आंशिक परिवर्तन सहेजे नहीं गए। कृपया फिर प्रयास करें।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit request submitted for administrator review."
+msgstr "क्रेडिट अनुरोध व्यवस्थापक की समीक्षा के लिए भेजा गया।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit request reviewed."
+msgstr "क्रेडिट अनुरोध की समीक्षा की गई।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Vendor approved."
+msgstr "विक्रेता स्वीकृत किया गया।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Lead unlocked. You can view the project details and contact information."
+msgstr "लीड अनलॉक हो गई। आप परियोजना और संपर्क विवरण देख सकते हैं।"
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Your lead outcome was recorded. The project status is unchanged."
+msgstr "आपकी लीड का परिणाम दर्ज किया गया। परियोजना की स्थिति अपरिवर्तित है।"

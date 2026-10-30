@@ -1,0 +1,6 @@
+<nav class="lead-nav" aria-label="{{ _('Installer navigation') }}">
+  <a href="{{ url_for('auth.vendor_board') }}" {% if request.endpoint == 'auth.vendor_board' %}aria-current="page"{% endif %}>{{ _('Lead Board') }}</a>
+  <a href="{{ url_for('auth.vendor_saved_leads') }}" {% if request.endpoint == 'auth.vendor_saved_leads' %}aria-current="page"{% endif %}>{{ _('Saved Leads') }}</a>
+  <a href="{{ url_for('auth.vendor_unlocked_leads') }}" {% if request.endpoint == 'auth.vendor_unlocked_leads' %}aria-current="page"{% endif %}>{{ _('My Unlocked Leads') }}</a>
+  <a href="{{ url_for('auth.vendor_credits') }}" {% if request.endpoint == 'auth.vendor_credits' %}aria-current="page"{% endif %}>{{ _('Credits') }}</a>
+</nav>
