@@ -678,7 +678,7 @@ def login():
         flash(_("You're already logged in."), "info")
         return redirect(
             _safe_next_url(request.args.get("next"))
-            or _post_auth_destination(_requested_planning_track())
+            or url_for("pages.dashboard")
         )
     form = LoginForm(planning_track=_requested_planning_track())
     if form.validate_on_submit():

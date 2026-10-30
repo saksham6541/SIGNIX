@@ -129,18 +129,31 @@ def test_project_publication_requires_consent_and_confirmed_location(app, client
         "/projects/create",
         data={
             "location_id": location_id,
-            "contact_name": "Owner",
-            "email": "owner@example.com",
             "consent_given": "on",
-            "consent_fee": "on",
+            "action": "save",
         },
         follow_redirects=False,
     )
     assert response.status_code == 302
     with app.app_context():
-        assert Project.query.filter_by(location_id=location_id).count() == 0
+        project = Project.query.filter_by(location_id=location_id).one()
+        assert project.status == "under_review"
+        assert project.consent_given is False
+        assert "city" not in project.location.extras
+        project_id = project.id
 
-    response = client.post(
+    bypass_publication = client.post(
+        f"/business/projects/{project_id}/status",
+        data={"status": "open_to_vendors", "reason": "Try to publish privately"},
+        follow_redirects=False,
+    )
+    assert bypass_publication.status_code == 302
+    with app.app_context():
+        project = db.session.get(Project, project_id)
+        assert project.status == "under_review"
+        assert project.consent_given is False
+
+    missing_marketplace_consent = client.post(
         "/projects/create",
         data={
             "location_id": location_id,
@@ -153,10 +166,58 @@ def test_project_publication_requires_consent_and_confirmed_location(app, client
             "pincode": "560001",
             "consent_given": "on",
             "consent_fee": "on",
+            "action": "publish",
         },
         follow_redirects=False,
     )
-    assert response.status_code == 302
+    assert missing_marketplace_consent.status_code == 302
+    with app.app_context():
+        project = Project.query.filter_by(location_id=location_id).one()
+        assert project.status == "under_review"
+        assert project.consent_given is False
+
+    for service_area in (
+        {"city": "", "locality": "Central Business District", "pincode": "560001"},
+        {"city": "Bengaluru", "locality": "", "pincode": "560001"},
+        {"city": "Bengaluru", "locality": "Central Business District", "pincode": "56001"},
+    ):
+        invalid_service_area = client.post(
+            "/projects/create",
+            data={
+                "location_id": location_id,
+                "consent_given": "on",
+                "marketplace_consent": "on",
+                "consent_fee": "on",
+                "action": "publish",
+                **service_area,
+            },
+            follow_redirects=False,
+        )
+        assert invalid_service_area.status_code == 302
+        with app.app_context():
+            project = Project.query.filter_by(location_id=location_id).one()
+            assert project.status == "under_review"
+            assert project.consent_given is False
+
+    published = client.post(
+        "/projects/create",
+        data={
+            "location_id": location_id,
+            "contact_name": "Owner",
+            "phone": "99999",
+            "email": "owner@example.com",
+            "note": "Alpha",
+            "city": "Bengaluru",
+            "locality": "Central Business District",
+            "pincode": "560001",
+            "consent_given": "on",
+            "marketplace_consent": "on",
+            "consent_fee": "on",
+            "action": "publish",
+        },
+        follow_redirects=False,
+    )
+    assert published.status_code == 302
     with app.app_context():
         project = Project.query.filter_by(location_id=location_id).one()
         assert project.status == "open_to_vendors"
@@ -165,9 +226,10 @@ def test_project_publication_requires_consent_and_confirmed_location(app, client
         assert project.location.extras["city"] == "Bengaluru"
         assert project.location.extras["locality"] == "Central Business District"
         assert project.location.extras["pincode"] == "560001"
-        log = ProjectStatusLog.query.filter_by(project_id=project.id).one()
-        assert log.to_status == "open_to_vendors"
-        assert "explicitly published" in log.note
+        logs = ProjectStatusLog.query.filter_by(project_id=project.id).order_by(ProjectStatusLog.id).all()
+        assert [log.to_status for log in logs] == ["under_review", "open_to_vendors"]
+        assert "saved a private business project" in logs[0].note
+        assert "explicitly published" in logs[1].note
 
 
 def test_homeowner_publication_is_explicit_and_uses_home_report(app, client):
@@ -577,6 +639,7 @@ def test_business_project_detail_and_transitions_enforce_owner_and_model_rules(
                 "planning_track": "business",
                 "project_name": "Pune Warehouse",
                 "city": "Pune",
+                "locality": "Koregaon Park",
                 "pincode": "411001",
                 "business_type": "Warehouse",
                 "annual_net_benefit": 18000.0,

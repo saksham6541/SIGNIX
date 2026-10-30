@@ -7803,3 +7803,27 @@ msgstr ""
 #: app/pages.py
 msgid "Project published to verified installers."
 msgstr ""
+
+#: app/pages.py
+msgid "Consent to save this business project is required."
+msgstr ""
+
+#: app/pages.py
+msgid "Both marketplace consent statements are required before publication."
+msgstr ""
+
+#: app/pages.py
+msgid "Explicit marketplace consent and a confirmed service area are required before publication."
+msgstr ""
+
+#: app/pages.py
+msgid "Private business project saved."
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "I agree to save this assessment as a private business project in my Business workspace."
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Save private project"
+msgstr ""

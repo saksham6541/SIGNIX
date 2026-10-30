@@ -11,6 +11,7 @@ from app import solar_logic
 from app.models import AdminActionLog, Project, ProjectStatusLog, User, UserLocation, VendorLeadUnlock, db
 from app.services.commercial_calculation_service import calculate_commercial_project, project_for_location
 from app.services import estimation_service
+from app.services.vendor_lead_service import eligible_query
 
 
 @pytest.fixture
@@ -181,10 +182,24 @@ def test_commercial_assessment_persists_tariff_provenance_and_creates_project(
         project = Project.query.one()
         assert project.location_id == data["location_id"]
         assert project.user_id == owner_id
-        assert project.consent_given is True
+        assert project.consent_given is False
         assert project.contact_name == "QA Commercial Contact"
         assert project.phone is None
         assert project.status == "under_review"
+        location = db.session.get(UserLocation, data["location_id"])
+        assert location.extras["business_project_creation_consent"]["accepted"] is True
+        vendor = User(
+            email="private-project-installer@example.test",
+            password_hash="unused",
+            display_name="Private Project Installer",
+            role="vendor",
+            vendor_status="approved",
+            vendor_profile={},
+        )
+        db.session.add(vendor)
+        db.session.flush()
+        leads, _ = eligible_query(vendor)
+        assert leads.filter(Project.id == project.id).count() == 0
 
 
 def test_obstruction_aware_commercial_assessment_persists_geometry(client, app, solar_fixture):

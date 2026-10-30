@@ -1057,6 +1057,21 @@ def transition_business_project(project_id):
         or len(reason) > 500
     ):
         abort(400)
+    if next_status == "open_to_vendors":
+        publication_location = _publication_location(project.location)
+        if (
+            not project.consent_given
+            or not publication_location["city"]
+            or not publication_location["locality"]
+            or not re.fullmatch(r"[0-9]{6}", publication_location["pincode"])
+        ):
+            flash(
+                _("Explicit marketplace consent and a confirmed service area are required before publication."),
+                "error",
+            )
+            return redirect(
+                url_for("pages.business_project_detail", project_id=project.id)
+            )
     try:
         project.transition_status(
             current_user.role,
@@ -1098,6 +1113,7 @@ def create_project():
         or _location_planning_track(location) not in PLANNING_TRACKS
     ):
         abort(400)
+    is_business = _location_planning_track(location) == "business"
     destination = _publication_destination(location)
 
     contact_name = (request.form.get("contact_name") or "").strip() or current_user.display_name
@@ -1109,36 +1125,70 @@ def create_project():
     pincode = (request.form.get("pincode") or "").strip()
     consent_given = request.form.get("consent_given") in {"1", "true", "yes", "on"}
     consent_fee = request.form.get("consent_fee") in {"1", "true", "yes", "on"}
-    if not consent_given or not consent_fee:
-        flash(_("Both consent statements are required before a project can be created."), "error")
-        return redirect(destination)
-    if not city or len(city) > 120 or not locality or len(locality) > 120:
-        flash(
-            _("Confirm the city and locality before publishing this lead."),
-            "error",
-        )
-        return redirect(destination)
-    if not re.fullmatch(r"[0-9]{6}", pincode):
-        flash(_("Confirm a valid six-digit PIN code before publishing this lead."), "error")
-        return redirect(destination)
+    action = (request.form.get("action") or ("save" if is_business else "publish")).strip()
+    marketplace_consent = (
+        request.form.get("marketplace_consent") in {"1", "true", "yes", "on"}
+    )
+    if is_business:
+        if action not in {"save", "publish"}:
+            abort(400)
+        if not consent_given:
+            flash(_("Consent to save this business project is required."), "error")
+            return redirect(destination)
+        if action == "publish":
+            if not marketplace_consent or not consent_fee:
+                flash(_("Both marketplace consent statements are required before publication."), "error")
+                return redirect(destination)
+            if not city or len(city) > 120 or not locality or len(locality) > 120:
+                flash(
+                    _("Confirm the city and locality before publishing this lead."),
+                    "error",
+                )
+                return redirect(destination)
+            if not re.fullmatch(r"[0-9]{6}", pincode):
+                flash(_("Confirm a valid six-digit PIN code before publishing this lead."), "error")
+                return redirect(destination)
+    else:
+        if not consent_given or not consent_fee:
+            flash(_("Both consent statements are required before a project can be created."), "error")
+            return redirect(destination)
+        if not city or len(city) > 120 or not locality or len(locality) > 120:
+            flash(
+                _("Confirm the city and locality before publishing this lead."),
+                "error",
+            )
+            return redirect(destination)
+        if not re.fullmatch(r"[0-9]{6}", pincode):
+            flash(_("Confirm a valid six-digit PIN code before publishing this lead."), "error")
+            return redirect(destination)
 
     extras = location.extras if isinstance(location.extras, dict) else {}
-    location.extras = {
-        **extras,
-        "city": city,
-        "locality": locality,
-        "pincode": pincode,
-        "location_context": {
-            **(
-                extras.get("location_context")
-                if isinstance(extras.get("location_context"), dict)
-                else {}
-            ),
+    if is_business:
+        extras = {
+            **extras,
+            "business_project_creation_consent": {
+                "accepted": True,
+                "accepted_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+    if not is_business or action == "publish":
+        extras = {
+            **extras,
             "city": city,
             "locality": locality,
             "pincode": pincode,
-        },
-    }
+            "location_context": {
+                **(
+                    extras.get("location_context")
+                    if isinstance(extras.get("location_context"), dict)
+                    else {}
+                ),
+                "city": city,
+                "locality": locality,
+                "pincode": pincode,
+            },
+        }
+    location.extras = extras
 
     project = Project.query.filter_by(user_id=current_user.id, location_id=location.id).first()
     if project is None:
@@ -1148,9 +1198,7 @@ def create_project():
             owner=current_user.display_name or contact_name,
             location_link=_publication_location_link(location),
             status="assessment_done",
-            consent_given=True,
-            consent_timestamp=datetime.now(timezone.utc),
-            consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
+            consent_given=False,
             contact_name=contact_name,
             phone=phone or None,
             email=email or None,
@@ -1158,12 +1206,6 @@ def create_project():
         )
         db.session.add(project)
         db.session.flush()
-        project.transition_status(
-            current_user.role,
-            current_user.id,
-            "open_to_vendors",
-            note="Customer explicitly published lead to verified installers",
-        )
     else:
         project.owner = current_user.display_name or contact_name
         project.location_link = _publication_location_link(location)
@@ -1171,13 +1213,16 @@ def create_project():
         project.phone = phone or None
         project.email = email or None
         project.note = note or None
-        project.consent_given = True
-        project.consent_timestamp = datetime.now(timezone.utc)
-        project.consent_text_version = Config.PROJECT_CONSENT_TEXT_VERSION
         if project.status == "closed":
             db.session.rollback()
             flash(_("A closed project cannot be reopened by resubmitting this form."), "error")
             return redirect(destination)
+
+    if is_business and action == "publish":
+        now = datetime.now(timezone.utc)
+        project.consent_given = True
+        project.consent_timestamp = now
+        project.consent_text_version = Config.PROJECT_CONSENT_TEXT_VERSION
         if project.status in {"assessment_done", "under_review"}:
             project.transition_status(
                 current_user.role,
@@ -1185,9 +1230,32 @@ def create_project():
                 "open_to_vendors",
                 note="Customer explicitly published lead to verified installers",
             )
+    elif is_business:
+        if project.status == "assessment_done":
+            project.transition_status(
+                current_user.role,
+                current_user.id,
+                "under_review",
+                note="Customer saved a private business project",
+            )
+    elif project.status in {"assessment_done", "under_review"}:
+        project.consent_given = True
+        project.consent_timestamp = datetime.now(timezone.utc)
+        project.consent_text_version = Config.PROJECT_CONSENT_TEXT_VERSION
+        project.transition_status(
+            current_user.role,
+            current_user.id,
+            "open_to_vendors",
+            note="Customer explicitly published lead to verified installers",
+        )
 
     db.session.commit()
-    flash(_("Project published to verified installers."), "success")
+    flash(
+        _("Project published to verified installers.")
+        if not is_business or action == "publish"
+        else _("Private business project saved."),
+        "success",
+    )
     return redirect(destination)
 
 

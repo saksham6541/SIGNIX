@@ -9409,3 +9409,27 @@ msgstr "इस लीड को प्रकाशित करने से प
 #: app/pages.py
 msgid "Project published to verified installers."
 msgstr "परियोजना सत्यापित इंस्टॉलरों के लिए प्रकाशित कर दी गई है।"
+
+#: app/pages.py
+msgid "Consent to save this business project is required."
+msgstr "इस व्यावसायिक परियोजना को सहेजने के लिए सहमति आवश्यक है।"
+
+#: app/pages.py
+msgid "Both marketplace consent statements are required before publication."
+msgstr "प्रकाशित करने से पहले बाज़ार में साझा करने से संबंधित दोनों सहमतियाँ आवश्यक हैं।"
+
+#: app/pages.py
+msgid "Explicit marketplace consent and a confirmed service area are required before publication."
+msgstr "प्रकाशित करने से पहले बाज़ार में साझा करने की स्पष्ट सहमति और पुष्टि किया गया सेवा क्षेत्र आवश्यक है।"
+
+#: app/pages.py
+msgid "Private business project saved."
+msgstr "निजी व्यावसायिक परियोजना सहेज दी गई है।"
+
+#: app/templates/business_estimate_result.html
+msgid "I agree to save this assessment as a private business project in my Business workspace."
+msgstr "मैं इस आकलन को अपने व्यवसाय कार्यक्षेत्र में निजी व्यावसायिक परियोजना के रूप में सहेजने के लिए सहमत हूँ।"
+
+#: app/templates/business_estimate_result.html
+msgid "Save private project"
+msgstr "निजी परियोजना सहेजें"
