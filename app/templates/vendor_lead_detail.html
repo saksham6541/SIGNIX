@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Commercial project') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor-leads.css') }}">{% endblock %}
+{% block content %}
+<section class="vendor-leads" data-saving="{{ _('Updating saved lead…') }}" data-failure="{{ _('Could not update saved leads. Please try again.') }}">
+  <h1>{{ _('Commercial project') }}</h1>
+  {% include '_vendor_lead_nav.html' %}
+  <p class="lead-feedback" role="status" aria-live="polite"></p>
+  {% include '_vendor_lead_card.html' %}
+  {% if project %}{% include '_vendor_unlocked.html' %}
+  {% elif item.unlock_cost is not none %}
+  {# Existing unlock action retained here; Part 1 does not change its implementation. #}
+  <form method="post" novalidate action="{{ url_for('auth.vendor_unlock_project', project_id=item.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn-dashboard-cta">{{ _('Unlock lead') }} ({{ item.unlock_cost }} {{ _('credits') }})</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/vendor-leads.js') }}" defer></script>{% endblock %}

@@ -116,11 +116,98 @@ def test_browser_json_and_normal_form_use_authoritative_pipeline(client, app, so
     assert "test_fixture" in html
     assert "25-year cumulative cash flow" in html
     assert "Unavailable" in html
+    assert "Indicative PPA rate: ₹5.00/kWh; not an installer quote." in html
     assert client.get(data["redirect_url"]).status_code == 200
     form = {**body, "polygon": json.dumps(body["polygon"]), "obstructions": "[]"}
     confirmed = client.post("/business/estimate/confirm", data=form)
     assert confirmed.status_code == 302
     assert "/business/estimate/result/" in confirmed.headers["Location"]
+
+
+@pytest.mark.parametrize(
+    ("provided_tariff", "expected_basis"),
+    [(True, "user_supplied"), (False, "signix_configurable_default")],
+)
+def test_commercial_assessment_persists_tariff_provenance_and_creates_project(
+    client, app, solar_fixture, provided_tariff, expected_basis
+):
+    survey_html = client.get("/survey/business").get_data(as_text=True)
+    tariff_input = re.search(r'<input[^>]*id="tariff-per-kwh"[^>]*>', survey_html).group()
+    assert 'value=""' in tariff_input
+    assert "not an official utility tariff" in survey_html
+
+    body = payload()
+    if not provided_tariff:
+        body.pop("tariff_per_kwh")
+
+    response = client.post("/business/estimate", json=body)
+    assert response.status_code == 200, response.get_json()
+    data = response.get_json()
+    assert data["tariff_provenance"]["basis"] == expected_basis
+
+    with app.app_context():
+        location = db.session.get(UserLocation, data["location_id"])
+        owner_id = location.user_id
+        assert location.extras["tariff_provenance"]["basis"] == expected_basis
+        assert location.extras["tariff_provenance"]["rate_per_kwh"] == data["tariff_provenance"]["rate_per_kwh"]
+        assert location.extras["calculation_policy"]["residential_subsidy_may_apply"] is False
+        assert location.subsidy_amount == 0
+
+    result_html = client.get(data["business_result_url"]).get_data(as_text=True)
+    assert "Tariff source" in result_html
+    assert "SIGNIX configurable planning assumptions" in result_html
+    assert "not an installer quote" in result_html
+    if provided_tariff:
+        assert "User-entered commercial rate; not independently verified" in result_html
+    else:
+        assert "SIGNIX configurable default; confirm against your utility bill" in result_html
+
+    app.config["WTF_CSRF_ENABLED"] = True
+    token = csrf(client, data["business_result_url"])
+    project_response = client.post(
+        "/projects/create",
+        data={
+            "csrf_token": token,
+            "location_id": data["location_id"],
+            "contact_name": "QA Commercial Contact",
+            "email": "qa-commercial@example.com",
+            "consent_given": "1",
+            "consent_fee": "1",
+        },
+    )
+    assert project_response.status_code == 302
+    assert data["business_result_url"] in project_response.headers["Location"]
+    with app.app_context():
+        project = Project.query.one()
+        assert project.location_id == data["location_id"]
+        assert project.user_id == owner_id
+        assert project.consent_given is True
+        assert project.contact_name == "QA Commercial Contact"
+        assert project.phone is None
+        assert project.status == "under_review"
+
+
+def test_obstruction_aware_commercial_assessment_persists_geometry(client, app, solar_fixture):
+    body = payload()
+    body["obstructions"] = [[
+        [28.61395, 77.20905],
+        [28.61395, 77.20915],
+        [28.61405, 77.20915],
+        [28.61405, 77.20905],
+    ]]
+
+    response = client.post("/business/estimate", json=body)
+    assert response.status_code == 200, response.get_json()
+    data = response.get_json()
+    with app.app_context():
+        location = db.session.get(UserLocation, data["location_id"])
+        assert location.roof_area_sqm > 0
+        assert location.obstructed_area_sqm > 0
+        assert location.usable_area_sqm == pytest.approx(
+            location.roof_area_sqm - location.obstructed_area_sqm, abs=0.1
+        )
+        assert location.obstructions_geojson["type"] == "MultiPolygon"
+        assert location.subsidy_amount == 0
 
 
 @pytest.mark.parametrize("geometry", [[], [[1, 2]], "invalid", [[float("nan"), 1], [1, 2], [3, 4]]])

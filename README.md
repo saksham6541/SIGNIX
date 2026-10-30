@@ -94,6 +94,14 @@ The selected track must be established and validated server-side.
 Client-supplied fields must not be allowed to switch a request into a
 different calculation policy.
 
+The public business entry page is available at `/business` (also
+`/commercial`). It links into the existing commercial assessment and
+consultation workflows. Consultation requests are stored for authorized
+staff review; submitting one does not book an appointment. Commercial tariff
+references use the configured planning default unless a verified commercial
+source is added. See [the commercial landing and consultation workflow](docs/commercial_landing.md)
+for data provenance and the explicit schema migration procedure.
+
 ## Architecture
 
 SIGNIX follows a Flask application architecture with server-rendered

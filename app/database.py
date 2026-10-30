@@ -25,7 +25,9 @@ def initialize_database():
                 "Database schema requires an explicit backed-up migration; startup made no changes. "
                 "Missing: " + ", ".join(missing) + ". "
                 "For legacy users columns see scripts/migrate_sqlite_users.py and "
-                "docs/sqlite_user_schema_migration.md. Other schema gaps require a reviewed migration."
+                "docs/sqlite_user_schema_migration.md. For vendor_saved_leads see "
+                "scripts/migrate_vendor_saved_leads.py and docs/installer_leads.md. "
+                "Other schema gaps require a reviewed migration."
             )
         return
 

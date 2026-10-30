@@ -1,0 +1,102 @@
+{% set hide_sidebar = true %}
+{% extends "base.html" %}
+{% block title %}{{ _('Commercial rooftop solar planning for businesses') }} | SIGNIX{% endblock %}
+{% block body_class %}landing-body public-page-body commercial-landing-body{% endblock %}
+
+{% block top_bar_nav %}{% include "_public_nav.html" %}{% endblock %}
+
+{% block content %}
+<div class="commercial-page">
+  <section class="commercial-hero" aria-labelledby="commercial-title">
+    <div class="commercial-hero-copy">
+      <p class="commercial-kicker">{{ _('SIGNIX BUSINESS') }} <span>{{ _('ROOFTOP SOLAR PLANNING') }}</span></p>
+      <h1 id="commercial-title">{{ _('Plan solar around your business roof and energy use.') }}</h1>
+      <p class="commercial-hero-description">{{ _('Assess a rooftop boundary, mark obstructions, add your business tariff and operating profile, and review indicative project comparisons—all with your inputs visible.') }}</p>
+      <div class="commercial-hero-actions">
+        <a class="commercial-button commercial-button-primary" href="{{ url_for('pages.business_estimate') }}">{{ _('Start Commercial Estimate') }}</a>
+        <a class="commercial-button commercial-button-secondary" href="{{ url_for('auth.signup', next=url_for('pages.business_estimate'), track='business') }}">{{ _('Get Started') }}</a>
+        <a class="commercial-text-link" href="{{ url_for('pages.consultation', segment='commercial') }}">{{ _('Book a Free Consultation') }}</a>
+      </div>
+      <p class="commercial-hero-note">{{ _('Planning estimates only—not an engineering survey, quote, or promise of savings.') }}</p>
+    </div>
+    <figure class="commercial-hero-visual">
+      <img src="{{ url_for('static', filename='images/commercial-solar.jpg') }}" alt="{{ _('Solar panels on a commercial rooftop') }}">
+      <figcaption><span aria-hidden="true"></span>{{ _('Start with the roof you control.') }}</figcaption>
+    </figure>
+  </section>
+
+  <section class="commercial-proof-strip" aria-label="{{ _('Commercial planning workflow') }}">
+    <span>{{ _('Roof boundary and obstructions') }}</span>
+    <span>{{ _('Business tariff and load profile') }}</span>
+    <span>{{ _('Indicative financial comparisons') }}</span>
+  </section>
+
+  <section class="commercial-section" id="commercial-workflow" aria-labelledby="commercial-workflow-title">
+    <div class="commercial-section-heading">
+      <p class="commercial-kicker">{{ _('A ROOF-FIRST WORKFLOW') }}</p>
+      <h2 id="commercial-workflow-title">{{ _('A clearer view, built from your site inputs.') }}</h2>
+      <p>{{ _('SIGNIX reuses its commercial assessment and calculation flow. You provide the site details; the estimate remains an initial planning view.') }}</p>
+    </div>
+    <div class="commercial-capability-grid">
+      <article class="commercial-capability">
+        <span class="commercial-index">01</span>
+        <h3>{{ _('Map the usable rooftop') }}</h3>
+        <p>{{ _('Draw or confirm the roof boundary, then mark obstructions to inform usable-area and system-sizing estimates.') }}</p>
+      </article>
+      <article class="commercial-capability">
+        <span class="commercial-index">02</span>
+        <h3>{{ _('Describe how the site operates') }}</h3>
+        <p>{{ _('Add your electricity use, business tariff, daytime load profile, location, and applicable site details.') }}</p>
+      </article>
+      <article class="commercial-capability">
+        <span class="commercial-index">03</span>
+        <h3>{{ _('Compare indicative project cases') }}</h3>
+        <p>{{ _('Review the supported Buy, Loan, and PPA comparisons using the inputs and assumptions shown with your assessment.') }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="commercial-tariff-section" aria-labelledby="commercial-tariff-title">
+    <div class="commercial-tariff-copy">
+      <p class="commercial-kicker">{{ _('TARIFF REFERENCE') }}</p>
+      <h2 id="commercial-tariff-title">{{ _('Your bill rate is the important one.') }}</h2>
+      <p>{{ _('SIGNIX does not have a verified state- or utility-specific commercial tariff schedule here. This reference is only a configurable planning default; confirm the applicable energy rate from your bill or utility before relying on an estimate.') }}</p>
+    </div>
+    <dl class="commercial-tariff-facts">
+      <div><dt>{{ _('Geography and category') }}</dt><dd>{{ _('India · commercial planning default; not state or utility specific') }}</dd></div>
+      <div><dt>{{ _('Configurable reference') }}</dt><dd>₹{{ '%.2f'|format(commercial_tariff.rate_per_kwh) }} / kWh</dd></div>
+      <div><dt>{{ _('Source and provenance') }}</dt><dd>{{ _('SIGNIX configuration: DEFAULT_COMMERCIAL_TARIFF. Not an official published tariff.') }}</dd></div>
+      <div><dt>{{ _('Effective period') }}</dt><dd>{{ _('Not provided for this configurable default.') }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="commercial-section commercial-project-section" aria-labelledby="commercial-project-title">
+    <div class="commercial-project-copy">
+      <p class="commercial-kicker">{{ _('FROM ESTIMATE TO PROJECT REVIEW') }}</p>
+      <h2 id="commercial-project-title">{{ _('Keep the decision grounded in the details.') }}</h2>
+      <p>{{ _('Review your saved assessment and financial comparison before deciding whether to continue into the available business project workflow. Any installer sharing requires your separate choice and consent.') }}</p>
+      <a class="commercial-inline-link" href="{{ url_for('pages.business_estimate') }}">{{ _('Start Commercial Estimate') }} <span aria-hidden="true">→</span></a>
+    </div>
+    <aside class="commercial-assumptions" aria-labelledby="commercial-assumptions-title">
+      <h3 id="commercial-assumptions-title">{{ _('What an estimate does not promise') }}</h3>
+      <ul>
+        <li>{{ _('Generation, bill savings, ROI, and payback are not guaranteed.') }}</li>
+        <li>{{ _('Actual tariffs, demand charges, export rules, costs, and financing terms must be confirmed for your site.') }}</li>
+        <li>{{ _('Tax and depreciation benefits are not modelled as guaranteed outcomes.') }}</li>
+        <li>{{ _('Residential subsidy guidance does not establish commercial eligibility.') }}</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="commercial-final-cta" aria-labelledby="commercial-final-title">
+    <div>
+      <p class="commercial-kicker">{{ _('YOUR SITE. YOUR INPUTS.') }}</p>
+      <h2 id="commercial-final-title">{{ _('Start with a commercial rooftop assessment.') }}</h2>
+      <p>{{ _('You can review the assumptions before using an estimate for a project decision.') }}</p>
+    </div>
+    <a class="commercial-button commercial-button-primary" href="{{ url_for('pages.business_estimate') }}">{{ _('Start Commercial Estimate') }}</a>
+  </section>
+</div>
+{% endblock %}
+
+{% block site_footer %}{% include "_public_footer.html" %}{% endblock %}

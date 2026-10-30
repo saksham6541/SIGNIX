@@ -1,5 +1,7 @@
 import re
 import json
+import uuid
+import math
 from datetime import date, datetime, timezone
 
 from flask import (
@@ -20,13 +22,21 @@ from flask_login import current_user, login_required
 
 from app.application_checklist import build_pm_surya_ghar_guidance
 from app.config import Config
-from app.models import ApplicationTrackerEvent, Project, UserLocation, db
+from app.models import (
+    ApplicationTrackerEvent,
+    ConsultationRequest,
+    PROJECT_STATUS_CHOICES,
+    Project,
+    UserLocation,
+    VendorLeadUnlock,
+    db,
+)
 from app.report_generator import generate_pdf_report
 from app.installer_export import build_installer_package_zip
 from app.services import location_service
 from app.services.commercial_calculation_service import project_for_location, validate_finance_preferences
 from app.services import estimation_service
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app.solar_logic import calculate_environmental_equivalents
 from app.forms import INDIAN_STATES
 
@@ -116,6 +126,11 @@ def _project_is_business(location):
     return property_type in {"commercial", "industrial", "msme", "factory"}
 
 
+def _require_business_workspace_role():
+    if current_user.role not in {"user", "admin"}:
+        abort(403)
+
+
 @pages_bp.route("/")
 def index():
     return render_template(
@@ -123,9 +138,230 @@ def index():
     )
 
 
-@pages_bp.get("/consultation")
+@pages_bp.get("/commercial")
+@pages_bp.get("/business")
+def business_landing():
+    return render_template(
+        "business_landing.html",
+        commercial_tariff=estimation_service.lookup_tariff_defaults(
+            None, planning_track="business"
+        ),
+    )
+
+
+CONSULTATION_SEGMENTS = frozenset({"residential", "commercial", "industrial"})
+CONSULTATION_BILL_RANGES = frozenset(
+    {
+        "below-2000",
+        "2000-5000",
+        "5000-10000",
+        "10000-25000",
+        "25000-100000",
+        "above-100000",
+    }
+)
+CONSULTATION_OPERATING_PROFILES = frozenset({"daytime", "mixed", "evening"})
+
+
+def _consultation_form_context(form_data=None, errors=None, submission_token=None, form_error=None):
+    return {
+        "form_data": form_data or {},
+        "errors": errors or {},
+        "submission_token": submission_token or str(uuid.uuid4()),
+        "form_error": form_error,
+    }
+
+
+def _consultation_validation(form_data):
+    errors = {}
+    segment = form_data["segment"]
+    if segment not in CONSULTATION_SEGMENTS:
+        errors["segment"] = _("Choose a valid enquiry type.")
+    if not form_data["full_name"] or len(form_data["full_name"]) > 120:
+        errors["full_name"] = _("Enter your name using no more than 120 characters.")
+    if not re.fullmatch(r"[6-9][0-9]{9}", form_data["phone"]):
+        errors["phone"] = _("Enter a valid 10-digit Indian mobile number.")
+    email = form_data["email"]
+    if email and (
+        len(email) > 254
+        or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]{2,}", email)
+    ):
+        errors["email"] = _("Enter a valid email address.")
+    if segment in {"commercial", "industrial"} and not form_data["business_name"]:
+        errors["business_name"] = _("Enter the business or organization name.")
+    if len(form_data["business_name"]) > 160:
+        errors["business_name"] = _("Use no more than 160 characters.")
+    if not form_data["city"] or len(form_data["city"]) > 120:
+        errors["city"] = _("Enter a city using no more than 120 characters.")
+    if not form_data["state"] or len(form_data["state"]) > 128:
+        errors["state"] = _("Enter a state or union territory using no more than 128 characters.")
+    if not re.fullmatch(r"[0-9]{6}", form_data["pin_code"]):
+        errors["pin_code"] = _("Enter a valid 6-digit PIN code.")
+    if form_data["monthly_bill"] not in CONSULTATION_BILL_RANGES:
+        errors["monthly_bill"] = _("Select an electricity bill range.")
+    if form_data["business_type"] and len(form_data["business_type"]) > 120:
+        errors["business_type"] = _("Use no more than 120 characters.")
+    if form_data["operating_profile"] and form_data["operating_profile"] not in CONSULTATION_OPERATING_PROFILES:
+        errors["operating_profile"] = _("Choose a valid operating profile.")
+    if not form_data["requirements"] or len(form_data["requirements"]) < 10:
+        errors["requirements"] = _("Describe what you would like to discuss (at least 10 characters).")
+    elif len(form_data["requirements"]) > 2000:
+        errors["requirements"] = _("Keep your consultation requirements to 2,000 characters or fewer.")
+    if not form_data["consent"]:
+        errors["consent"] = _("Please agree to be contacted about this request.")
+    return errors
+
+
+@pages_bp.route("/consultation", methods=["GET", "POST"])
 def consultation():
-    return render_template("consultation.html")
+    if request.method == "GET":
+        segment = request.args.get("segment", "residential")
+        if segment not in CONSULTATION_SEGMENTS:
+            segment = "residential"
+        return render_template(
+            "consultation.html",
+            **_consultation_form_context({"segment": segment}),
+        )
+
+    fields = (
+        "submission_token",
+        "segment",
+        "full_name",
+        "phone",
+        "email",
+        "business_name",
+        "city",
+        "state",
+        "pin_code",
+        "monthly_bill",
+        "business_type",
+        "operating_profile",
+        "requirements",
+    )
+    form_data = {field: (request.form.get(field) or "").strip() for field in fields}
+    form_data["consent"] = request.form.get("consent") in {"on", "yes"}
+    try:
+        parsed_token = uuid.UUID(form_data["submission_token"])
+        if str(parsed_token) != form_data["submission_token"].lower():
+            raise ValueError
+        form_data["submission_token"] = str(parsed_token)
+    except (ValueError, AttributeError):
+        errors = {"submission_token": _("Refresh the page and submit the form again.")}
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(form_data, errors, form_error=_("We could not verify this submission.")),
+            ),
+            400,
+        )
+
+    existing = ConsultationRequest.query.filter_by(
+        submission_token=form_data["submission_token"]
+    ).first()
+    if existing is not None:
+        flash(
+            _("This request was already received; no duplicate was created."),
+            "success",
+        )
+        return redirect(url_for("pages.consultation", segment=form_data["segment"]))
+
+    errors = _consultation_validation(form_data)
+    if errors:
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(
+                    form_data, errors, form_data["submission_token"]
+                ),
+            ),
+            400,
+        )
+
+    consultation_request = ConsultationRequest(
+        submission_token=form_data["submission_token"],
+        full_name=form_data["full_name"],
+        phone=form_data["phone"],
+        email=form_data["email"] or None,
+        segment=form_data["segment"],
+        business_name=form_data["business_name"] or None,
+        city=form_data["city"],
+        state=form_data["state"],
+        pin_code=form_data["pin_code"],
+        monthly_bill=form_data["monthly_bill"],
+        business_type=form_data["business_type"] or None,
+        operating_profile=form_data["operating_profile"] or None,
+        requirements=form_data["requirements"],
+        consent=form_data["consent"],
+    )
+    try:
+        db.session.add(consultation_request)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        try:
+            existing = ConsultationRequest.query.filter_by(
+                submission_token=form_data["submission_token"]
+            ).first()
+        except SQLAlchemyError:
+            db.session.rollback()
+            current_app.logger.exception("Consultation request persistence could not be verified")
+            return (
+                render_template(
+                    "consultation.html",
+                    **_consultation_form_context(
+                        form_data,
+                        submission_token=form_data["submission_token"],
+                        form_error=_(
+                            "We could not save your request. Please try again; it has not been submitted."
+                        ),
+                    ),
+                ),
+                503,
+            )
+        if existing is not None:
+            flash(
+                _("This request was already received; no duplicate was created."),
+                "success",
+            )
+            return redirect(
+                url_for("pages.consultation", segment=form_data["segment"])
+            )
+        current_app.logger.exception("Consultation request write violated a database constraint")
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(
+                    form_data,
+                    submission_token=form_data["submission_token"],
+                    form_error=_(
+                        "We could not save your request. Please try again; it has not been submitted."
+                    ),
+                ),
+            ),
+            503,
+        )
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Consultation request could not be persisted")
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(
+                    form_data,
+                    submission_token=form_data["submission_token"],
+                    form_error=_(
+                        "We could not save your request. Please try again; it has not been submitted."
+                    ),
+                ),
+            ),
+            503,
+        )
+
+    flash(
+        _("Your consultation request has been received. No appointment has been booked."),
+        "success",
+    )
+    return redirect(url_for("pages.consultation", segment=form_data["segment"]))
 
 
 PLANNING_TRACKS = {
@@ -201,7 +437,16 @@ def survey(planning_track, template_name="index.html"):
         template_name,
         planning_track=planning_track,
         track=track,
-        default_tariff_per_kwh=current_user.default_tariff_per_kwh,
+        default_tariff_per_kwh=(
+            current_user.default_tariff_per_kwh if planning_track == "home" else None
+        ),
+        commercial_config_tariff_per_kwh=(
+            estimation_service.lookup_tariff_defaults(
+                None, planning_track="business"
+            )["rate_per_kwh"]
+            if planning_track == "business"
+            else None
+        ),
         default_state=current_user.default_state,
         # A saved off-grid/remote household preference remains part of the
         # home workflow. Cross-track preferences never switch a home survey
@@ -271,6 +516,19 @@ def _save_business_estimate_payload(payload):
     inputs = estimation_service.prepare_estimate_inputs(payload, planning_track="business")
     if inputs["tariff_per_kwh"] <= 0:
         raise ValueError("A positive commercial energy tariff is required")
+    tariff_provenance = {
+        "basis": (
+            "user_supplied"
+            if payload.get("tariff_per_kwh") not in (None, "")
+            else "signix_configurable_default"
+        ),
+        "rate_per_kwh": inputs["tariff_per_kwh"],
+        "source": (
+            "User-entered commercial rate; not independently verified"
+            if payload.get("tariff_per_kwh") not in (None, "")
+            else "SIGNIX configurable default; confirm against your utility bill"
+        ),
+    }
     # Units are a demand/sizing input only, never a solar-generation measurement.
     if bill is None:
         inputs["monthly_bill"] = units * inputs["tariff_per_kwh"]
@@ -286,11 +544,13 @@ def _save_business_estimate_payload(payload):
         result, location = estimation_service.create_estimate(current_user.id, **inputs, commit=False)
         location.extras = {**location.extras, **metadata, **preferences,
                            "monthly_units_kwh": units, "monthly_bill_rs": bill,
+                           "tariff_provenance": tariff_provenance,
                            "source": "business_estimate_page"}
         comparison = project_for_location(location)
         # Shared reports and the commercial result use the identical financing flows.
         location.extras = {**location.extras, "financing_comparison": comparison["financing_comparison"]}
         result["financing_comparison"] = comparison["financing_comparison"]
+        result["tariff_provenance"] = tariff_provenance
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -354,38 +614,65 @@ def business_estimate_result(location_id):
     )
 
 
-def _project_location_context(project):
+def _persisted_finite_number(value):
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _persisted_nonnegative_number(value):
+    number = _persisted_finite_number(value)
+    return number if number is not None and number >= 0 else None
+
+
+def _project_location_context(project, *, installer_count=0):
     location = project.location
     extras = location.extras if isinstance(location.extras, dict) else {}
     location_context = extras.get("location_context") if isinstance(extras.get("location_context"), dict) else {}
-    city = (
-        (extras.get("city") or location_context.get("city") or location.address or "")
-        .strip()
-    )
-    pin = (extras.get("pincode") or location_context.get("pincode") or "")
-    if not pin:
-        match = re.search(r"\b(\d{6})\b", location.address or "")
-        if match:
-            pin = match.group(1)
-    if not city and location.address:
-        city = location.address
-    business_type = (
-        extras.get("business_type")
-        or extras.get("property_type")
-        or "Commercial"
+    city = str(extras.get("city") or location_context.get("city") or "").strip()
+    pin = str(extras.get("pincode") or location_context.get("pincode") or "").strip()
+    address = str(location.address or "").strip()
+    business_type = extras.get("business_type") or extras.get("property_type")
+    system_size_kw = _persisted_nonnegative_number(location.system_size)
+    if not system_size_kw:
+        system_size_kw = _persisted_nonnegative_number(extras.get("system_size_kw"))
+    if system_size_kw == 0:
+        system_size_kw = None
+
+    annual_savings = _persisted_finite_number(extras.get("annual_net_benefit"))
+    if annual_savings is None:
+        monthly_savings = _persisted_finite_number(location.monthly_savings)
+        if monthly_savings is not None:
+            annual_savings = monthly_savings * 12
+
+    installed_capacity_kw = _persisted_nonnegative_number(
+        extras.get("installed_capacity_kw")
     )
     return {
-        "site_name": project.owner or (location.address or "Project"),
+        "site_name": str(
+            extras.get("project_name")
+            or extras.get("site_name")
+            or extras.get("business_name")
+            or project.owner
+            or f"Project {project.id}"
+        ),
+        "address": address,
         "city": city,
         "pin": pin,
-        "business_type": str(business_type).replace("_", " ").title(),
-        "system_size_kw": float(location.system_size or extras.get("system_size_kw") or 0.0),
-        "yearly_savings": float(
-            extras.get("annual_net_benefit")
-            or (location.monthly_savings * 12 if location.monthly_savings else 0.0)
-            or 0.0
+        "location_label": address or " · ".join(value for value in (city, pin) if value),
+        "business_type": (
+            str(business_type).replace("_", " ").title()
+            if business_type
+            else None
         ),
-        "installer_count": 0,
+        "system_size_kw": system_size_kw,
+        "installed_capacity_kw": installed_capacity_kw,
+        "yearly_savings": annual_savings,
+        "installer_count": installer_count,
         "posted_date": project.created_at.date().isoformat() if project.created_at else None,
     }
 
@@ -428,47 +715,109 @@ def api_projects():
 @pages_bp.route("/business/projects")
 @login_required
 def business_projects():
+    _require_business_workspace_role()
     status_filter = (request.args.get("status") or "all").strip().lower()
-    query = (request.args.get("q") or "").strip().lower()
-    projects = Project.query.filter_by(user_id=current_user.id).order_by(Project.created_at.desc()).all()
-
-    filtered_projects = []
-    for project in projects:
-        summary = _project_location_context(project)
-        text = " ".join(
-            [
-                project.owner or "",
-                project.contact_name or "",
-                summary["site_name"] or "",
-                summary["city"] or "",
-                summary["pin"] or "",
-                project.status or "",
-                summary["business_type"] or "",
-            ]
-        ).lower()
-        if status_filter != "all" and project.status != status_filter:
-            continue
-        if query and query not in text:
-            continue
-        filtered_projects.append(project)
-
-    status_counts = {
-        "all": len(projects),
-        "assessment_done": 0,
-        "under_review": 0,
-        "open_to_vendors": 0,
-        "vendor_connected": 0,
-        "decision": 0,
-        "installation": 0,
-        "closed": 0,
+    query = (request.args.get("q") or "").strip().casefold()
+    filter_statuses = {
+        "all": None,
+        "under_review": {"under_review"},
+        "open_to_vendors": {"open_to_vendors"},
+        "vendor_connected": {"vendor_connected", "decision", "installation"},
+        "closed": {"closed"},
     }
-    for project in projects:
-        status_counts[project.status] = status_counts.get(project.status, 0) + 1
+    if status_filter not in filter_statuses:
+        abort(400)
 
-    project_summaries = {project.id: _project_location_context(project) for project in filtered_projects}
+    projects = [
+        project
+        for project in Project.query.filter_by(user_id=current_user.id)
+        .order_by(Project.created_at.desc())
+        .all()
+        if _project_is_business(project.location)
+    ]
+    project_ids = [project.id for project in projects]
+    unlock_counts = {}
+    if project_ids:
+        unlock_counts = dict(
+            db.session.query(
+                VendorLeadUnlock.project_id,
+                db.func.count(VendorLeadUnlock.id),
+            )
+            .filter(VendorLeadUnlock.project_id.in_(project_ids))
+            .group_by(VendorLeadUnlock.project_id)
+            .all()
+        )
+
+    project_summaries = {
+        project.id: _project_location_context(
+            project, installer_count=unlock_counts.get(project.id, 0)
+        )
+        for project in projects
+    }
+    selected_statuses = filter_statuses[status_filter]
+    filtered_projects = [
+        project
+        for project in projects
+        if (selected_statuses is None or project.status in selected_statuses)
+        and (
+            not query
+            or any(
+                query in value.casefold()
+                for value in (
+                    project_summaries[project.id]["site_name"],
+                    project_summaries[project.id]["city"],
+                    project_summaries[project.id]["pin"],
+                )
+                if value
+            )
+        )
+    ]
+
+    project_status_counts = {status: 0 for status in PROJECT_STATUS_CHOICES}
+    for project in projects:
+        if project.status in project_status_counts:
+            project_status_counts[project.status] += 1
+
+    filter_counts = {
+        "all": len(projects),
+        "under_review": project_status_counts["under_review"],
+        "open_to_vendors": project_status_counts["open_to_vendors"],
+        "vendor_connected": sum(
+            project_status_counts[status]
+            for status in ("vendor_connected", "decision", "installation")
+        ),
+        "closed": project_status_counts["closed"],
+    }
+
     totals = {
-        "capacity_kw": sum(project_summaries[project.id]["system_size_kw"] for project in filtered_projects),
-        "yearly_savings": sum(project_summaries[project.id]["yearly_savings"] for project in filtered_projects),
+        "project_count": len(projects),
+        "capacity_kw": sum(
+            summary["system_size_kw"]
+            for summary in project_summaries.values()
+            if summary["system_size_kw"] is not None
+        ),
+        "capacity_count": sum(
+            summary["system_size_kw"] is not None
+            for summary in project_summaries.values()
+        ),
+        "installed_capacity_kw": sum(
+            summary["installed_capacity_kw"]
+            for summary in project_summaries.values()
+            if summary["installed_capacity_kw"] is not None
+        ),
+        "installed_capacity_count": sum(
+            summary["installed_capacity_kw"] is not None
+            for summary in project_summaries.values()
+        ),
+        "yearly_savings": sum(
+            summary["yearly_savings"]
+            for summary in project_summaries.values()
+            if summary["yearly_savings"] is not None
+        ),
+        "yearly_savings_count": sum(
+            summary["yearly_savings"] is not None
+            for summary in project_summaries.values()
+        ),
     }
 
     session["planning_track"] = "business"
@@ -477,10 +826,14 @@ def business_projects():
         planning_track="business",
         projects=filtered_projects,
         project_summaries=project_summaries,
-        project_status_labels={status: _project_status_label(status) for status in status_counts if status != "all"},
+        project_status_labels={
+            status: _project_status_label(status)
+            for status in PROJECT_STATUS_CHOICES
+        },
         selected_status=status_filter,
         search_query=query,
-        status_counts=status_counts,
+        status_counts=filter_counts,
+        project_status_counts=project_status_counts,
         totals=totals,
         active_nav="projects",
         project_context={
@@ -530,11 +883,6 @@ def projects_page():
     for project in projects:
         status_counts[project.status] = status_counts.get(project.status, 0) + 1
 
-    totals = {
-        "capacity_kw": sum(_project_location_context(project)["system_size_kw"] for project in filtered_projects),
-        "yearly_savings": sum(_project_location_context(project)["yearly_savings"] for project in filtered_projects),
-    }
-
     return jsonify({
         "projects": [
             {
@@ -558,33 +906,132 @@ def projects_page():
 @login_required
 def project_detail(project_id):
     project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
+    return _render_project_detail(project)
+
+
+def _render_project_detail(project):
     location = project.location
     extras = location.extras if isinstance(location.extras, dict) else {}
-    summary = _project_location_context(project)
+    if project.user_id != current_user.id or location.user_id != current_user.id:
+        abort(404)
+    is_business = _project_is_business(location)
+    if is_business:
+        _require_business_workspace_role()
+    installer_count = VendorLeadUnlock.query.filter_by(project_id=project.id).count()
+    summary = _project_location_context(project, installer_count=installer_count)
     active_status = _project_status_label(project.status)
-    yearly_savings = summary["yearly_savings"]
+    financial_estimates = []
+    for label, value, kind, allow_negative in (
+        (_("Annual savings"), summary["yearly_savings"], "money", True),
+        (_("Monthly bill"), extras.get("monthly_bill_rs"), "money", False),
+        (_("Monthly consumption"), extras.get("monthly_units_kwh"), "number", False),
+        (_("Energy tariff"), extras.get("tariff_per_kwh"), "tariff", False),
+        (_("System cost"), location.system_cost, "money", False),
+        (_("Net investment"), location.net_investment, "money", False),
+        (_("Payback period"), location.payback_years, "years", False),
+    ):
+        number = (
+            _persisted_finite_number(value)
+            if allow_negative
+            else _persisted_nonnegative_number(value)
+        )
+        if number is not None:
+            financial_estimates.append(
+                {"label": label, "value": number, "kind": kind}
+            )
+
+    assessment_details = []
+    for label, value, kind in (
+        (_("Planned system size"), summary["system_size_kw"], "capacity"),
+        (_("Annual generation"), location.annual_generation, "energy"),
+        (_("Roof area"), location.roof_area_sqm, "area"),
+        (_("Usable roof area"), location.usable_area_sqm, "area"),
+    ):
+        number = _persisted_nonnegative_number(value)
+        if number:
+            assessment_details.append(
+                {"label": label, "value": number, "kind": kind}
+            )
+
+    available_transitions = [
+        status
+        for status in PROJECT_STATUS_CHOICES
+        if status != project.status
+        and Project.is_valid_transition(current_user.role, project.status, status)
+    ]
     return render_template(
         "project_detail.html",
         project=project,
         location=location,
         extras=extras,
         summary=summary,
-        yearly_savings=yearly_savings,
         status_label=active_status,
-        installer_count=summary["installer_count"],
-        commercial_comparison=_commercial_comparison_or_none(location),
+        installer_count=installer_count,
+        is_business=is_business,
+        assessment_details=assessment_details,
+        financial_estimates=financial_estimates,
+        available_transitions=available_transitions,
+        commercial_comparison=(
+            _commercial_comparison_or_none(location) if is_business else None
+        ),
     )
 
 
 @pages_bp.route("/business/projects/<int:project_id>")
 @login_required
 def business_project_detail(project_id):
-    return project_detail(project_id)
+    _require_business_workspace_role()
+    project = Project.query.filter_by(
+        id=project_id, user_id=current_user.id
+    ).first_or_404()
+    if not _project_is_business(project.location):
+        abort(404)
+    return _render_project_detail(project)
+
+
+@pages_bp.post("/business/projects/<int:project_id>/status")
+@login_required
+def transition_business_project(project_id):
+    _require_business_workspace_role()
+    project = Project.query.filter_by(
+        id=project_id, user_id=current_user.id
+    ).first_or_404()
+    if not _project_is_business(project.location):
+        abort(404)
+
+    next_status = (request.form.get("status") or "").strip()
+    reason = (request.form.get("reason") or "").strip()
+    if (
+        not next_status
+        or next_status == project.status
+        or not reason
+        or len(reason) > 500
+    ):
+        abort(400)
+    try:
+        project.transition_status(
+            current_user.role,
+            current_user.id,
+            next_status,
+            note=reason,
+        )
+    except ValueError:
+        flash(_("That project status transition is not allowed."), "error")
+        return redirect(
+            url_for("pages.business_project_detail", project_id=project.id)
+        )
+    db.session.commit()
+    flash(_("Project status updated."), "success")
+    return redirect(
+        url_for("pages.business_project_detail", project_id=project.id)
+    )
 
 
 @pages_bp.post("/projects/create")
 @login_required
 def create_project():
+    if current_user.role != "user":
+        abort(403)
     location_id = request.form.get("location_id")
     if location_id is None and request.is_json:
         payload = request.get_json(silent=True) or {}
@@ -627,7 +1074,7 @@ def create_project():
         )
         db.session.add(project)
         db.session.flush()
-        project.transition_status("user", current_user.id, "under_review", note="Project created")
+        project.transition_status(current_user.role, current_user.id, "under_review", note="Project created")
     else:
         project.owner = current_user.display_name or contact_name
         project.location_link = url_for("pages.business_estimate_result", location_id=location.id, _external=True)
@@ -643,7 +1090,7 @@ def create_project():
             flash(_("A closed project cannot be reopened by resubmitting this form."), "error")
             return redirect(url_for("pages.business_estimate_result", location_id=location.id))
         if project.status == "assessment_done":
-            project.transition_status("user", current_user.id, "under_review", note="Project created")
+            project.transition_status(current_user.role, current_user.id, "under_review", note="Project created")
 
     db.session.commit()
     flash(_("Project created and sent for review."), "success")
@@ -653,9 +1100,22 @@ def create_project():
 @pages_bp.post("/projects/<int:project_id>/close")
 @login_required
 def close_project(project_id):
+    _require_business_workspace_role()
     project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
+    if project.status == "closed":
+        flash(_("Project cannot be closed from its current status."), "error")
+        return redirect(
+            url_for("pages.business_estimate_result", location_id=project.location_id)
+        )
+    reason = (request.form.get("reason") or "").strip()
+    if len(reason) > 500:
+        abort(400)
+    if not reason:
+        reason = f"Project closed by {current_user.role}"
     try:
-        project.transition_status("user", current_user.id, "closed", note="Project closed by user")
+        project.transition_status(
+            current_user.role, current_user.id, "closed", note=reason
+        )
     except ValueError:
         flash(_("Project cannot be closed from its current status."), "error")
         return redirect(url_for("pages.business_estimate_result", location_id=project.location_id))
@@ -667,6 +1127,7 @@ def close_project(project_id):
 @pages_bp.post("/projects/<int:project_id>/delete")
 @login_required
 def delete_project(project_id):
+    _require_business_workspace_role()
     project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
     location_id = project.location_id
     db.session.delete(project)

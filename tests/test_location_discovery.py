@@ -131,7 +131,7 @@ def test_public_landing_shows_marketing_nav_without_sidebar(app):
     assert 'class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true"' in body
     assert 'class="landing-hero-primary" href="/login?next=/survey/home"' in body
     assert 'href="/login?next=/survey/home"' in body
-    assert 'href="/login?next=/survey/business"' in body
+    assert 'href="/business"' in body
     assert 'href="/plan/home"' not in body
     assert 'href="/plan/business"' not in body
     industrial_item = body.split(

@@ -3884,7 +3884,39 @@ msgid "Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW."
 msgstr ""
 
 #: app/templates/index.html:283
-msgid "Confirmed commercial tariff per kWh (₹)"
+msgid "Commercial tariff per kWh (₹)"
+msgstr ""
+
+#: app/templates/index.html:286
+#, python-format
+msgid ""
+"Optional. Leave blank to use the SIGNIX configurable default (₹%(rate)s/kWh), "
+"which is not an official utility tariff. Confirm your rate against your bill."
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Tariff source"
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Cost assumption source"
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Cost ranges are indicative planning estimates, not an installer quote."
+msgstr ""
+
+#: app/templates/_commercial_comparison.html
+#, python-format
+msgid "Indicative PPA rate: ₹%(rate)s/kWh; not an installer quote."
+msgstr ""
+
+#: app/pages.py
+msgid "User-entered commercial rate; not independently verified"
+msgstr ""
+
+#: app/pages.py
+msgid "SIGNIX configurable default; confirm against your utility bill"
 msgstr ""
 
 #: app/templates/index.html:283
@@ -7031,4 +7063,651 @@ msgstr ""
 
 #: app/templates/signup.html:187
 msgid "← Return to SIGNIX home"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Saved Leads"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Lead Board"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Installer navigation"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Browse commercial solar projects and save leads for later."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Locality / area"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Minimum capacity"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Maximum capacity"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Minimum monthly bill"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Maximum monthly bill"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Pay per unit / PPA"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Last 7 days"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Last 30 days"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Newest first"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Oldest first"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Capacity: low to high"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Capacity: high to low"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Monthly bill: low to high"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Monthly bill: high to low"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Apply filters"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Clear Filters"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Check the highlighted filters and try again."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+#, python-format
+msgid "Results: %(count)s"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Only city, area and PIN are shown before unlocking. Missing details are not inferred."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "No saved leads yet"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "No matching leads"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Save a lead from the Lead Board, or clear your filters to see saved leads."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Try clearing filters. Available leads must match your service area."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Pagination"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+#, python-format
+msgid "Page %(page)s of %(pages)s"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Commercial project"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Business type not provided"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Save lead"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Unsave lead"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+#, python-format
+msgid "Unlock cost: %(cost)s credits"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Unlock cost unavailable"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Open lead"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "This lead is no longer available. You can remove its bookmark."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Updating saved lead…"
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Could not update saved leads. Please try again."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Choose save or unsave."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "This lead is no longer available."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Lead saved."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Lead removed from saved leads."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Enter one value of at most 100 characters."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Enter a finite, non-negative number."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Maximum must be at least the minimum."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Enter a six-digit PIN code."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Choose one of the listed options."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "Choose a valid page number."
+msgstr ""
+
+#: app/templates/vendor_board.html app/services/vendor_lead_service.py app/auth.py
+msgid "credits"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "All"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Approved vendor dashboard"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Business type"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Buy"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Buy with loan"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "CREDITS"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "City"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Hotel"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Monthly bill"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Next"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Office"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Other"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Posted"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Preferred model"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Previous"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Roof size"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "School or institution"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Shop"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Small factory"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Sort by"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Timeline"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Unlock lead"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Contact"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Phone"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Full report"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Available to this vendor"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Your lead outcome"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Won"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Lost"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Not recorded"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Mark won"
+msgstr ""
+
+#: app/templates/vendor_board.html app/templates/_vendor_lead_card.html
+msgid "Mark lost"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "My Unlocked Leads"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credits"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Unlocked"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credits charged"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Interested"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Follow-up needed"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Outcome history (latest 50)"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No unlocked leads yet."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Current balance"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Historical opening balance"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "The opening balance is derived from existing records, not a new grant or payment."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit history needs administrator review."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Configured unlock costs"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit transactions"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Transaction reference"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credits added / deducted"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Balance after"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Lead unlock"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Starting credits"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Approved credit request"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Historical transaction"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No credit transactions yet."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Request credits"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "This is not a payment. Credits are added only after administrator approval."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Requested credits"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Reason"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit requests (latest 50)"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Pending"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Approved"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Rejected"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No credit requests yet."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Pending credit requests"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "No pending credit requests."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Reject"
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Enter a valid credit amount."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Access denied."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "You do not have enough credits to unlock this lead."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit balance changed. Please try again."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Unlock cost unavailable. Please contact an administrator."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Choose a valid lead outcome."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Unlock the lead before marking its status."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Provide a reason and request at most 1,000,000 credits."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Choose approve or reject."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit request not found."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Approve the vendor before granting credits."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit operation failed. No partial changes were saved. Please try again."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit request submitted for administrator review."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Credit request reviewed."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Vendor approved."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Lead unlocked. You can view the project details and contact information."
+msgstr ""
+
+#: app/services/vendor_credit_service.py app/templates/vendor_credits.html app/auth.py
+msgid "Your lead outcome was recorded. The project status is unchanged."
+msgstr ""
+
+#: app/templates/projects.html:35
+msgid "Total projects"
+msgstr ""
+
+#: app/templates/projects.html:41 app/templates/projects.html:51
+msgid "projects with estimates"
+msgstr ""
+
+#: app/templates/projects.html:44
+msgid "Installed capacity"
+msgstr ""
+
+#: app/templates/projects.html:46
+msgid "projects with recorded installation"
+msgstr ""
+
+#: app/templates/projects.html:49
+msgid "Estimated annual savings"
+msgstr ""
+
+#: app/templates/projects.html:55
+msgid "Project status counts"
+msgstr ""
+
+#: app/templates/projects.html
+msgid "No projects match your search."
+msgstr ""
+
+#: app/templates/projects.html
+msgid "No projects match the selected status."
+msgstr ""
+
+#: app/templates/projects.html
+msgid "No projects match your search and selected status."
+msgstr ""
+
+#: app/templates/projects.html
+msgid "Clear search and filters"
+msgstr ""
+
+#: app/templates/projects.html:98 app/templates/project_detail.html:60
+msgid "Installer interest"
+msgstr ""
+
+#: app/templates/project_detail.html:41
+msgid "Persisted assessment details"
+msgstr ""
+
+#: app/pages.py:675
+msgid "Annual savings"
+msgstr ""
+
+#: app/pages.py:677
+msgid "Monthly consumption"
+msgstr ""
+
+#: app/pages.py:678
+msgid "Energy tariff"
+msgstr ""
+
+#: app/pages.py:695
+msgid "Planned system size"
+msgstr ""
+
+#: app/pages.py:698
+msgid "Usable roof area"
+msgstr ""
+
+#: app/pages.py:769
+msgid "That project status transition is not allowed."
+msgstr ""
+
+#: app/pages.py:774
+msgid "Project status updated."
+msgstr ""
+
+#: app/templates/project_detail.html:69
+msgid "Close project"
+msgstr ""
+
+#: app/templates/project_detail.html:66
+msgid "Move to status"
+msgstr ""
+
+#: app/templates/project_detail.html:74
+msgid "Update status"
+msgstr ""
+
+#: app/templates/project_detail.html:82
+msgid "Available financial estimates"
+msgstr ""
+
+#: app/pages.py:679
+msgid "System cost"
+msgstr ""
+
+#: app/templates/project_detail.html:100
+msgid "Project status history"
+msgstr ""
+
+#: app/templates/project_detail.html:106
+msgid "Actor"
+msgstr ""
+
+#: app/templates/project_detail.html:108
+msgid "No reason provided"
+msgstr ""
+
+#: app/templates/project_detail.html:113
+msgid "No status changes have been recorded."
 msgstr ""

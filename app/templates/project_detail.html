@@ -17,8 +17,8 @@
       <h2>{{ _('Assessment summary') }}</h2>
       <dl class="biz-summary-list">
         <div>
-          <dt>{{ _('Address') }}</dt>
-          <dd>{{ location.address }}</dd>
+          <dt>{{ _('Location') }}</dt>
+          <dd>{{ summary.location_label or _('Not provided') }}</dd>
         </div>
         <div>
           <dt>{{ _('City / PIN') }}</dt>
@@ -26,36 +26,99 @@
         </div>
         <div>
           <dt>{{ _('Business type') }}</dt>
-          <dd>{{ summary.business_type }}</dd>
+          <dd>{{ summary.business_type or _('Not provided') }}</dd>
         </div>
         <div>
           <dt>{{ _('System size') }}</dt>
-          <dd>{% if commercial_comparison %}{{ '{:,.1f}'.format(summary.system_size_kw) }} kW{% else %}{{ _('Unavailable') }}{% endif %}</dd>
+          <dd>{% if summary.system_size_kw is not none %}{{ '{:,.1f}'.format(summary.system_size_kw) }} kW{% else %}{{ _('Unavailable') }}{% endif %}</dd>
         </div>
         <div>
           <dt>{{ _('Estimated yearly savings') }}</dt>
-          <dd>{% if commercial_comparison %}₹{{ '{:,.0f}'.format(yearly_savings) }}{% else %}{{ _('Unavailable') }}{% endif %}</dd>
+          <dd>{% if summary.yearly_savings is not none %}₹{{ '{:,.0f}'.format(summary.yearly_savings) }}{% else %}{{ _('Unavailable') }}{% endif %}</dd>
         </div>
       </dl>
+      {% if assessment_details %}
+      <h3>{{ _('Persisted assessment details') }}</h3>
+      <dl class="biz-summary-list">
+        {% for item in assessment_details %}
+        <div>
+          <dt>{{ item.label }}</dt>
+          <dd>
+            {% if item.kind == 'capacity' %}{{ '{:,.1f}'.format(item.value) }} kW
+            {% elif item.kind == 'energy' %}{{ '{:,.0f}'.format(item.value) }} kWh
+            {% else %}{{ '{:,.1f}'.format(item.value) }} m²{% endif %}
+          </dd>
+        </div>
+        {% endfor %}
+      </dl>
+      {% endif %}
     </div>
 
     <aside class="biz-panel">
       <h2>{{ _('Status') }}</h2>
       <div class="biz-status-box">
-        <span>{{ _('Installer count') }}</span>
+        <span>{{ _('Installer interest') }}</span>
         <strong>{{ installer_count }}</strong>
       </div>
-      <form method="post" action="{{ url_for('pages.close_project', project_id=project.id) }}" class="biz-project-close-form" onsubmit="return confirm('{{ _('Close this project?') }}');">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn-danger">{{ _('Close project') }}</button>
+      {% if available_transitions %}
+      <form method="post" action="{{ url_for('pages.transition_business_project', project_id=project.id) }}" class="biz-project-close-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="project-status">{{ _('Move to status') }}</label>
+        <select id="project-status" name="status" required>
+          {% for status in available_transitions %}
+          <option value="{{ status }}">{% if status == 'closed' %}{{ _('Close project') }}{% else %}{{ status.replace('_', ' ').title() }}{% endif %}</option>
+          {% endfor %}
+        </select>
+        <label for="project-status-reason">{{ _('Reason') }}</label>
+        <textarea id="project-status-reason" name="reason" maxlength="500" required></textarea>
+        <button type="submit" class="btn-danger">{{ _('Update status') }}</button>
       </form>
+      {% endif %}
     </aside>
   </div>
 
+  {% if financial_estimates %}
+  <div class="biz-panel">
+    <h2>{{ _('Available financial estimates') }}</h2>
+    <dl class="biz-summary-list">
+      {% for item in financial_estimates %}
+      <div>
+        <dt>{{ item.label }}</dt>
+        <dd>
+          {% if item.kind == 'money' %}₹{{ '{:,.0f}'.format(item.value) }}
+          {% elif item.kind == 'tariff' %}₹{{ '{:,.2f}'.format(item.value) }} / kWh
+          {% elif item.kind == 'years' %}{{ '{:,.1f}'.format(item.value) }} {{ _('years') }}
+          {% else %}{{ '{:,.1f}'.format(item.value) }}{% endif %}
+        </dd>
+      </div>
+      {% endfor %}
+    </dl>
+  </div>
+  {% endif %}
+
+  <div class="biz-panel">
+    <h2>{{ _('Project status history') }}</h2>
+    {% if project.status_logs %}
+    <ol class="biz-project-status-history">
+      {% for log in project.status_logs %}
+      <li>
+        <span>{{ log.from_status.replace('_', ' ').title() }} → {{ log.to_status.replace('_', ' ').title() }}</span>
+        <span>{{ _('Actor') }}: {{ log.actor_role }}{% if log.actor_user_id %} #{{ log.actor_user_id }}{% endif %}</span>
+        <time datetime="{{ log.changed_at.isoformat() }}">{{ log.changed_at.strftime('%d %b %Y %H:%M UTC') }}</time>
+        <p>{{ log.note or _('No reason provided') }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p>{{ _('No status changes have been recorded.') }}</p>
+    {% endif %}
+  </div>
+
+  {% if is_business %}
   <div class="biz-panel">
     <h2>{{ _('Model comparison') }}</h2>
     {% include '_commercial_comparison.html' %}
-
   </div>
+  {% endif %}
 </section>
 {% endblock %}

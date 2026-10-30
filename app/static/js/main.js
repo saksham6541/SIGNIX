@@ -31,7 +31,9 @@ async function applyLocationContext(opts) {
         stateEl.dispatchEvent(new Event('change', { bubbles: true }));
       }
     }
-    if (tariffEl && data.tariff && data.tariff.rate_per_kwh != null) {
+    const hasConfirmedCommercialTariff =
+      data.planning_track !== 'business' || data.tariff?.found === true;
+    if (tariffEl && data.tariff && data.tariff.rate_per_kwh != null && hasConfirmedCommercialTariff) {
       tariffEl.value = Number(data.tariff.rate_per_kwh).toFixed(2);
     }
     if (netModeEl && data.tariff && data.tariff.net_metering_mode) {
@@ -932,4 +934,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   stateEl.addEventListener('change', applyStateDefaults);
 })();
-

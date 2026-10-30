@@ -1,0 +1,18 @@
+      <div class="gt-card" style="padding: 12px; background: #f5f5f5;">
+        <p><strong>{{ _('Contact') }}:</strong> {{ project.contact_name or _('Not provided') }}</p>
+        <p><strong>{{ _('Phone') }}:</strong> {{ project.phone or _('Not provided') }}</p>
+        <p><strong>{{ _('Email') }}:</strong> {{ project.email or _('Not provided') }}</p>
+        <p><strong>{{ _('Address') }}:</strong> {{ project.location.address or _('Not provided') }}</p>
+        <p>{{ _('Unlocked') }}: {{ unlock.unlocked_at }} · {{ _('Credits charged') }}: {{ unlock.credits_charged }}</p>
+        <p>{{ _('Your lead outcome') }}: {% if outcome == 'interested' %}{{ _('Interested') }}{% elif outcome == 'follow_up' %}{{ _('Follow-up needed') }}{% elif outcome == 'won' %}{{ _('Won') }}{% elif outcome == 'lost' %}{{ _('Lost') }}{% else %}{{ _('Not recorded') }}{% endif %}</p>
+        <form method="post" novalidate action="{{ url_for('auth.vendor_lead_status', project_id=project.id) }}" style="display:flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" name="outcome" value="interested" class="btn-dashboard-cta">{{ _('Interested') }}</button>
+          <button type="submit" name="outcome" value="follow_up" class="btn-dashboard-cta">{{ _('Follow-up needed') }}</button>
+          <button type="submit" name="outcome" value="won" class="btn-dashboard-cta">{{ _('Mark won') }}</button>
+          <button type="submit" name="outcome" value="lost" class="btn-danger">{{ _('Mark lost') }}</button>
+        </form>
+      </div>
+{% if outcome_events %}<details><summary>{{ _('Outcome history (latest 50)') }}</summary><ul>
+{% for event in outcome_events %}<li>{{ event.created_at }} — {{ _('Interested') if event.detail == 'interested' else _('Follow-up needed') if event.detail == 'follow_up' else _('Won') if event.detail == 'won' else _('Lost') if event.detail == 'lost' else _('Not recorded') }}</li>{% endfor %}
+</ul></details>{% endif %}

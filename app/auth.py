@@ -3,9 +3,10 @@ from datetime import datetime, timezone
 from functools import wraps
 from urllib.parse import urlsplit
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.config import Config
@@ -19,11 +20,13 @@ from app.forms import (
 from app import SUPPORTED_LOCALES
 from app.models import (
     AdminActionLog,
+    ConsultationRequest,
     Project,
     User,
     UserLocation,
     VendorCreditLedger,
     VendorLeadUnlock,
+    VendorSavedLead,
     VendorRefundRequest,
     db,
 )
@@ -224,162 +227,183 @@ def vendor_pending():
     return render_template("vendor_pending.html", vendor_status=current_user.vendor_status or "pending")
 
 
-@auth_bp.route("/vendor/board")
-@login_required
+def _render_vendor_leads(saved_only=False):
+    from app.services.vendor_lead_service import BUSINESS_TYPES, find_leads, parse_filters
+    filters, errors = parse_filters(request.args)
+    leads, total, page, pages = ([], 0, 1, 1) if errors else find_leads(
+        current_user, filters, saved_only=saved_only)
+    endpoint = "auth.vendor_saved_leads" if saved_only else "auth.vendor_board"
+    def page_url(number):
+        return url_for(endpoint, **{**{k: v for k, v in filters.items() if v}, "page": number})
+    return render_template(
+        "vendor_board.html", leads=leads, filters=filters, errors=errors,
+        total=total, page=page, pages=pages, page_url=page_url,
+        saved_only=saved_only, business_types=BUSINESS_TYPES,
+        credit_balance=current_user.vendor_credits_balance,
+    ), 400 if errors else 200
+
+
+@auth_bp.get("/vendor/board")
 @require_approved_vendor
 def vendor_board():
-    filters = {
-        "city": (request.args.get("city") or "").strip(),
-        "capacity": (request.args.get("capacity") or "").strip(),
-        "business_type": (request.args.get("business_type") or "").strip(),
-        "preferred_model": (request.args.get("preferred_model") or "").strip(),
-        "posted_date": (request.args.get("posted_date") or "").strip(),
-    }
-    vendor_profile = current_user.vendor_profile or {}
-    lead_candidates = Project.query.filter_by(status="open_to_vendors").order_by(Project.created_at.desc()).all()
-    leads = []
-    unlocks = {item.project_id: item for item in VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id).all()}
-    unlocked_project_ids = set(unlocks)
-    outcomes = {}
-    for event in AdminActionLog.query.filter_by(
-        actor_user_id=current_user.id, target_type="vendor_lead_unlock", action="vendor_lead_outcome"
-    ).order_by(AdminActionLog.id.desc()).all():
-        outcomes.setdefault(event.target_id, event.detail)
-    for project in lead_candidates:
-        if not project.location:
-            continue
-        extras = project.location.extras if isinstance(project.location.extras, dict) else {}
-        summary = {
-            "city": str(extras.get("city") or "").strip() or (project.location.address or "").strip(),
-            "pin": str(extras.get("pincode") or "").strip(),
-            "business_type": str(extras.get("business_type") or "Commercial").strip(),
-            "preferred_model": str(extras.get("preferred_model") or "").strip(),
-            "monthly_units": extras.get("monthly_units_kwh"),
-            "monthly_bill": extras.get("monthly_bill_rs"),
-            "roof_area_sqm": extras.get("roof_area_sqm") or project.location.roof_area_sqm,
-            "posted_date": project.created_at.date().isoformat() if project.created_at else "",
-            "system_size_kw": _project_size_kw(project),
-        }
-        if filters["city"] and filters["city"].lower() not in f"{summary['city']} {summary['pin']}".lower():
-            continue
-        if filters["business_type"] and filters["business_type"].lower() != summary["business_type"].lower():
-            continue
-        if filters["preferred_model"] and filters["preferred_model"].lower() != summary["preferred_model"].lower():
-            continue
-        if filters["posted_date"] and summary["posted_date"] != filters["posted_date"]:
-            continue
-        if filters["capacity"]:
-            try:
-                min_kw, max_kw = _parse_numeric_range(filters["capacity"])
-            except ValueError:
-                min_kw, max_kw = 0.0, float("inf")
-            if not (min_kw <= summary["system_size_kw"] <= max_kw or summary["system_size_kw"] >= min_kw):
-                continue
-        if not _lead_service_match(project, vendor_profile):
-            continue
-        unlock_count = VendorLeadUnlock.query.filter_by(project_id=project.id).count()
-        if unlock_count >= Config.VENDOR_MAX_LEADS_PER_PROJECT and project.id not in unlocked_project_ids:
-            continue
-        leads.append({
-            "project": project,
-            "summary": summary,
-            "unlock_count": unlock_count,
-            "unlocked": project.id in unlocked_project_ids,
-            "outcome": outcomes.get(unlocks[project.id].id) if project.id in unlocks else None,
-            "unlock_cost": _vendor_unlock_cost(project),
-        })
+    return _render_vendor_leads()
 
-    return render_template(
-        "vendor_board.html",
-        leads=leads,
-        filters=filters,
-        current_user=current_user,
-        credit_balance=current_user.vendor_credits_balance,
-        max_unlocks=Config.VENDOR_MAX_LEADS_PER_PROJECT,
-    )
+
+@auth_bp.get("/vendor/saved-leads")
+@require_approved_vendor
+def vendor_saved_leads():
+    return _render_vendor_leads(saved_only=True)
+
+
+@auth_bp.get("/vendor/leads/<int:project_id>")
+@require_approved_vendor
+def vendor_lead_detail(project_id):
+    from app.services.vendor_lead_service import eligible_query, public_card
+    from app.services.vendor_credit_service import outcome_history
+    unlock = VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id, project_id=project_id).first()
+    query, _columns = eligible_query(current_user, owned_only=unlock is not None)
+    row = query.filter(Project.id == project_id).first()
+    if row is None:
+        abort(404)
+    saved = VendorSavedLead.query.filter_by(vendor_user_id=current_user.id, project_id=project_id).first()
+    history = outcome_history(unlock).limit(50).all() if unlock else []
+    return render_template("vendor_lead_detail.html", item=public_card(row, {project_id} if saved else set()),
+        project=db.session.get(Project, project_id) if unlock else None, unlock=unlock,
+        outcome=history[0].detail if history else None, outcome_events=history)
+
+
+@auth_bp.post("/vendor/leads/<int:project_id>/saved")
+@require_roles("vendor")
+def vendor_save_lead(project_id):
+    from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+    from app.services.vendor_lead_service import eligible_query
+    if not current_user.is_vendor_approved:
+        abort(403)
+    state = request.form.get("saved")
+    if state not in {"true", "false"}:
+        return jsonify(error=_("Choose save or unsave.")), 400
+    try:
+        if state == "true":
+            query, _columns = eligible_query(current_user)
+            if query.filter(Project.id == project_id).first() is None:
+                return jsonify(error=_("This lead is no longer available.")), 404
+            existing = VendorSavedLead.query.filter_by(vendor_user_id=current_user.id, project_id=project_id).first()
+            if existing is None:
+                # Unique constraint is the final arbiter for concurrent saves.
+                db.session.add(VendorSavedLead(vendor_user_id=current_user.id, project_id=project_id))
+        else:
+            # Idempotent and vendor-scoped, even when the project is no longer eligible.
+            VendorSavedLead.query.filter_by(vendor_user_id=current_user.id, project_id=project_id).delete()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            if state != "true" or VendorSavedLead.query.filter_by(vendor_user_id=current_user.id, project_id=project_id).first() is None:
+                raise
+    except SQLAlchemyError:
+        db.session.rollback()
+        return jsonify(error=_("Could not update saved leads. Please try again.")), 503
+    message = _("Lead saved.") if state == "true" else _("Lead removed from saved leads.")
+    if request.accept_mimetypes.best == "application/json":
+        return jsonify(saved=state == "true", message=message)
+    flash(message, "success")
+    # Fixed local destinations only. Never accept arbitrary return URLs.
+    return redirect(url_for("auth.vendor_saved_leads" if request.form.get("view") == "saved" else "auth.vendor_board"))
+
+
+def _credit_operation(operation, success, destination="auth.vendor_credits", **destination_args):
+    from sqlalchemy.exc import SQLAlchemyError
+    from app.services.vendor_credit_service import CreditError
+    try:
+        result = operation()
+    except CreditError as exc:
+        if request.accept_mimetypes.best == "application/json":
+            return jsonify(error=_(exc.message)), exc.status
+        flash(_(exc.message), "error")
+        return redirect(url_for(destination, **destination_args))
+    except SQLAlchemyError:
+        db.session.rollback()
+        message = _("Credit operation failed. No partial changes were saved. Please try again.")
+        if request.accept_mimetypes.best == "application/json":
+            return jsonify(error=message), 503
+        flash(message, "error")
+        return redirect(url_for(destination, **destination_args))
+    if request.accept_mimetypes.best == "application/json":
+        return jsonify(message=_(success), result=result)
+    flash(_(success), "success")
+    return redirect(url_for(destination, **destination_args))
 
 
 @auth_bp.post("/vendor/board/<int:project_id>/unlock")
-@login_required
-@require_approved_vendor
+@require_roles("vendor")
 def vendor_unlock_project(project_id):
-    project = Project.query.get_or_404(project_id)
-    if project.status != "open_to_vendors":
-        flash(_("This lead is no longer open to vendors."), "error")
-        return redirect(url_for("auth.vendor_board"))
-    if not _lead_service_match(project, current_user.vendor_profile or {}):
-        flash(_("This lead is outside your service area."), "error")
-        return redirect(url_for("auth.vendor_board"))
-
-    unlock_cost = _vendor_unlock_cost(project)
-    with db.session.begin_nested():
-        existing = VendorLeadUnlock.query.filter_by(
-            vendor_user_id=current_user.id,
-            project_id=project.id,
-        ).first()
-        if existing is not None:
-            flash(_("This lead was already unlocked; you were not charged again."), "info")
-            return redirect(url_for("auth.vendor_board"))
-
-        current_unlock_count = VendorLeadUnlock.query.filter_by(project_id=project.id).count()
-        if current_unlock_count >= Config.VENDOR_MAX_LEADS_PER_PROJECT:
-            flash(_("This lead has reached its max vendor unlock limit."), "error")
-            return redirect(url_for("auth.vendor_board"))
-
-        if current_user.vendor_credits_balance < unlock_cost:
-            flash(_("You do not have enough credits to unlock this lead."), "error")
-            return redirect(url_for("auth.vendor_board"))
-
-        current_user.vendor_credits_balance -= unlock_cost
-        db.session.add(
-            VendorCreditLedger(
-                vendor_user_id=current_user.id,
-                project_id=project.id,
-                delta=-unlock_cost,
-                balance_after=current_user.vendor_credits_balance,
-                reason="lead_unlock",
-                note=f"Unlocked lead {project.id} for {unlock_cost} credits.",
-            )
-        )
-        db.session.add(
-            VendorLeadUnlock(
-                vendor_user_id=current_user.id,
-                project_id=project.id,
-                credits_charged=unlock_cost,
-                source="lead_unlock",
-            )
-        )
-
-    flash(_("Lead unlocked. You can view the project details and contact information."), "success")
-    return redirect(url_for("auth.vendor_board"))
+    from app.services.vendor_credit_service import unlock_lead
+    vendor_id = current_user.id
+    return _credit_operation(lambda: unlock_lead(vendor_id, project_id),
+        "Lead unlocked. You can view the project details and contact information.", "auth.vendor_unlocked_leads")
 
 
 @auth_bp.post("/vendor/board/<int:project_id>/status")
-@login_required
-@require_approved_vendor
+@require_roles("vendor")
 def vendor_lead_status(project_id):
-    project = Project.query.get_or_404(project_id)
-    unlock = VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id, project_id=project.id).first()
-    if unlock is None:
-        flash(_("Unlock the lead before marking its status."), "error")
-        return redirect(url_for("auth.vendor_board"))
-
+    from app.services.vendor_credit_service import record_outcome
+    vendor_id = current_user.id
     outcome = (request.form.get("outcome") or "").strip().lower()
-    if outcome not in {"won", "lost"}:
-        flash(_("Choose a valid lead outcome."), "error")
-        return redirect(url_for("auth.vendor_board"))
-    previous = AdminActionLog.query.filter_by(
-        actor_user_id=current_user.id, target_type="vendor_lead_unlock", target_id=unlock.id,
-        action="vendor_lead_outcome",
-    ).order_by(AdminActionLog.id.desc()).first()
-    if previous is None or previous.detail != outcome:
-        db.session.add(AdminActionLog(
-            actor_user_id=current_user.id, action="vendor_lead_outcome",
-            target_type="vendor_lead_unlock", target_id=unlock.id, detail=outcome,
-        ))
-    flash(_("Your lead outcome was recorded. The project status is unchanged."), "success")
-    db.session.commit()
-    return redirect(url_for("auth.vendor_board"))
+    return _credit_operation(lambda: record_outcome(vendor_id, project_id, outcome),
+        "Your lead outcome was recorded. The project status is unchanged.", "auth.vendor_unlocked_leads")
+
+
+@auth_bp.get("/vendor/unlocked-leads")
+@require_approved_vendor
+def vendor_unlocked_leads():
+    from app.services.vendor_lead_service import eligible_query, public_card
+    from app.services.vendor_credit_service import outcome_history
+    pagination = VendorLeadUnlock.query.filter_by(vendor_user_id=current_user.id).order_by(
+        VendorLeadUnlock.id.desc()).paginate(per_page=12, error_out=False)
+    items = []
+    for unlock in pagination.items:
+        query, _columns = eligible_query(current_user, owned_only=True)
+        row = query.filter(Project.id == unlock.project_id).first()
+        history = outcome_history(unlock).limit(50).all()
+        items.append(dict(unlock=unlock, item=public_card(row, set()) if row else None,
+                          project=unlock.project if row else None, outcome_events=history,
+                          outcome=history[0].detail if history else None))
+    return render_template("vendor_unlocked_leads.html", items=items, pagination=pagination)
+
+
+@auth_bp.get("/vendor/credits")
+@require_approved_vendor
+def vendor_credits():
+    from app.services.vendor_credit_service import ledger_summary, CreditError
+    try:
+        summary = ledger_summary(current_user)
+    except CreditError:
+        summary = {"balance": None, "opening": None, "reconciled": False}
+    transactions = VendorCreditLedger.query.filter_by(vendor_user_id=current_user.id).order_by(
+        VendorCreditLedger.id.desc()).paginate(per_page=25, error_out=False)
+    requests = VendorRefundRequest.query.filter_by(vendor_user_id=current_user.id, issue_type="credit_request").order_by(
+        VendorRefundRequest.id.desc()).limit(50).all()
+    return render_template("vendor_credits.html", summary=summary, transactions=transactions, credit_requests=requests, credit_costs=current_app.config["VENDOR_LEAD_UNLOCK_COSTS"])
+
+
+@auth_bp.post("/vendor/credits/request")
+@require_roles("vendor")
+def vendor_request_credits():
+    from app.services.vendor_credit_service import request_credits
+    vendor_id = current_user.id
+    requested, reason = request.form.get("amount"), request.form.get("reason", "")
+    return _credit_operation(lambda: request_credits(vendor_id, requested, reason),
+                             "Credit request submitted for administrator review.")
+
+
+@auth_bp.post("/admin/credit-requests/<int:request_id>/review")
+@require_roles("admin")
+def admin_credit_request_review(request_id):
+    from app.services.vendor_credit_service import review_credit_request
+    admin_id = current_user.id
+    decision = request.form.get("decision")
+    return _credit_operation(lambda: review_credit_request(admin_id, request_id, decision),
+                             "Credit request reviewed.", "auth.admin_vendors")
 
 
 @auth_bp.route("/admin")
@@ -408,6 +432,66 @@ def admin_overview():
 def admin_projects():
     projects = Project.query.filter_by(status="under_review").order_by(Project.created_at.desc()).all()
     return render_template("admin_projects.html", projects=projects)
+
+
+@auth_bp.get("/admin/consultations")
+@require_roles("admin")
+def admin_consultations():
+    consultation_requests = ConsultationRequest.query.order_by(
+        ConsultationRequest.created_at.desc(), ConsultationRequest.id.desc()
+    ).all()
+    return render_template(
+        "admin_consultations.html",
+        consultation_requests=consultation_requests,
+        consultation_statuses=("pending", "contacted", "scheduled", "completed"),
+        consultation_status_labels={
+            "pending": _("Pending"),
+            "contacted": _("Contacted"),
+            "scheduled": _("Scheduled"),
+            "completed": _("Completed"),
+        },
+    )
+
+
+@auth_bp.post("/admin/consultations/<int:consultation_id>/update")
+@require_roles("admin")
+def admin_consultation_update(consultation_id):
+    consultation_request = db.session.get(ConsultationRequest, consultation_id)
+    if consultation_request is None:
+        abort(404)
+    status = (request.form.get("status") or "").strip()
+    admin_notes = (request.form.get("admin_notes") or "").strip()
+    valid_statuses = {"pending", "contacted", "scheduled", "completed"}
+    if status not in valid_statuses:
+        flash(_("Choose a valid consultation request status."), "error")
+        return redirect(url_for("auth.admin_consultations"))
+    if len(admin_notes) > 2000:
+        flash(_("Administrative notes must be 2,000 characters or fewer."), "error")
+        return redirect(url_for("auth.admin_consultations"))
+
+    previous_status = consultation_request.status
+    consultation_request.status = status
+    consultation_request.admin_notes = admin_notes
+    consultation_request.updated_at = datetime.now(timezone.utc)
+    db.session.add(
+        AdminActionLog(
+            actor_user_id=current_user.id,
+            action="update_consultation_request",
+            target_type="consultation_request",
+            target_id=consultation_request.id,
+            detail=f"Status changed from {previous_status} to {status}",
+        )
+    )
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Consultation request update could not be saved")
+        flash(_("The consultation update could not be saved. Please try again."), "error")
+        return redirect(url_for("auth.admin_consultations"))
+
+    flash(_("Consultation request updated."), "success")
+    return redirect(url_for("auth.admin_consultations"))
 
 
 @auth_bp.post("/admin/projects/<int:project_id>/approve")
@@ -457,37 +541,17 @@ def admin_project_reject(project_id):
 def admin_vendors():
     vendors = User.query.filter_by(role="vendor").order_by(User.created_at.desc()).all()
     pending_refunds = VendorRefundRequest.query.filter_by(status="pending").order_by(VendorRefundRequest.created_at.desc()).all()
-    return render_template("admin_vendors.html", vendors=vendors, pending_refunds=pending_refunds)
+    return render_template("admin_vendors.html", vendors=vendors, pending_refunds=pending_refunds,
+                           credit_requests=[item for item in pending_refunds if item.issue_type == "credit_request"])
 
 
 @auth_bp.post("/admin/vendors/<int:user_id>/approve")
 @login_required
 @require_roles("admin")
 def admin_vendor_approve(user_id):
-    vendor = User.query.get_or_404(user_id)
-    if vendor.role != "vendor":
-        abort(404)
-    vendor.vendor_status = "approved"
-    if vendor.vendor_credits_balance <= 0:
-        vendor.vendor_credits_balance = float(Config.VENDOR_STARTING_CREDITS)
-        db.session.add(
-            VendorCreditLedger(
-                vendor_user_id=vendor.id,
-                delta=float(Config.VENDOR_STARTING_CREDITS),
-                balance_after=vendor.vendor_credits_balance,
-                reason="approved_vendor_credits",
-                note="Starting vendor credits issued on approval.",
-            )
-        )
-    _log_admin_action(
-        "approve_vendor",
-        target_type="vendor",
-        target_id=vendor.id,
-        detail=f"Vendor {vendor.id} approved",
-    )
-    db.session.commit()
-    flash(_("Vendor approved."), "success")
-    return redirect(url_for("auth.admin_vendors"))
+    from app.services.vendor_credit_service import approve_vendor
+    admin_id = current_user.id
+    return _credit_operation(lambda: approve_vendor(admin_id, user_id), "Vendor approved.", "auth.admin_vendors")
 
 
 @auth_bp.post("/admin/vendors/<int:user_id>/suspend")

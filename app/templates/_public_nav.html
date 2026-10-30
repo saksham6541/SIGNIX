@@ -43,7 +43,7 @@
             <div class="public-nav-solution-copy">
               <h2>{{ _('Commercial Solar') }}</h2>
               <p>{{ _('Calculate potential ROI and system sizing for your business.') }}</p>
-              <a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
+              <a href="{{ url_for('pages.business_landing') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
             </div>
           </section>
           <section class="public-nav-solution public-nav-solution-unavailable" aria-disabled="true">
@@ -59,12 +59,17 @@
           </section>
         </div>
       </div>
+      {% if request.endpoint == 'pages.business_landing' %}
+      <a class="public-nav-link" href="{{ url_for('pages.business_landing') }}#commercial-workflow" aria-current="page">{{ _('How It Works') }}</a>
+      <a class="public-nav-link" href="{{ url_for('pages.business_landing') }}#commercial-assumptions-title">{{ _('Estimate assumptions') }}</a>
+      {% else %}
       <a class="public-nav-link" href="{{ url_for('pages.index') }}#workflow">{{ _('How It Works') }}</a>
       <a class="public-nav-link" href="{{ url_for('pages.index') }}#how-to-apply">{{ _('Subsidy Guide') }}</a>
+      {% endif %}
     </div>
 
     <div class="public-nav-actions">
-      <a class="public-nav-consultation" href="{{ url_for('pages.consultation') }}" {% if request.endpoint == 'pages.consultation' %}aria-current="page"{% endif %}>{{ _('Book a Free Consultation') }}</a>
+      <a class="public-nav-consultation" href="{{ url_for('pages.consultation', segment='commercial' if request.endpoint == 'pages.business_landing' else None) }}" {% if request.endpoint == 'pages.consultation' %}aria-current="page"{% endif %}>{{ _('Book a Free Consultation') }}</a>
       <span class="public-nav-language" aria-label="{{ _('Language') }}">
         <a href="{{ url_for('auth.set_language', language='en') }}" lang="en" {% if get_locale()|string == 'en' %}aria-current="true"{% endif %}>EN</a>
         <span aria-hidden="true">/</span>
@@ -80,8 +85,8 @@
         <button class="public-nav-logout" type="submit">{{ _('Log out') }}</button>
       </form>
       {% else %}
-      <a class="public-nav-login" href="{{ url_for('auth.login', next=request.args.get('next')) if request.args.get('next') else url_for('auth.login') }}">{{ _('Log In') }}</a>
-      <a class="public-nav-get-started" href="{{ url_for('auth.signup', next=request.args.get('next')) if request.args.get('next') else url_for('auth.signup') }}">{{ _('Get Started') }}</a>
+      <a class="public-nav-login" href="{{ url_for('auth.login', next=url_for('pages.business_estimate')) if request.endpoint == 'pages.business_landing' else (url_for('auth.login', next=request.args.get('next')) if request.args.get('next') else url_for('auth.login')) }}">{{ _('Log In') }}</a>
+      <a class="public-nav-get-started" href="{{ url_for('auth.signup', next=url_for('pages.business_estimate'), track='business') if request.endpoint == 'pages.business_landing' else (url_for('auth.signup', next=request.args.get('next')) if request.args.get('next') else url_for('auth.signup')) }}">{{ _('Get Started') }}</a>
       {% endif %}
     </div>
   </div>

@@ -15,13 +15,14 @@
   <div class="biz-projects-toolbar">
     <form method="get" action="{{ url_for('pages.business_projects') }}" class="biz-project-search">
       <input type="search" name="q" value="{{ search_query }}" placeholder="{{ _('Search by name, city or PIN') }}" aria-label="{{ _('Search by name, city or PIN') }}">
+      {% if selected_status != 'all' %}<input type="hidden" name="status" value="{{ selected_status }}">{% endif %}
     </form>
 
     <div class="biz-status-chips" aria-label="{{ _('Project filters') }}">
-      {% set filter_values = [('all', _('All')), ('assessment_done', _('Assessment done')), ('under_review', _('Under review')), ('open_to_vendors', _('Open to vendors')), ('vendor_connected', _('Vendor connected')), ('decision', _('Decision')), ('installation', _('Installation')), ('closed', _('Closed'))] %}
+      {% set filter_values = [('all', _('All')), ('under_review', _('Under review')), ('open_to_vendors', _('Open to vendors')), ('vendor_connected', _('Vendor connected')), ('closed', _('Closed'))] %}
       {% for key, label in filter_values %}
         {% set count = status_counts.get(key, 0) %}
-        <a href="{{ url_for('pages.business_projects', status=key) }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="biz-status-chip {% if selected_status == key %}active{% endif %}">
+        <a href="{{ url_for('pages.business_projects', status=key, q=search_query) }}" class="biz-status-chip {% if selected_status == key %}active{% endif %}">
           <span>{{ label }}</span>
           <span class="biz-status-count">{{ count }}</span>
         </a>
@@ -29,18 +30,36 @@
     </div>
   </div>
 
-  {% if projects and projects|length >= 2 %}
   <div class="biz-projects-totals" aria-label="{{ _('Project totals') }}">
     <div class="biz-total-card">
-      <span>{{ _('Total capacity') }}</span>
-      <strong>{{ '{:,.1f}'.format(totals.capacity_kw) }} kW</strong>
+      <span>{{ _('Total projects') }}</span>
+      <strong>{{ totals.project_count }}</strong>
     </div>
     <div class="biz-total-card">
-      <span>{{ _('Total yearly savings') }}</span>
-      <strong>₹{{ '{:,.0f}'.format(totals.yearly_savings) }}</strong>
+      <span>{{ _('Planned capacity') }}</span>
+      <strong>{% if totals.capacity_count %}{{ '{:,.1f}'.format(totals.capacity_kw) }} kW{% else %}{{ _('Unavailable') }}{% endif %}</strong>
+      {% if totals.capacity_count %}<small>{{ totals.capacity_count }} / {{ totals.project_count }} {{ _('projects with estimates') }}</small>{% endif %}
+    </div>
+    <div class="biz-total-card">
+      <span>{{ _('Installed capacity') }}</span>
+      <strong>{% if totals.installed_capacity_count %}{{ '{:,.1f}'.format(totals.installed_capacity_kw) }} kW{% else %}{{ _('Unavailable') }}{% endif %}</strong>
+      {% if totals.installed_capacity_count %}<small>{{ totals.installed_capacity_count }} / {{ totals.project_count }} {{ _('projects with recorded installation') }}</small>{% endif %}
+    </div>
+    <div class="biz-total-card">
+      <span>{{ _('Estimated annual savings') }}</span>
+      <strong>{% if totals.yearly_savings_count %}₹{{ '{:,.0f}'.format(totals.yearly_savings) }}{% else %}{{ _('Unavailable') }}{% endif %}</strong>
+      {% if totals.yearly_savings_count %}<small>{{ totals.yearly_savings_count }} / {{ totals.project_count }} {{ _('projects with estimates') }}</small>{% endif %}
     </div>
   </div>
-  {% endif %}
+
+  <div class="biz-status-chips" aria-label="{{ _('Project status counts') }}">
+    {% for status, count in project_status_counts.items() %}
+      <span class="biz-status-chip">
+        <span>{{ project_status_labels.get(status, status) }}</span>
+        <span class="biz-status-count">{{ count }}</span>
+      </span>
+    {% endfor %}
+  </div>
 
   {% if projects %}
   <div class="biz-projects-grid">
@@ -58,25 +77,28 @@
       <div class="biz-project-meta">
         <div>
           <span class="biz-meta-label">{{ _('Location') }}</span>
-          <strong>{{ summary.city or _('Not provided') }}{% if summary.pin %} · {{ summary.pin }}{% endif %}</strong>
+          <strong>{{ summary.location_label or _('Not provided') }}</strong>
+          {% if summary.address and (summary.city or summary.pin) %}
+          <small>{{ summary.city }}{% if summary.city and summary.pin %} · {% endif %}{{ summary.pin }}</small>
+          {% endif %}
         </div>
       </div>
 
       <div class="biz-project-tags">
-        <span class="biz-chip">{{ summary.business_type }}</span>
+        <span class="biz-chip">{{ summary.business_type or _('Not provided') }}</span>
       </div>
 
       <dl class="biz-project-facts">
         <div>
           <dt>{{ _('System size') }}</dt>
-          <dd>{{ '{:,.1f}'.format(summary.system_size_kw) }} kW</dd>
+          <dd>{% if summary.system_size_kw is not none %}{{ '{:,.1f}'.format(summary.system_size_kw) }} kW{% else %}{{ _('Unavailable') }}{% endif %}</dd>
         </div>
         <div>
           <dt>{{ _('Yearly savings') }}</dt>
-          <dd>₹{{ '{:,.0f}'.format(summary.yearly_savings) }}</dd>
+          <dd>{% if summary.yearly_savings is not none %}₹{{ '{:,.0f}'.format(summary.yearly_savings) }}{% else %}{{ _('Unavailable') }}{% endif %}</dd>
         </div>
         <div>
-          <dt>{{ _('Installers') }}</dt>
+          <dt>{{ _('Installer interest') }}</dt>
           <dd>{{ summary.installer_count }}</dd>
         </div>
         <div>
@@ -93,8 +115,21 @@
   </div>
   {% else %}
   <section class="biz-project-empty-state" aria-labelledby="biz-project-empty-title">
+    {% if totals.project_count == 0 %}
     <h2 id="biz-project-empty-title">{{ _('You have not created a project yet.') }}</h2>
     <a href="{{ url_for('pages.business_estimate') }}" class="btn-grad">{{ _('Start a new assessment') }}</a>
+    {% else %}
+    <h2 id="biz-project-empty-title">
+      {% if search_query and selected_status != 'all' %}
+      {{ _('No projects match your search and selected status.') }}
+      {% elif search_query %}
+      {{ _('No projects match your search.') }}
+      {% else %}
+      {{ _('No projects match the selected status.') }}
+      {% endif %}
+    </h2>
+    <a href="{{ url_for('pages.business_projects') }}" class="btn-primary">{{ _('Clear search and filters') }}</a>
+    {% endif %}
   </section>
   {% endif %}
 </section>

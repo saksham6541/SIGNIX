@@ -1,0 +1,26 @@
+<article class="gt-card lead-card" data-lead-id="{{ item.id }}">
+  <div class="lead-card-heading"><div>
+    <p class="console-index">{{ _('Commercial project') }}</p>
+    <h2>{{ _(item.business_type) if item.business_type else _('Business type not provided') }}</h2>
+  </div>
+  <form method="post" novalidate action="{{ url_for('auth.vendor_save_lead', project_id=item.id) }}" class="lead-save-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="saved" value="{{ 'false' if item.saved else 'true' }}">
+    <input type="hidden" name="view" value="{{ 'saved' if saved_only|default(false) else 'board' }}">
+    <button type="submit" class="lead-bookmark" aria-pressed="{{ 'true' if item.saved else 'false' }}"
+      data-save="{{ _('Save lead') }}" data-unsave="{{ _('Unsave lead') }}">{{ _('Unsave lead') if item.saved else _('Save lead') }}</button>
+  </form></div>
+  {% if item.available %}
+  <p class="lead-location">{{ item.city or _('Location not provided') }}{% if item.locality %} · {{ item.locality }}{% endif %}{% if item.pincode %} · {{ item.pincode }}{% endif %}</p>
+  <dl class="biz-project-facts">
+    <div><dt>{{ _('System size') }}</dt><dd>{{ '%.1f kW'|format(item.system_size_kw) if item.system_size_kw is not none else _('Not provided') }}</dd></div>
+    <div><dt>{{ _('Roof size') }}</dt><dd>{{ '%.1f m²'|format(item.roof_area_sqm) if item.roof_area_sqm is not none else _('Not provided') }}</dd></div>
+    <div><dt>{{ _('Monthly bill') }}</dt><dd>{{ '₹{:,.0f}'.format(item.monthly_bill) if item.monthly_bill is not none else _('Not provided') }}</dd></div>
+    <div><dt>{{ _('Preferred model') }}</dt><dd>{{ _('Buy') if item.preferred_model == 'buy' else _('Buy with loan') if item.preferred_model == 'loan' else _('Pay per unit / PPA') if item.preferred_model == 'ppa' else _('Not provided') }}</dd></div>
+    <div><dt>{{ _('Timeline') }}</dt><dd>{{ item.timeline or _('Not provided') }}</dd></div>
+    <div><dt>{{ _('Posted') }}</dt><dd>{{ item.posted_label or _('Not provided') }}</dd></div>
+  </dl>
+  <div class="lead-card-footer"><span>{{ _('Unlock cost: %(cost)s credits', cost=item.unlock_cost) if item.unlock_cost is not none else _('Unlock cost unavailable') }}</span>
+    {% if request.endpoint != 'auth.vendor_lead_detail' %}<a href="{{ url_for('auth.vendor_lead_detail', project_id=item.id) }}">{{ _('Open lead') }}</a>{% endif %}</div>
+  {% else %}<p>{{ _('This lead is no longer available. You can remove its bookmark.') }}</p>{% endif %}
+</article>

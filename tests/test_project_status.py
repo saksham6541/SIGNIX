@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 
 from werkzeug.security import generate_password_hash
@@ -209,6 +210,407 @@ def test_business_projects_page_renders_and_filters_for_current_user(app, client
     detail_html = detail_response.get_data(as_text=True)
     assert "Assessment summary" in detail_html
     assert "Close project" in detail_html
+    assert "2 Business Road, Hyderabad" in response.get_data(as_text=True)
+
+
+def test_business_project_portfolio_metrics_filters_and_search_are_persisted(app, client):
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        vendor = User(
+            email="portfolio-vendor@example.com",
+            password_hash="unused",
+            display_name="Portfolio Vendor",
+            role="vendor",
+            vendor_status="approved",
+        )
+        db.session.add(vendor)
+        db.session.flush()
+        states = (
+            ("North Clinic", "under_review", "Pune", "411001", 10.0),
+            ("Warehouse", "open_to_vendors", "Mumbai", "400001", 20.0),
+            ("Factory", "vendor_connected", "Chennai", "600001", 15.0),
+            ("Plant", "decision", "Delhi", "110001", 5.0),
+            ("Office", "installation", "Kochi", "682001", 8.0),
+            ("Closed Site", "closed", "Jaipur", "302001", 6.0),
+            ("Draft Site", "assessment_done", "Surat", "395001", 4.0),
+        )
+        projects = []
+        for name, status, city, pin, size in states:
+            location = UserLocation(
+                user_id=owner.id,
+                address=f"{name} address",
+                latitude=12.0,
+                longitude=77.0,
+                system_size=size,
+                monthly_savings=1000.0 if name == "North Clinic" else None,
+                extras={
+                    "planning_track": "business",
+                    "project_name": name,
+                    "city": city,
+                    "pincode": pin,
+                    "business_type": "Commercial",
+                    **(
+                        {
+                            "annual_net_benefit": 15000.0,
+                            "installed_capacity_kw": 4.5,
+                        }
+                        if name == "North Clinic"
+                        else {}
+                    ),
+                },
+            )
+            db.session.add(location)
+            db.session.flush()
+            project = Project(
+                user_id=owner.id,
+                location_id=location.id,
+                owner=name,
+                status=status,
+                consent_given=True,
+            )
+            db.session.add(project)
+            projects.append(project)
+
+        residential_location = UserLocation(
+            user_id=owner.id,
+            address="Home",
+            latitude=12.0,
+            longitude=77.0,
+            system_size=100.0,
+            extras={"planning_track": "home"},
+        )
+        other_user = User(
+            email="portfolio-other@example.com",
+            password_hash="unused",
+            display_name="Other Customer",
+        )
+        db.session.add_all([residential_location, other_user])
+        db.session.flush()
+        db.session.add_all(
+            [
+                Project(
+                    user_id=owner.id,
+                    location_id=residential_location.id,
+                    owner="Residential",
+                    status="under_review",
+                ),
+                UserLocation(
+                    user_id=other_user.id,
+                    address="Other customer address",
+                    latitude=12.0,
+                    longitude=77.0,
+                    extras={
+                        "planning_track": "business",
+                        "city": "Pune",
+                        "pincode": "411001",
+                    },
+                ),
+            ]
+        )
+        db.session.flush()
+        private_location = UserLocation.query.filter_by(
+            user_id=other_user.id
+        ).one()
+        private_project = Project(
+            user_id=other_user.id,
+            location_id=private_location.id,
+            owner="Private Project",
+            status="under_review",
+        )
+        db.session.add(private_project)
+        db.session.flush()
+        db.session.add(
+            VendorLeadUnlock(
+                vendor_user_id=vendor.id,
+                project_id=projects[1].id,
+                credits_charged=2.0,
+            )
+        )
+        db.session.commit()
+
+    response = client.get("/business/projects")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Total projects" in html
+    assert "North Clinic" in html
+    assert "Private Project" not in html
+    assert "Residential" not in html
+    assert "15,000" in html
+    assert "4.5 kW" in html
+    assert "68.0 kW" in html
+    assert "<strong>7</strong>" in html
+    assert "Warehouse" in html
+    assert "Installer interest" in html
+    assert "Assessment done" in html
+    assert client.get("/business/projects?q=North").get_data(as_text=True).count(
+        'class="biz-project-card"'
+    ) == 1
+    assert client.get("/business/projects?q=Pune").get_data(as_text=True).count(
+        'class="biz-project-card"'
+    ) == 1
+    assert client.get("/business/projects?q=411001").get_data(as_text=True).count(
+        'class="biz-project-card"'
+    ) == 1
+    connected_html = client.get(
+        "/business/projects?status=vendor_connected"
+    ).get_data(as_text=True)
+    assert connected_html.count('class="biz-project-card"') == 3
+    assert "68.0 kW" in connected_html
+    assert "<strong>7</strong>" in connected_html
+    assert client.get("/business/projects?status=under_review").get_data(
+        as_text=True
+    ).count('class="biz-project-card"') == 1
+    assert client.get("/business/projects?status=not-a-status").status_code == 400
+
+
+def test_business_project_location_matches_between_card_and_detail(app, client):
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        populated_location = UserLocation(
+            user_id=owner.id,
+            address="42 Fictional Market Road, Pune",
+            latitude=18.52,
+            longitude=73.85,
+            extras={
+                "planning_track": "business",
+                "city": "Pune",
+                "pincode": "411001",
+            },
+        )
+        missing_location = UserLocation(
+            user_id=owner.id,
+            address="",
+            latitude=18.52,
+            longitude=73.85,
+            extras={"planning_track": "business"},
+        )
+        db.session.add_all([populated_location, missing_location])
+        db.session.flush()
+        populated_project = Project(
+            user_id=owner.id,
+            location_id=populated_location.id,
+            owner="Populated Location",
+            status="under_review",
+        )
+        missing_project = Project(
+            user_id=owner.id,
+            location_id=missing_location.id,
+            owner="Missing Location",
+            status="under_review",
+        )
+        db.session.add_all([populated_project, missing_project])
+        db.session.commit()
+        populated_id = populated_project.id
+        missing_id = missing_project.id
+
+    listing = client.get("/business/projects").get_data(as_text=True)
+    assert "<strong>42 Fictional Market Road, Pune</strong>" in listing
+    assert "<small>Pune · 411001</small>" in listing
+    assert "<strong>Not provided</strong>" in listing
+
+    populated_detail = client.get(
+        f"/business/projects/{populated_id}"
+    ).get_data(as_text=True)
+    assert "<dt>Location</dt>" in populated_detail
+    assert "<dd>42 Fictional Market Road, Pune</dd>" in populated_detail
+    assert "<dd>Pune · 411001</dd>" in populated_detail
+
+    missing_detail = client.get(
+        f"/business/projects/{missing_id}"
+    ).get_data(as_text=True)
+    assert "<dd>Not provided</dd>" in missing_detail
+
+
+def test_business_project_empty_states_distinguish_portfolio_search_and_status(
+    app, client
+):
+    empty_html = client.get("/business/projects").get_data(as_text=True)
+    assert "You have not created a project yet." in empty_html
+    assert "No projects match your search." not in empty_html
+
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        location = UserLocation(
+            user_id=owner.id,
+            address="5 Sample Road, Pune",
+            latitude=18.52,
+            longitude=73.85,
+            extras={"planning_track": "business", "project_name": "Sample Office"},
+        )
+        db.session.add(location)
+        db.session.flush()
+        project = Project(
+            user_id=owner.id,
+            location_id=location.id,
+            owner="Sample Office",
+            status="under_review",
+        )
+        db.session.add(project)
+        db.session.commit()
+
+    search_html = client.get(
+        "/business/projects?q=NoSuchProject"
+    ).get_data(as_text=True)
+    assert "No projects match your search." in search_html
+    assert "You have not created a project yet." not in search_html
+    assert 'href="/business/projects"' in search_html
+
+    status_html = client.get(
+        "/business/projects?status=closed"
+    ).get_data(as_text=True)
+    assert "No projects match the selected status." in status_html
+    assert "No projects match your search." not in status_html
+    assert 'href="/business/projects"' in status_html
+
+    combined_html = client.get(
+        "/business/projects?status=closed&q=NoSuchProject"
+    ).get_data(as_text=True)
+    assert "No projects match your search and selected status." in combined_html
+    assert 'href="/business/projects"' in combined_html
+
+
+def test_business_project_detail_and_transitions_enforce_owner_and_model_rules(
+    app, client
+):
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        location = UserLocation(
+            user_id=owner.id,
+            address="22 Commercial Road, Pune",
+            latitude=18.5,
+            longitude=73.8,
+            system_size=12.0,
+            annual_generation=18000.0,
+            roof_area_sqm=240.0,
+            usable_area_sqm=200.0,
+            monthly_savings=1250.0,
+            extras={
+                "planning_track": "business",
+                "project_name": "Pune Warehouse",
+                "city": "Pune",
+                "pincode": "411001",
+                "business_type": "Warehouse",
+                "annual_net_benefit": 18000.0,
+                "monthly_bill_rs": 12000.0,
+                "monthly_units_kwh": 1500.0,
+                "tariff_per_kwh": 8.0,
+            },
+        )
+        other = User(
+            email="transition-other@example.com",
+            password_hash="unused",
+            display_name="Other",
+        )
+        db.session.add_all([location, other])
+        db.session.flush()
+        project = Project(
+            user_id=owner.id,
+            location_id=location.id,
+            owner="Pune Warehouse",
+            status="under_review",
+            consent_given=True,
+        )
+        other_location = UserLocation(
+            user_id=other.id,
+            address="Other commercial address",
+            latitude=19.0,
+            longitude=73.0,
+            extras={"planning_track": "business"},
+        )
+        db.session.add_all([project, other_location])
+        db.session.flush()
+        other_project = Project(
+            user_id=other.id,
+            location_id=other_location.id,
+            owner="Other Project",
+            status="under_review",
+            consent_given=True,
+        )
+        db.session.add(other_project)
+        db.session.commit()
+        project_id = project.id
+        other_project_id = other_project.id
+        owner_id = owner.id
+
+    detail = client.get(f"/business/projects/{project_id}")
+    detail_html = detail.get_data(as_text=True)
+    assert detail.status_code == 200
+    assert "22 Commercial Road, Pune" in detail_html
+    assert "Persisted assessment details" in detail_html
+    assert "Available financial estimates" in detail_html
+    assert "Project status history" in detail_html
+    dashboard = client.get("/business/projects").get_data(as_text=True)
+    assert 'href="/business/estimate"' in dashboard
+    assert client.get(f"/business/projects/{other_project_id}").status_code == 404
+
+    invalid = client.post(
+        f"/business/projects/{project_id}/status",
+        data={"status": "vendor_connected", "reason": "Not yet approved"},
+    )
+    assert invalid.status_code == 302
+    assert client.post(
+        f"/business/projects/{project_id}/status",
+        data={"status": "under_review", "reason": "No change"},
+    ).status_code == 400
+    assert client.post(
+        f"/business/projects/{project_id}/status",
+        data={"status": "closed"},
+    ).status_code == 400
+    with app.app_context():
+        project = db.session.get(Project, project_id)
+        assert project.status == "under_review"
+        assert ProjectStatusLog.query.filter_by(project_id=project_id).count() == 0
+
+    valid = client.post(
+        f"/business/projects/{project_id}/status",
+        data={"status": "open_to_vendors", "reason": "Review complete"},
+    )
+    assert valid.status_code == 302
+    with app.app_context():
+        project = db.session.get(Project, project_id)
+        log = ProjectStatusLog.query.filter_by(project_id=project_id).one()
+        assert project.status == "open_to_vendors"
+        assert log.actor_role == "user"
+        assert log.actor_user_id == owner_id
+        assert log.from_status == "under_review"
+        assert log.to_status == "open_to_vendors"
+        assert log.changed_at is not None
+        assert log.note == "Review complete"
+    history = client.get(f"/business/projects/{project_id}").get_data(as_text=True)
+    assert "Review complete" in history
+
+    unauthorized = client.post(
+        f"/business/projects/{other_project_id}/status",
+        data={"status": "closed", "reason": "Unauthorized"},
+    )
+    assert unauthorized.status_code == 404
+
+    app.config["WTF_CSRF_ENABLED"] = True
+    detail_html = client.get(
+        f"/business/projects/{project_id}"
+    ).get_data(as_text=True)
+    csrf_token = re.search(
+        r'name="csrf_token" value="([^"]+)"', detail_html
+    ).group(1)
+    close_data = {"status": "closed", "reason": "Owner closed the project"}
+    assert client.post(
+        f"/business/projects/{project_id}/status", data=close_data
+    ).status_code == 400
+    assert client.post(
+        f"/business/projects/{project_id}/status",
+        data={**close_data, "csrf_token": csrf_token},
+    ).status_code == 302
+    with app.app_context():
+        project = db.session.get(Project, project_id)
+        assert project.status == "closed"
+        assert project.closed_at is not None
+        assert ProjectStatusLog.query.filter_by(
+            project_id=project_id, note="Owner closed the project"
+        ).count() == 1
+
+        db.session.get(User, owner_id).role = "vendor"
+        db.session.commit()
+    assert client.get("/business/projects").status_code == 403
 
 
 def test_vendor_unlock_charges_once_and_ledger_matches_balance(app):
@@ -442,6 +844,14 @@ def test_project_listing_scopes_to_current_user_and_close_delete_work(app, clien
         refreshed = db.session.get(Project, project_id)
         assert refreshed.status == "closed"
         assert ProjectStatusLog.query.filter_by(project_id=project_id, to_status="closed").count() == 1
+    repeated_close = client.post(
+        f"/projects/{project_id}/close", follow_redirects=False
+    )
+    assert repeated_close.status_code == 302
+    with app.app_context():
+        assert ProjectStatusLog.query.filter_by(
+            project_id=project_id, to_status="closed"
+        ).count() == 1
 
     delete_response = client.post(f"/projects/{project_id}/delete", follow_redirects=False)
     assert delete_response.status_code == 302
