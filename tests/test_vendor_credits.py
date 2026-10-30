@@ -4,9 +4,19 @@ from threading import Barrier
 import re
 
 import pytest
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
-from app.models import AdminActionLog, Project, User, VendorCreditLedger, VendorLeadUnlock, VendorRefundRequest, db
+from app.models import (
+    PROJECT_ARCHIVE_NOTE,
+    AdminActionLog,
+    Project,
+    ProjectStatusLog,
+    User,
+    VendorCreditLedger,
+    VendorLeadUnlock,
+    VendorRefundRequest,
+    db,
+)
 from app.services import vendor_credit_service as service
 from tests.test_vendor_leads import leads, login
 
@@ -17,6 +27,13 @@ def post(client, project_id):
 
 def test_unlock_is_committed_idempotent_and_private(app, client, leads):
     ids, vendors = leads
+    with app.app_context():
+        project = db.session.get(Project, ids[0])
+        project.location.extras = {
+            **project.location.extras,
+            "planning_track": "home",
+        }
+        db.session.commit()
     assert "PRIVATE CUSTOMER" not in client.get(f"/vendor/leads/{ids[0]}").text
     first = post(client, ids[0])
     assert first.status_code == 200 and first.json["result"]["cost"] == 1
@@ -46,7 +63,11 @@ def test_failed_unlock_does_not_charge(app, client, leads, failure):
         if failure == "balance": vendor.vendor_credits_balance = 0
         if failure == "closed": project.status = "closed"
         if failure == "consent": project.consent_given = False
-        if failure == "track": project.location.extras = {**project.location.extras, "planning_track": "home"}
+        if failure == "track": project.location.extras = {
+            **project.location.extras,
+            "planning_track": "unsupported",
+            "property_type": "unknown",
+        }
         if failure == "area": vendor.vendor_profile = {"service_area": "Mumbai"}
         if failure == "unknown_cost": project.location.system_size = 0
         if failure == "suspended": vendor.vendor_status = "suspended"
@@ -251,3 +272,139 @@ def test_unrepresentable_float_debit_cannot_unlock_for_free(app, client, leads):
     assert post(client, ids[0]).status_code == 409
     with app.app_context():
         assert VendorLeadUnlock.query.count() == VendorCreditLedger.query.count() == 0
+
+
+def test_deleting_purchased_project_archives_and_preserves_receipt_ledger_privacy(
+    app, client, leads
+):
+    ids, vendors = leads
+    project_id = ids[0]
+    assert post(client, project_id).status_code == 200
+
+    with app.app_context():
+        owner_id = db.session.get(Project, project_id).user_id
+        unlock_id = VendorLeadUnlock.query.filter_by(project_id=project_id).one().id
+        ledger_id = VendorCreditLedger.query.filter_by(project_id=project_id).one().id
+        balance = db.session.get(User, vendors[0]).vendor_credits_balance
+
+    login(client, owner_id)
+    response = client.post(f"/projects/{project_id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert "Project archived" in response.text
+
+    with app.app_context():
+        project = db.session.get(Project, project_id)
+        assert project is not None and project.status == "closed"
+        assert db.session.get(VendorLeadUnlock, unlock_id).project_id == project_id
+        assert db.session.get(VendorCreditLedger, ledger_id).project_id == project_id
+        assert db.session.get(User, vendors[0]).vendor_credits_balance == balance
+
+        # The database, not only the route, prevents an accidental hard delete.
+        db.session.delete(project)
+        with pytest.raises(IntegrityError):
+            db.session.flush()
+        db.session.rollback()
+
+    listing = client.get("/business/projects")
+    assert listing.status_code == 200
+    assert "PRIVATE OWNER" in listing.text
+    assert "Archived" in listing.text
+    assert "Archived to preserve installer unlock receipts." in listing.text
+    assert "Closed" in listing.text
+    detail = client.get(f"/business/projects/{project_id}")
+    assert detail.status_code == 200
+    assert "Archived" in detail.text
+    assert "Archived to preserve installer unlock receipts." in detail.text
+
+    login(client, vendors[0])
+    assert "PRIVATE CUSTOMER" in client.get(f"/vendor/leads/{project_id}").text
+    retry = post(client, project_id)
+    assert retry.status_code == 200
+    assert retry.json["result"]["already_unlocked"] is True
+    with app.app_context():
+        assert VendorLeadUnlock.query.filter_by(project_id=project_id).count() == 1
+        assert VendorCreditLedger.query.filter_by(project_id=project_id).count() == 1
+        assert db.session.get(User, vendors[0]).vendor_credits_balance == balance
+
+    login(client, vendors[1])
+    assert client.get(f"/vendor/leads/{project_id}").status_code == 404
+    assert "PRIVATE CUSTOMER" not in client.get("/vendor/unlocked-leads").text
+
+
+def test_deleting_unused_project_detaches_but_preserves_historical_ledger(
+    app, client, leads
+):
+    ids, vendors = leads
+    project_id = ids[1]
+    with app.app_context():
+        owner_id = db.session.get(Project, project_id).user_id
+        vendor = db.session.get(User, vendors[0])
+        db.session.add(
+            VendorCreditLedger(
+                vendor_user_id=vendor.id,
+                project_id=project_id,
+                delta=0,
+                balance_after=vendor.vendor_credits_balance,
+                reason="historical_reference",
+            )
+        )
+        db.session.commit()
+        ledger_id = VendorCreditLedger.query.one().id
+        balance = vendor.vendor_credits_balance
+
+    login(client, owner_id)
+    response = client.post(f"/projects/{project_id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert "Project deleted" in response.text
+    assert client.get(f"/business/projects/{project_id}").status_code == 404
+    assert all(
+        item["id"] != project_id for item in client.get("/projects").get_json()["projects"]
+    )
+
+    with app.app_context():
+        assert db.session.get(Project, project_id) is None
+        ledger = db.session.get(VendorCreditLedger, ledger_id)
+        assert ledger is not None and ledger.project_id is None
+        vendor = db.session.get(User, vendors[0])
+        assert vendor.vendor_credits_balance == balance
+        assert service.ledger_summary(vendor)["reconciled"] is True
+
+
+def test_deleting_already_closed_purchased_project_records_archive_once(app, client, leads):
+    ids, vendors = leads
+    project_id = ids[0]
+    assert post(client, project_id).status_code == 200
+
+    with app.app_context():
+        project = db.session.get(Project, project_id)
+        owner_id = project.user_id
+        project.transition_status("user", owner_id, "closed", note="Closed before archive")
+        db.session.commit()
+
+    login(client, owner_id)
+    response = client.post(f"/projects/{project_id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert "Archived to preserve installer unlock receipts." in response.text
+
+    with app.app_context():
+        archive_events = ProjectStatusLog.query.filter_by(
+            project_id=project_id,
+            from_status="closed",
+            to_status="closed",
+            note=PROJECT_ARCHIVE_NOTE,
+        ).all()
+        assert len(archive_events) == 1
+        closed_at = db.session.get(Project, project_id).closed_at
+        assert VendorLeadUnlock.query.filter_by(project_id=project_id).count() == 1
+        assert VendorCreditLedger.query.filter_by(project_id=project_id).count() == 1
+
+    # Repeating the archive request does not create duplicate history events.
+    client.post(f"/projects/{project_id}/delete", follow_redirects=True)
+    with app.app_context():
+        assert ProjectStatusLog.query.filter_by(
+            project_id=project_id,
+            from_status="closed",
+            to_status="closed",
+            note=PROJECT_ARCHIVE_NOTE,
+        ).count() == 1
+        assert db.session.get(Project, project_id).closed_at == closed_at

@@ -38,13 +38,14 @@ def transaction(*, lock_user_id=None, lock_project_id=None):
         raise RuntimeError("Credit operations require a clean session")
 
     try:
-        if session.get_bind().dialect.name == "sqlite" and lock_user_id is not None:
-            session.execute(
-                update(User)
-                .where(User.id == lock_user_id)
-                .values(vendor_credits_balance=User.vendor_credits_balance),
-                execution_options={"synchronize_session": False},
-            )
+        if session.get_bind().dialect.name == "sqlite":
+            if lock_user_id is not None:
+                session.execute(
+                    update(User)
+                    .where(User.id == lock_user_id)
+                    .values(vendor_credits_balance=User.vendor_credits_balance),
+                    execution_options={"synchronize_session": False},
+                )
             if lock_project_id is not None:
                 session.execute(
                     update(Project)

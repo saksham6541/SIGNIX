@@ -2326,6 +2326,13 @@ body.ignix-body {
   color: #246f46;
 }
 
+.biz-project-archive-note {
+  margin: 0;
+  color: #5e5a54;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
 .biz-project-meta {
   display: grid;
   min-width: 0;
@@ -9288,6 +9295,64 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   margin-top: auto;
 }
 
+.rpt-marketplace-card {
+  grid-column: 1 / -1;
+}
+
+.rpt-marketplace-status {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #e8f8ef;
+  color: var(--success) !important;
+}
+
+.rpt-marketplace-form {
+  display: grid;
+  width: 100%;
+  gap: 14px;
+}
+
+.rpt-marketplace-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rpt-marketplace-fields label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: var(--indigo);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rpt-marketplace-fields input,
+.rpt-marketplace-fields textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.rpt-marketplace-full {
+  grid-column: 1 / -1;
+}
+
+.rpt-marketplace-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rpt-marketplace-consent input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
 .rpt-clone-card .clone-scenario-panel {
   width: 100%;
 }
@@ -9574,6 +9639,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
   .rpt-next-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rpt-marketplace-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rpt-marketplace-full {
+    grid-column: auto;
   }
 
   .rpt-clone-card .clone-controls {

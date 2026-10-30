@@ -9,7 +9,7 @@
     <h1>{{ _('Business Sites') if planning_track == 'business' else _('My Solar') }}</h1>
     <p class="tagline">{{ _('Review saved commercial sites, financial scenarios, and proposal-ready reports.') if planning_track == 'business' else _('Review saved home rooftops, bill savings, subsidy guidance, and reports.') }}</p>
   </div>
-  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.business_estimate') if planning_track == 'business' else url_for('pages.survey', planning_track='home') }}">{{ _('New Business Assessment') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
   <svg class="gt-dashboard-pattern" viewBox="0 0 420 220" aria-hidden="true">
     <path d="M10 180 105 85l63 63 57-57 165 165M130 220l90-90 100 90M286 220l55-55 55 55" fill="none" stroke="currentColor" stroke-width="2"/>
     <circle cx="316" cy="55" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -69,7 +69,7 @@
   </svg>
   <h2 id="properties-empty-title">{{ _('Your business sites will appear here') if planning_track == 'business' else _('Your home solar plans will appear here') }}</h2>
   <p>{{ _('Create a commercial estimate to save site assumptions and revisit its financial report.') if planning_track == 'business' else _('Create a home estimate to save the rooftop plan and revisit subsidy and savings guidance.') }}</p>
-  <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }}</a>
+  <a class="btn-grad" href="{{ url_for('pages.business_estimate') if planning_track == 'business' else url_for('pages.survey', planning_track='home') }}">{{ _('New Business Assessment') if planning_track == 'business' else _('New Home Estimate') }}</a>
 </section>
 {% endif %}
 {% endblock %}

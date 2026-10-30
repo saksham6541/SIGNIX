@@ -9,7 +9,7 @@
     <h1>{{ _('Commercial solar decisions, in one workspace') if planning_track == 'business' else _('Your home solar plan, kept simple') }}</h1>
     <p class="tagline">{% if planning_track == 'business' %}{{ _('Review site investment, annual operating benefit, payback, ROI, and saved scenarios.') }}{% else %}{{ _('Review household generation, monthly bill savings, installation cost, subsidy guidance, and next steps.') }}{% endif %}</p>
   </div>
-  <a class="btn-dashboard-cta" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('New Business Estimate') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
+  <a class="btn-dashboard-cta" href="{{ url_for('pages.business_estimate') if planning_track == 'business' else url_for('pages.survey', planning_track='home') }}">{{ _('New Business Assessment') if planning_track == 'business' else _('New Home Estimate') }} <span aria-hidden="true">→</span></a>
   <svg class="gt-dashboard-pattern" viewBox="0 0 420 220" aria-hidden="true">
     <path d="M10 180 105 85l63 63 57-57 165 165M130 220l90-90 100 90M286 220l55-55 55 55" fill="none" stroke="currentColor" stroke-width="2"/>
     <circle cx="316" cy="55" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -118,7 +118,7 @@
     </svg>
     <h3>{{ _('Add your first business site') if planning_track == 'business' else _('Your first home rooftop starts here') }}</h3>
     <p>{% if planning_track == 'business' %}{{ _('Trace the site roof, add operating assumptions, and save an investment-ready planning report.') }}{% else %}{{ _('Select your home, trace its roof, and save a clear bill-savings and installation plan.') }}{% endif %}</p>
-    <a class="btn-grad" href="{{ url_for('pages.survey', planning_track=planning_track) }}">{{ _('Start Business Estimate') if planning_track == 'business' else _('Start Home Estimate') }}</a>
+    <a class="btn-grad" href="{{ url_for('pages.business_estimate') if planning_track == 'business' else url_for('pages.survey', planning_track='home') }}">{{ _('Start Business Estimate') if planning_track == 'business' else  _('Start Home Estimate') }}</a>
   </div>
   {% endif %}
 </section>

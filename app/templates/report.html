@@ -883,6 +883,35 @@
     <p>{{ _('Choose what you would like to review or do with this estimate.') }}</p>
   </div>
   <div class="rpt-next-grid">
+    {% if loc.planning_track == 'home' %}
+    <article class="rpt-next-card rpt-marketplace-card" id="installer-marketplace">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-5 8 5v12M8 20v-7h8v7M2 20h20"/></svg>
+      <h3>{{ _('Share with verified installers') }}</h3>
+      {% if marketplace_project %}
+      <p>{{ _('This opportunity has been published to verified installers. Your contact details remain private until an installer spends credits to unlock the lead.') }}</p>
+      <p class="rpt-marketplace-status"><strong>{{ _('Lead status') }}:</strong> {{ _(marketplace_project.status.replace('_', ' ').title()) }}</p>
+      {% else %}
+      <p>{{ _('Publishing is optional. Confirm the public service area below and explicitly consent before this estimate can appear on the installer Lead Board.') }}</p>
+      <form method="post" action="{{ url_for('pages.create_project') }}" class="rpt-marketplace-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="location_id" value="{{ loc.id }}">
+        <div class="rpt-marketplace-fields">
+          <label>{{ _('Contact name') }}<input type="text" name="contact_name" value="{{ current_user.display_name }}" required></label>
+          <label>{{ _('Email') }}<input type="email" name="email" value="{{ current_user.email }}" required></label>
+          <label>{{ _('Phone') }}<input type="tel" name="phone" placeholder="{{ _('Optional') }}"></label>
+          <label>{{ _('City') }}<input type="text" name="city" maxlength="120" value="{{ publication_location.city }}" required></label>
+          <label>{{ _('Locality / area') }}<input type="text" name="locality" maxlength="120" value="{{ publication_location.locality }}" required></label>
+          <label>{{ _('PIN code') }}<input type="text" name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="{{ publication_location.pincode }}" required></label>
+          <label class="rpt-marketplace-full">{{ _('Note') }}<textarea name="note" rows="2" placeholder="{{ _('Optional') }}"></textarea></label>
+        </div>
+        <label class="rpt-marketplace-consent"><input type="checkbox" name="consent_given" value="1" required><span>{{ _('I choose to publish this lead to verified installers. My contact details stay private until an installer unlocks it.') }}</span></label>
+        <label class="rpt-marketplace-consent"><input type="checkbox" name="consent_fee" value="1" required><span>{{ _('SIGNIX may receive a fee from installers.') }}</span></label>
+        <button type="submit" class="rpt-action-button">{{ _('Publish lead to verified installers') }}</button>
+      </form>
+      {% endif %}
+    </article>
+    {% endif %}
+
     <article class="rpt-next-card">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6zM15 2v6h5M9 13h8M9 17h8"/></svg>
       <h3>{{ _('Technical PDF') }}</h3>

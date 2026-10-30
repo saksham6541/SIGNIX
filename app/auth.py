@@ -165,6 +165,12 @@ def _requested_planning_track():
 
 def _post_auth_destination(planning_track):
     """Persist the selected product and prevent a mismatched survey redirect."""
+    if current_user.is_authenticated and current_user.role == "vendor":
+        return url_for(
+            "auth.vendor_board"
+            if current_user.is_vendor_approved
+            else "auth.vendor_pending"
+        )
     track = planning_track if planning_track in VALID_PLANNING_TRACKS else "home"
     session["planning_track"] = track
     safe_next = _safe_next_url(request.args.get("next"))

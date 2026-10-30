@@ -9,8 +9,15 @@
       <p class="console-index">{{ _('PROJECT DETAIL') }}</p>
       <h1>{{ summary.site_name }}</h1>
     </div>
-    <span class="biz-chip biz-chip-status">{{ status_label }}</span>
+    <span class="biz-chip biz-chip-status">{{ _('Archived') if is_archived else status_label }}</span>
   </header>
+
+  {% if is_archived %}
+  <p class="biz-project-archive-note" role="status">
+    {{ _('Archived to preserve installer unlock receipts.') }}
+    {{ _('Lifecycle status') }}: {{ status_label }}.
+  </p>
+  {% endif %}
 
   <div class="biz-project-detail-layout">
     <div class="biz-panel">

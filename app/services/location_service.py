@@ -209,6 +209,9 @@ def geocode(query):
                     "city": address.get("city")
                     or address.get("town")
                     or address.get("village"),
+                    "locality": address.get("neighbourhood")
+                    or address.get("suburb")
+                    or address.get("road"),
                     "postcode": address.get("postcode"),
                 }
             )
@@ -274,6 +277,12 @@ def geocode(query):
                         or properties.get("type")
                         or "",
                         "importance": None,
+                        "state": properties.get("state"),
+                        "city": properties.get("city")
+                        or properties.get("district"),
+                        "locality": properties.get("locality")
+                        or properties.get("district"),
+                        "postcode": properties.get("postcode"),
                     }
                 )
             if results and source == "none":

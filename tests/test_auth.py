@@ -95,15 +95,21 @@ def test_login_route_explains_when_user_is_already_authenticated(app):
     test_client = app.test_client()
     assert login(test_client, "test@example.com", "unused").status_code == 302
 
+    with test_client.session_transaction() as session:
+        session["planning_track"] = "business"
     response = test_client.get("/login")
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/dashboard")
     with test_client.session_transaction() as session:
+        assert session["planning_track"] == "business"
         assert any(
             message == "You're already logged in."
             for _, message in session.get("_flashes", [])
         )
+    assert "Business Dashboard" in test_client.get(response.headers["Location"]).get_data(as_text=True)
+    with test_client.session_transaction() as session:
+        assert session["planning_track"] == "business"
 
 
 def test_authenticated_header_logout_clears_session(app):

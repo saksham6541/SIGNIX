@@ -15,6 +15,18 @@ SORTS = ("newest", "oldest", "capacity_asc", "capacity_desc", "bill_asc", "bill_
 PAGE_SIZE = 12
 
 
+def _profile_capacity_range(profile):
+    raw = str(profile.get("capacity_range") or "").strip()
+    if not raw:
+        return 0.0, None
+    values = [float(value) for value in re.findall(r"\d+(?:\.\d+)?", raw)]
+    if not values:
+        return 0.0, None
+    if len(values) == 1:
+        return 0.0, values[0]
+    return min(values[0], values[1]), max(values[0], values[1])
+
+
 def parse_filters(args):
     fields = ("city", "locality", "pincode", "capacity_min", "capacity_max", "business_type",
               "preferred_model", "bill_min", "bill_max", "posted", "sort", "page")
@@ -78,8 +90,15 @@ def lead_columns():
     # explicit monthly_bill_rs NULL is authoritative: it is not an actual bill.
     bill = case((extras["source"].as_string() == "business_estimate_page", _json_number("monthly_bill_rs")),
                 else_=func.coalesce(_json_number("monthly_bill_rs"), _json_number("monthly_bill")))
+    legacy_type = func.lower(text("property_type"))
+    planning_track = case(
+        (text("planning_track").in_(("home", "business")), text("planning_track")),
+        (legacy_type.in_(("commercial", "industrial", "msme", "factory")), "business"),
+        (legacy_type.in_(("residential", "remote")), "home"),
+    )
     return {
         "id": Project.id,
+        "planning_track": planning_track,
         "city": location_text("city"), "locality": location_text("locality"),
         "pincode": location_text("pincode"),
         "business_type": text("business_type"), "preferred_model": func.lower(text("preferred_model")),
@@ -97,15 +116,20 @@ def eligible_query(vendor, *, owned_only=False):
     columns = lead_columns()
     extras = UserLocation.extras
     track = extras["planning_track"].as_string()
-    legacy_business = func.lower(extras["property_type"].as_string()).in_(
-        ("commercial", "industrial", "msme", "factory"))
-    business = or_(track == "business", and_(or_(track.is_(None), track.notin_(("home", "business"))), legacy_business))
+    legacy_type = func.lower(extras["property_type"].as_string())
+    supported_project = or_(
+        track.in_(("home", "business")),
+        and_(
+            or_(track.is_(None), track.notin_(("home", "business"))),
+            legacy_type.in_(("residential", "remote", "commercial", "industrial", "msme", "factory")),
+        ),
+    )
     unlocked = select(VendorLeadUnlock.id).where(
         VendorLeadUnlock.project_id == Project.id, VendorLeadUnlock.vendor_user_id == vendor.id).exists()
     unlock_count = select(func.count(VendorLeadUnlock.id)).where(
         VendorLeadUnlock.project_id == Project.id).correlate(Project).scalar_subquery()
     query = db.session.query(*[value.label(key) for key, value in columns.items()]).select_from(Project).join(UserLocation)
-    query = query.filter(Project.consent_given.is_(True), business)
+    query = query.filter(Project.consent_given.is_(True), supported_project)
     if owned_only:
         query = query.filter(unlocked)
     else:
@@ -117,6 +141,12 @@ def eligible_query(vendor, *, owned_only=False):
         # Match only public area fields; exact-address search is a PII oracle.
         query = query.filter(or_(*[func.lower(columns[key]).contains(token, autoescape=True)
                                   for token in tokens for key in ("city", "locality", "pincode")]))
+    if not owned_only:
+        capacity_min, capacity_max = _profile_capacity_range(profile)
+        if capacity_min > 0:
+            query = query.filter(columns["system_size_kw"] >= capacity_min)
+        if capacity_max is not None:
+            query = query.filter(columns["system_size_kw"] <= capacity_max)
     return query, columns
 
 

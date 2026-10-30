@@ -34,6 +34,11 @@ def test_api_estimate_returns_estimate_for_valid_polygon(client, app):
             [28.6141, 77.2090],
         ],
         "tariff_per_kwh": 8.0,
+        "location_context": {
+            "city": "New Delhi",
+            "locality": "Connaught Place",
+            "pincode": "110001",
+        },
     }
     irradiance = {month: 5.0 for month in solar_logic.MONTH_NAMES}
 
@@ -58,6 +63,8 @@ def test_api_estimate_returns_estimate_for_valid_polygon(client, app):
             77.2090,
             28.6139,
         ]
+        assert location.extras["location_context"] == payload["location_context"]
+        assert location.extras["pincode"] == "110001"
     solar_data_fetch.assert_called_once()
 
 
@@ -468,6 +475,11 @@ def test_business_estimate_saves_valid_payload(client, app, monkeypatch):
         "ppa_rate_rs_per_kwh": 5.5,
         "ppa_tenure_years": 7,
         "include_depreciation_tax_benefit": "on",
+        "location_context": {
+            "city": "New Delhi",
+            "locality": "Connaught Place",
+            "pincode": "110001",
+        },
     }
 
     response = client.post("/business/estimate", json=payload)
@@ -483,6 +495,12 @@ def test_business_estimate_saves_valid_payload(client, app, monkeypatch):
         assert location.extras["business_type"] == "Shop"
         assert location.extras["monthly_units_kwh"] == 1200.0
         assert location.extras["include_depreciation_tax_benefit"] is True
+        assert location.extras["location_context"] == {
+            "city": "New Delhi",
+            "locality": "Connaught Place",
+            "pincode": "110001",
+        }
+        assert location.extras["pincode"] == "110001"
         assert location.system_size > 0
         assert location.annual_generation > 0
         assert location.net_investment > 0
