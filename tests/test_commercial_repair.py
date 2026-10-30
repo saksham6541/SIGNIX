@@ -116,6 +116,7 @@ def test_browser_json_and_normal_form_use_authoritative_pipeline(client, app, so
     assert "test_fixture" in html
     assert "25-year cumulative cash flow" in html
     assert "Unavailable" in html
+    assert "Indicative PPA rate: ₹5.00/kWh; not an installer quote." in html
     assert client.get(data["redirect_url"]).status_code == 200
     form = {**body, "polygon": json.dumps(body["polygon"]), "obstructions": "[]"}
     confirmed = client.post("/business/estimate/confirm", data=form)

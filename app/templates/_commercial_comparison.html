@@ -15,7 +15,7 @@
 <p>{{ _('Cumulative cash flow includes upfront investment. Buy and Loan include O&M; Loan also deducts financing payments. Values are nominal, not discounted.') }}</p>
 <p>{{ _('Annual O&M reserve') }}: {{ money(commercial_comparison.models.buy.annual_om_inr) }}. {{ _('Annual tariff escalation') }}: {{ commercial_comparison.financing_comparison.assumptions.tariff_escalation_pct }}%.</p>
 <p>{{ _('Loan') }}: {{ money(commercial_comparison.models.loan.monthly_emi_inr) }} {{ _('per month') }}; {{ _('Total repayment') }}: {{ money(commercial_comparison.models.loan.total_repayment_inr) }}.</p>
-<p>{{ _('RESCO / PPA: Installers will quote the actual rate.') }} {{ _('Contract years') }}: {{ commercial_comparison.models.resco.contract_years }}.</p>
+<p>{% if commercial_comparison.models.resco.ppa_rate_basis == 'quote_required' %}{{ _('RESCO / PPA: Installers will quote the actual rate.') }}{% else %}{{ _('Indicative PPA rate: ₹%(rate)s/kWh; not an installer quote.', rate='%.2f'|format(commercial_comparison.models.resco.ppa_rate_rs_per_kwh)) }}{% endif %} {{ _('Contract years') }}: {{ commercial_comparison.models.resco.contract_years }}.</p>
 {% for note in commercial_comparison.models.resco.notes %}<p>{{ _(note) }}</p>{% endfor %}
 {% else %}
 <p role="status">{{ _('Model-specific projections are unavailable for this saved assessment. Run a new commercial assessment to calculate them.') }}</p>

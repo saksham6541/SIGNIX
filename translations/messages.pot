@@ -3906,6 +3906,11 @@ msgstr ""
 msgid "Cost ranges are indicative planning estimates, not an installer quote."
 msgstr ""
 
+#: app/templates/_commercial_comparison.html
+#, python-format
+msgid "Indicative PPA rate: ₹%(rate)s/kWh; not an installer quote."
+msgstr ""
+
 #: app/pages.py
 msgid "User-entered commercial rate; not independently verified"
 msgstr ""

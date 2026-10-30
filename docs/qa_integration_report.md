@@ -62,10 +62,49 @@ This was a QA-only pass: no application source, tests, configuration, or databas
 
 No full 466+ test suite or repeated browser E2E suite was run.
 
-## Findings and limitations
+## Integration and Part 4 follow-up
+
+This addendum preserves the original QA record in this document and records later integration and browser work. It supersedes earlier broad statements where the later browser evidence below reproduces a defect.
+
+### Environment and workflow evidence
+
+- Part 4 was merged into `feature/public-commercial-landing` at merge commit `53801b6`. The QA report was merged at `31f47bd`. No merge to `main` or deployment was performed.
+- Browser assessment and installer checks used the disposable database `C:\Users\admin\AppData\Local\Temp\SIGNIX_merge_qa_3215dbaf0f4645dd8a617891b971cd21.db` and fictitious owner/vendor accounts. The original `solar_app.db` was not used. No migration was run against the browser database.
+- The commercial assessment accepted a manually drawn roof polygon and obstruction. The readout showed 931.10 m² total roof area, 90.52 m² obstructed area, and 840.58 m² usable area. The saved assessment used an explicitly test-only `test_fixture` irradiance source, low confidence, 8 kW sizing, and 11,131.3 kWh annual generation. These fixture-backed values are not real-world estimates.
+- CAPEX and Loan estimates rendered. An entered PPA rate of ₹5/kWh produced an indicative projection; the unavailable 25-year PPA total remained unavailable. Browser review found the result wording could imply a quote despite the user-entered rate. The template now labels this value “Indicative PPA rate … not an installer quote”; a focused Python regression test verifies the exact output. The edited wording has not been rechecked in a restarted browser session.
+- Saving the assessment with both required consent choices created a Business Project. The owner could transition it to Open to Vendors with a reason, and the status history recorded the change. A different owner received 404 for the project detail route.
+- Before unlock, the installer saw masked contact details. After consented unlock, the authorized vendor’s balance decreased by one credit and contact details became visible. A second vendor could not see those details. These checks used fictitious accounts and test-only location/service-area metadata in the disposable database.
+- No screenshot files were retained in the repository.
+
+### Reconciled findings
+
+| Finding | Follow-up status | Evidence |
+|---|---|---|
+| Commercial tariff provenance | **Fixed; automated regression passed.** A location lookup had placed an unverified commercial default in the input, making it appear user-entered. The frontend now leaves that field blank unless the tariff is confirmed. | Browser testing exposed the provenance mismatch; `tests/commercial_assessment.test.js` now verifies an unconfirmed commercial default does not populate the input. The changed behavior was not rerun in a browser after the fix. |
+| PPA rate wording | **Fixed in template; automated regression passed; browser recheck unverified.** | The result now calls a supplied rate indicative and explicitly says it is not an installer quote. `tests/test_commercial_repair.py` asserts the exact wording. |
+| Business Projects mobile horizontal overflow | **Reproduced; unresolved.** | At 390 px, observed document widths were 524 px for the project listing; the commercial survey was 592 px and vendor lead detail was 452 px. The 1440 px desktop views did not overflow. |
+| Project-card location inconsistency | **Reproduced; unresolved.** | The assessment saved a selected address, but the project card displayed “Not provided.” In the tested navigation sequence the assessment also fell back to “Selected rooftop”; location state did not carry over from the separate route. |
+| Search empty-state wording / PIN search | **Reproduced; unresolved.** | Searching PIN `110004` returned no project, and the empty state incorrectly said “You have not created a project yet.” |
+| Installer unlock and contact privacy | **Passed in disposable browser workflow.** | Contact was masked before unlock, revealed only to the unlocking vendor after consent, and not revealed to the second vendor. |
+| Migration-order dependency | **Not reproduced; remains unverified.** | The full automated suite passed, including migration tests, but no ordered migration rehearsal was run against a disposable database during this follow-up. Do not treat the dependency as resolved. |
+| Commercial PPA wording in Hindi | **Translation catalog updated and validated.** | Hindi translation validation reports 1,886 active messages with placeholder and compiled-catalog parity checks passing. |
+
+### Follow-up automated checks
+
+| Check | Result |
+|---|---:|
+| Focused commercial, project status, vendor lead, and credit tests | **136 passed** |
+| Full Python suite: `python -m pytest tests -q` | **515 passed, 0 failed** (326 warnings) |
+| Node suite: `node --test tests/*.test.js` | **12 passed, 0 failed** |
+| Python compilation and JavaScript syntax checks | **Passed** |
+| Hindi translation validation | **1,886 active messages passed** |
+
+The Wtforms, SQLAlchemy legacy query, ReportLab, and `datetime.utcnow()` deprecation warnings remain non-failing pre-existing warnings.
+
+## Initial findings and limitations (before Part 4 follow-up)
 
 1. **Checkout branch mismatch:** QA ran on `qa/integration-audit`, not the requested `feature/public-commercial-landing` branch. The checkout was already at the stated integrated commit `6909821`. To preserve the no-switch/no-merge safeguards, the branch was not changed. This is a process limitation, not an application defect.
-2. The commercial assessment route and authentication handoff were checked, but the assessment/calculation engine was not revalidated as part of this audit; that remains with its separate implementation phase.
+2. The commercial assessment route and authentication handoff were checked, but the assessment/calculation engine was not revalidated in that initial audit. The later Part 4 follow-up above documents its browser workflow.
 3. Commercial tariff display remains a configurable reference default rather than an official state/utility-specific tariff schedule. Users must confirm their applicable tariff.
 4. Testing used fictitious local data and does not establish production behavior or integration with external scheduling services. No scheduling integration was represented as active.
 5. No screenshot exports are included with this report; the desktop and mobile captures were reviewed inline in the QA session.

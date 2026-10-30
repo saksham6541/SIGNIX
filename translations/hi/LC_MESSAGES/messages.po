@@ -1876,6 +1876,11 @@ msgstr "लागत अनुमान का स्रोत"
 msgid "Cost ranges are indicative planning estimates, not an installer quote."
 msgstr "लागत सीमाएँ केवल सांकेतिक योजना अनुमान हैं, इंस्टॉलर का कोटेशन नहीं।"
 
+# app/templates/_commercial_comparison.html
+#, python-format
+msgid "Indicative PPA rate: ₹%(rate)s/kWh; not an installer quote."
+msgstr "सांकेतिक PPA दर: ₹%(rate)s/kWh; यह इंस्टॉलर का कोटेशन नहीं है।"
+
 #: app/pages.py
 msgid "User-entered commercial rate; not independently verified"
 msgstr "उपयोगकर्ता द्वारा दर्ज व्यावसायिक दर; स्वतंत्र रूप से सत्यापित नहीं"

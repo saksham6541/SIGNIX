@@ -15,6 +15,7 @@ const loading = new Set(['hidden']);
 const elements = {
   'start-estimation-btn': button, 'business-assessment-fields': options,
   'monthly-bill': bill, monthly_units_kwh: units,
+  'tariff-per-kwh': { value: '', dispatchEvent() {} },
   'estimate-action-status': status,
   'loading-panel': { classList: { add: x => loading.add(x), remove: x => loading.delete(x) } },
 };
@@ -22,6 +23,7 @@ let polygon = null;
 let sent;
 const context = vm.createContext({
   window: { SignixI18n: { t: text => text } },
+  URLSearchParams,
   document: { getElementById: id => elements[id] || null,
     addEventListener: (name, callback) => { listeners[name] = callback; }, querySelector: () => null },
   getCurrentPolygon: () => polygon, getCurrentObstructions: () => [],
@@ -54,6 +56,12 @@ vm.runInContext("SignixFormStore.selectedAddress = 'Fixture'; SignixFormStore.se
   assert.equal(body.ppa_rate_rs_per_kwh, '');
   assert.equal(sent.request.credentials, 'same-origin');
   assert.ok('X-CSRFToken' in sent.request.headers);
+  context.fetch = async () => ({ ok: true, json: async () => ({
+    planning_track: 'business',
+    tariff: { rate_per_kwh: 10, found: false },
+  }) });
+  await vm.runInContext("applyLocationContext({lat: 28, lng: 77})", context);
+  assert.equal(elements['tariff-per-kwh'].value, '', 'unverified commercial defaults remain blank');
   assert.equal(button.disabled, false, 'failure re-enables valid submission');
   assert.equal(button.dataset.loading, undefined);
   assert.ok(loading.has('hidden'), 'failure terminates loading state');
