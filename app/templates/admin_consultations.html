@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Consultation requests') }} · SIGNIX{% endblock %}
+{% block body_class %}product-business{% endblock %}
+{% block content %}
+<section class="dashboard-hero">
+  <h1>{{ _('Consultation requests') }}</h1>
+  <a href="{{ url_for('auth.admin_projects') }}">{{ _('Project review') }}</a>
+</section>
+<section class="biz-panel admin-consultations" aria-label="{{ _('Consultation requests') }}">
+  {% for item in consultation_requests %}
+  <article class="biz-project-card admin-consultation-card">
+    <header>
+      <div>
+        <p class="commercial-kicker">{{ item.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+        <h2>{{ item.full_name }} · {{ item.business_name or item.segment|title }}</h2>
+      </div>
+      <span class="admin-consultation-status">{{ consultation_status_labels[item.status] }}</span>
+    </header>
+    <dl class="admin-consultation-details">
+      <div><dt>{{ _('Enquiry type') }}</dt><dd>{{ item.segment|title }}</dd></div>
+      <div><dt>{{ _('Phone') }}</dt><dd><a href="tel:{{ item.phone }}">{{ item.phone }}</a></dd></div>
+      <div><dt>{{ _('Email') }}</dt><dd>{% if item.email %}<a href="mailto:{{ item.email }}">{{ item.email }}</a>{% else %}{{ _('Not provided') }}{% endif %}</dd></div>
+      <div><dt>{{ _('Business or property type') }}</dt><dd>{{ item.business_type or _('Not provided') }}</dd></div>
+      <div><dt>{{ _('Location') }}</dt><dd>{{ item.city }}, {{ item.state }} {{ item.pin_code }}</dd></div>
+      <div><dt>{{ _('Average monthly bill') }}</dt><dd>{{ item.monthly_bill }}</dd></div>
+      <div><dt>{{ _('Operating profile') }}</dt><dd>{{ item.operating_profile or _('Not provided') }}</dd></div>
+      <div><dt>{{ _('Contact consent') }}</dt><dd>{{ _('Yes') if item.consent else _('No') }}</dd></div>
+      <div class="admin-consultation-requirements"><dt>{{ _('Consultation requirements') }}</dt><dd>{{ item.requirements }}</dd></div>
+    </dl>
+    <form method="post" action="{{ url_for('auth.admin_consultation_update', consultation_id=item.id) }}" class="admin-consultation-update">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="status-{{ item.id }}">{{ _('Request status') }}</label>
+      <select id="status-{{ item.id }}" name="status" required>
+        {% for status in consultation_statuses %}
+        <option value="{{ status }}" {% if item.status == status %}selected{% endif %}>{{ consultation_status_labels[status] }}</option>
+        {% endfor %}
+      </select>
+      <label for="notes-{{ item.id }}">{{ _('Staff update or notes') }}</label>
+      <textarea id="notes-{{ item.id }}" name="admin_notes" rows="3" maxlength="2000">{{ item.admin_notes }}</textarea>
+      <button class="btn-primary" type="submit">{{ _('Save update') }}</button>
+    </form>
+  </article>
+  {% else %}
+  <p>{{ _('No consultation requests have been submitted.') }}</p>
+  {% endfor %}
+</section>
+{% endblock %}

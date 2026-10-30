@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.config import Config
@@ -19,6 +20,7 @@ from app.forms import (
 from app import SUPPORTED_LOCALES
 from app.models import (
     AdminActionLog,
+    ConsultationRequest,
     Project,
     User,
     UserLocation,
@@ -430,6 +432,66 @@ def admin_overview():
 def admin_projects():
     projects = Project.query.filter_by(status="under_review").order_by(Project.created_at.desc()).all()
     return render_template("admin_projects.html", projects=projects)
+
+
+@auth_bp.get("/admin/consultations")
+@require_roles("admin")
+def admin_consultations():
+    consultation_requests = ConsultationRequest.query.order_by(
+        ConsultationRequest.created_at.desc(), ConsultationRequest.id.desc()
+    ).all()
+    return render_template(
+        "admin_consultations.html",
+        consultation_requests=consultation_requests,
+        consultation_statuses=("pending", "contacted", "scheduled", "completed"),
+        consultation_status_labels={
+            "pending": _("Pending"),
+            "contacted": _("Contacted"),
+            "scheduled": _("Scheduled"),
+            "completed": _("Completed"),
+        },
+    )
+
+
+@auth_bp.post("/admin/consultations/<int:consultation_id>/update")
+@require_roles("admin")
+def admin_consultation_update(consultation_id):
+    consultation_request = db.session.get(ConsultationRequest, consultation_id)
+    if consultation_request is None:
+        abort(404)
+    status = (request.form.get("status") or "").strip()
+    admin_notes = (request.form.get("admin_notes") or "").strip()
+    valid_statuses = {"pending", "contacted", "scheduled", "completed"}
+    if status not in valid_statuses:
+        flash(_("Choose a valid consultation request status."), "error")
+        return redirect(url_for("auth.admin_consultations"))
+    if len(admin_notes) > 2000:
+        flash(_("Administrative notes must be 2,000 characters or fewer."), "error")
+        return redirect(url_for("auth.admin_consultations"))
+
+    previous_status = consultation_request.status
+    consultation_request.status = status
+    consultation_request.admin_notes = admin_notes
+    consultation_request.updated_at = datetime.now(timezone.utc)
+    db.session.add(
+        AdminActionLog(
+            actor_user_id=current_user.id,
+            action="update_consultation_request",
+            target_type="consultation_request",
+            target_id=consultation_request.id,
+            detail=f"Status changed from {previous_status} to {status}",
+        )
+    )
+    try:
+        db.session.commit()
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Consultation request update could not be saved")
+        flash(_("The consultation update could not be saved. Please try again."), "error")
+        return redirect(url_for("auth.admin_consultations"))
+
+    flash(_("Consultation request updated."), "success")
+    return redirect(url_for("auth.admin_consultations"))
 
 
 @auth_bp.post("/admin/projects/<int:project_id>/approve")

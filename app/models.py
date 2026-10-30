@@ -897,6 +897,47 @@ class TariffTable(db.Model):
         }
 
 
+class ConsultationRequest(db.Model):
+    __tablename__ = "consultation_requests"
+    __table_args__ = (
+        CheckConstraint(
+            "segment IN ('residential', 'commercial', 'industrial')",
+            name="ck_consultation_request_segment",
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'contacted', 'scheduled', 'completed')",
+            name="ck_consultation_request_status",
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    submission_token = db.Column(db.String(36), nullable=False, unique=True)
+    full_name = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(10), nullable=False)
+    email = db.Column(db.String(254), nullable=True)
+    segment = db.Column(db.String(16), nullable=False)
+    business_name = db.Column(db.String(160), nullable=True)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(128), nullable=False)
+    pin_code = db.Column(db.String(6), nullable=False)
+    monthly_bill = db.Column(db.String(32), nullable=False)
+    business_type = db.Column(db.String(120), nullable=True)
+    operating_profile = db.Column(db.String(32), nullable=True)
+    requirements = db.Column(db.Text, nullable=False)
+    consent = db.Column(db.Boolean, nullable=False, default=False)
+    status = db.Column(db.String(16), nullable=False, default="pending", index=True)
+    admin_notes = db.Column(db.Text, nullable=False, default="")
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
 class SubsidyScheme(db.Model):
     """Versioned central subsidy slabs (PM Surya Ghar).
 

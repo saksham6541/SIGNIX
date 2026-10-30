@@ -83,7 +83,7 @@
           <p class="solution-card-audience">{{ _('Business owners, offices, shops, and institutions') }}</p>
           <h3>{{ _('Commercial Solar') }}</h3>
           <p class="solution-card-description">{{ _('Discover rooftop solar planning for commercial properties.') }}</p>
-          <a class="solution-card-link" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
+          <a class="solution-card-link" href="{{ url_for('pages.business_landing') }}">{{ _('Explore Commercial') }} <span aria-hidden="true">→</span></a>
         </div>
       </article>
       <article class="solution-card solution-card-industrial">
@@ -333,7 +333,7 @@
         <a class="landing-cta-button landing-cta-primary" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">
           {{ _('Explore Residential Solar') }} <span aria-hidden="true">→</span>
         </a>
-        <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">
+        <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('pages.business_landing') }}">
           {{ _('Explore Commercial Solar') }} <span aria-hidden="true">→</span>
         </a>
         <a class="landing-cta-button landing-cta-secondary" href="{{ url_for('pages.consultation') }}">

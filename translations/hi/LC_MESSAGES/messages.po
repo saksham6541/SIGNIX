@@ -18,6 +18,446 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+#: app/auth.py
+msgid "Contacted"
+msgstr "संपर्क किया गया"
+
+#: app/auth.py
+msgid "Scheduled"
+msgstr "निर्धारित"
+
+#: app/auth.py
+msgid "Completed"
+msgstr "पूर्ण"
+
+#: app/auth.py
+msgid "Choose a valid consultation request status."
+msgstr "परामर्श अनुरोध की मान्य स्थिति चुनें।"
+
+#: app/auth.py
+msgid "Administrative notes must be 2,000 characters or fewer."
+msgstr "प्रशासनिक टिप्पणियाँ 2,000 अक्षरों से अधिक नहीं हो सकतीं।"
+
+#: app/auth.py
+msgid "The consultation update could not be saved. Please try again."
+msgstr "परामर्श अपडेट सहेजा नहीं जा सका। कृपया फिर प्रयास करें।"
+
+#: app/auth.py
+msgid "Consultation request updated."
+msgstr "परामर्श अनुरोध अपडेट किया गया।"
+
+#: app/pages.py
+msgid "Choose a valid enquiry type."
+msgstr "पूछताछ का मान्य प्रकार चुनें।"
+
+#: app/pages.py
+msgid "Enter your name using no more than 120 characters."
+msgstr "अपना नाम अधिकतम 120 अक्षरों में दर्ज करें।"
+
+#: app/pages.py
+msgid "Enter a valid email address."
+msgstr "मान्य ईमेल पता दर्ज करें।"
+
+#: app/pages.py
+msgid "Enter the business or organization name."
+msgstr "व्यवसाय या संस्था का नाम दर्ज करें।"
+
+#: app/pages.py
+msgid "Use no more than 160 characters."
+msgstr "अधिकतम 160 अक्षरों का उपयोग करें।"
+
+#: app/pages.py
+msgid "Enter a city using no more than 120 characters."
+msgstr "अधिकतम 120 अक्षरों में शहर का नाम दर्ज करें।"
+
+#: app/pages.py
+msgid "Enter a state or union territory using no more than 128 characters."
+msgstr "अधिकतम 128 अक्षरों में राज्य या केंद्र शासित प्रदेश दर्ज करें।"
+
+#: app/pages.py
+msgid "Select an electricity bill range."
+msgstr "बिजली बिल की सीमा चुनें।"
+
+#: app/pages.py
+msgid "Use no more than 120 characters."
+msgstr "अधिकतम 120 अक्षरों का उपयोग करें।"
+
+#: app/pages.py
+msgid "Choose a valid operating profile."
+msgstr "मान्य उपयोग समय-पैटर्न चुनें।"
+
+#: app/pages.py
+msgid "Describe what you would like to discuss (at least 10 characters)."
+msgstr "बताएँ कि आप किन विषयों पर बात करना चाहते हैं (कम से कम 10 अक्षर)।"
+
+#: app/pages.py
+msgid "Keep your consultation requirements to 2,000 characters or fewer."
+msgstr "परामर्श आवश्यकताएँ 2,000 अक्षरों या उससे कम में लिखें।"
+
+#: app/pages.py
+msgid "Please agree to be contacted about this request."
+msgstr "इस अनुरोध के बारे में संपर्क किए जाने की सहमति दें।"
+
+#: app/pages.py
+msgid "Refresh the page and submit the form again."
+msgstr "पृष्ठ रीफ़्रेश करें और फ़ॉर्म फिर से भेजें।"
+
+#: app/pages.py
+msgid "We could not verify this submission."
+msgstr "हम इस सबमिशन की पुष्टि नहीं कर सके।"
+
+#: app/pages.py
+msgid "This request was already received; no duplicate was created."
+msgstr "यह अनुरोध पहले ही प्राप्त हो चुका है; दोबारा अनुरोध नहीं बनाया गया।"
+
+#: app/pages.py
+msgid "We could not save your request. Please try again; it has not been submitted."
+msgstr "आपका अनुरोध सहेजा नहीं जा सका। कृपया फिर प्रयास करें; अनुरोध सबमिट नहीं हुआ है।"
+
+#: app/pages.py
+msgid "Your consultation request has been received. No appointment has been booked."
+msgstr "आपका परामर्श अनुरोध प्राप्त हुआ। कोई अपॉइंटमेंट बुक नहीं किया गया है।"
+
+#: app/templates/admin_consultations.html
+msgid "Consultation requests"
+msgstr "परामर्श अनुरोध"
+
+#: app/templates/admin_consultations.html
+msgid "Project review"
+msgstr "परियोजना समीक्षा"
+
+#: app/templates/admin_consultations.html
+msgid "Enquiry type"
+msgstr "पूछताछ का प्रकार"
+
+#: app/templates/admin_consultations.html
+msgid "Business or property type"
+msgstr "व्यवसाय या संपत्ति का प्रकार"
+
+#: app/templates/admin_consultations.html
+msgid "Average monthly bill"
+msgstr "औसत मासिक बिजली बिल"
+
+#: app/templates/admin_consultations.html
+msgid "Operating profile"
+msgstr "बिजली उपयोग का समय-पैटर्न"
+
+#: app/templates/admin_consultations.html
+msgid "Contact consent"
+msgstr "संपर्क की सहमति"
+
+#: app/templates/admin_consultations.html
+msgid "Yes"
+msgstr "हाँ"
+
+#: app/templates/admin_consultations.html
+msgid "No"
+msgstr "नहीं"
+
+#: app/templates/admin_consultations.html
+msgid "Consultation requirements"
+msgstr "परामर्श आवश्यकताएँ"
+
+#: app/templates/admin_consultations.html
+msgid "Request status"
+msgstr "अनुरोध की स्थिति"
+
+#: app/templates/admin_consultations.html
+msgid "Staff update or notes"
+msgstr "कर्मचारी अपडेट या टिप्पणियाँ"
+
+#: app/templates/admin_consultations.html
+msgid "Save update"
+msgstr "अपडेट सहेजें"
+
+#: app/templates/admin_consultations.html
+msgid "No consultation requests have been submitted."
+msgstr "अभी तक कोई परामर्श अनुरोध सबमिट नहीं हुआ है।"
+
+#: app/templates/business_landing.html
+msgid "Commercial rooftop solar planning for businesses"
+msgstr "व्यवसायों के लिए व्यावसायिक छत सौर योजना"
+
+#: app/templates/business_landing.html
+msgid "SIGNIX BUSINESS"
+msgstr "SIGNIX व्यवसाय"
+
+#: app/templates/business_landing.html
+msgid "ROOFTOP SOLAR PLANNING"
+msgstr "छत पर सौर योजना"
+
+#: app/templates/business_landing.html
+msgid "Plan solar around your business roof and energy use."
+msgstr "अपने व्यवसाय की छत और ऊर्जा उपयोग के अनुसार सौर योजना बनाएँ।"
+
+#: app/templates/business_landing.html
+msgid "Assess a rooftop boundary, mark obstructions, add your business tariff and operating profile, and review indicative project comparisons—all with your inputs visible."
+msgstr "छत की सीमा का आकलन करें, अवरोध चिह्नित करें, व्यवसाय की बिजली दर और उपयोग-पैटर्न जोड़ें, और अनुमानित परियोजना तुलनाएँ देखें—सभी इनपुट स्पष्ट रूप से दिखाई देंगे।"
+
+#: app/templates/business_landing.html
+msgid "Start Commercial Estimate"
+msgstr "व्यावसायिक सौर अनुमान शुरू करें"
+
+#: app/templates/business_landing.html
+msgid "Planning estimates only—not an engineering survey, quote, or promise of savings."
+msgstr "यह केवल योजना अनुमान है—इंजीनियरिंग सर्वेक्षण, कोटेशन या बचत का वादा नहीं।"
+
+#: app/templates/business_landing.html
+msgid "Solar panels on a commercial rooftop"
+msgstr "व्यावसायिक छत पर सौर पैनल"
+
+#: app/templates/business_landing.html
+msgid "Start with the roof you control."
+msgstr "उस छत से शुरुआत करें जिसका नियंत्रण आपके पास है।"
+
+#: app/templates/business_landing.html
+msgid "Commercial planning workflow"
+msgstr "व्यावसायिक योजना कार्यप्रवाह"
+
+#: app/templates/business_landing.html
+msgid "Roof boundary and obstructions"
+msgstr "छत की सीमा और अवरोध"
+
+#: app/templates/business_landing.html
+msgid "Business tariff and load profile"
+msgstr "व्यवसाय की बिजली दर और लोड-पैटर्न"
+
+#: app/templates/business_landing.html
+msgid "Indicative financial comparisons"
+msgstr "अनुमानित वित्तीय तुलनाएँ"
+
+#: app/templates/business_landing.html
+msgid "A ROOF-FIRST WORKFLOW"
+msgstr "छत से शुरू होने वाला कार्यप्रवाह"
+
+#: app/templates/business_landing.html
+msgid "A clearer view, built from your site inputs."
+msgstr "आपकी साइट जानकारी पर आधारित अधिक स्पष्ट योजना।"
+
+#: app/templates/business_landing.html
+msgid "SIGNIX reuses its commercial assessment and calculation flow. You provide the site details; the estimate remains an initial planning view."
+msgstr "SIGNIX अपने मौजूदा व्यावसायिक आकलन और गणना कार्यप्रवाह का उपयोग करता है। आप साइट का विवरण देते हैं; अनुमान प्रारंभिक योजना के लिए है।"
+
+#: app/templates/business_landing.html
+msgid "Map the usable rooftop"
+msgstr "उपयोगी छत का मानचित्र बनाएँ"
+
+#: app/templates/business_landing.html
+msgid "Draw or confirm the roof boundary, then mark obstructions to inform usable-area and system-sizing estimates."
+msgstr "छत की सीमा बनाएँ या पुष्टि करें, फिर उपयोगी क्षेत्र और सिस्टम आकार के अनुमान के लिए अवरोध चिह्नित करें।"
+
+#: app/templates/business_landing.html
+msgid "Describe how the site operates"
+msgstr "साइट के संचालन का विवरण दें"
+
+#: app/templates/business_landing.html
+msgid "Add your electricity use, business tariff, daytime load profile, location, and applicable site details."
+msgstr "बिजली उपयोग, व्यवसाय की दर, दिन के समय का लोड-पैटर्न, स्थान और संबंधित साइट विवरण जोड़ें।"
+
+#: app/templates/business_landing.html
+msgid "Compare indicative project cases"
+msgstr "अनुमानित परियोजना विकल्पों की तुलना करें"
+
+#: app/templates/business_landing.html
+msgid "Review the supported Buy, Loan, and PPA comparisons using the inputs and assumptions shown with your assessment."
+msgstr "अपने आकलन में दिखाए गए इनपुट और मान्यताओं के आधार पर उपलब्ध खरीद, ऋण और PPA तुलनाएँ देखें।"
+
+#: app/templates/business_landing.html
+msgid "TARIFF REFERENCE"
+msgstr "बिजली दर संदर्भ"
+
+#: app/templates/business_landing.html
+msgid "Your bill rate is the important one."
+msgstr "आपके बिजली बिल की दर ही महत्वपूर्ण है।"
+
+#: app/templates/business_landing.html
+msgid "SIGNIX does not have a verified state- or utility-specific commercial tariff schedule here. This reference is only a configurable planning default; confirm the applicable energy rate from your bill or utility before relying on an estimate."
+msgstr "SIGNIX के पास यहाँ सत्यापित राज्य- या बिजली वितरण कंपनी-विशिष्ट व्यावसायिक दर-सूची नहीं है। यह केवल कॉन्फ़िगर करने योग्य योजना डिफ़ॉल्ट है; अनुमान पर भरोसा करने से पहले अपने बिल या बिजली कंपनी से लागू दर की पुष्टि करें।"
+
+#: app/templates/business_landing.html
+msgid "Geography and category"
+msgstr "भूगोल और श्रेणी"
+
+#: app/templates/business_landing.html
+msgid "India · commercial planning default; not state or utility specific"
+msgstr "भारत · व्यावसायिक योजना डिफ़ॉल्ट; राज्य या बिजली कंपनी-विशिष्ट नहीं"
+
+#: app/templates/business_landing.html
+msgid "Configurable reference"
+msgstr "कॉन्फ़िगर करने योग्य संदर्भ"
+
+#: app/templates/business_landing.html
+msgid "Source and provenance"
+msgstr "स्रोत और उत्पत्ति"
+
+#: app/templates/business_landing.html
+msgid "SIGNIX configuration: DEFAULT_COMMERCIAL_TARIFF. Not an official published tariff."
+msgstr "SIGNIX कॉन्फ़िगरेशन: DEFAULT_COMMERCIAL_TARIFF। यह आधिकारिक प्रकाशित बिजली दर नहीं है।"
+
+#: app/templates/business_landing.html
+msgid "Effective period"
+msgstr "प्रभावी अवधि"
+
+#: app/templates/business_landing.html
+msgid "Not provided for this configurable default."
+msgstr "इस कॉन्फ़िगर करने योग्य डिफ़ॉल्ट के लिए उपलब्ध नहीं।"
+
+#: app/templates/business_landing.html
+msgid "FROM ESTIMATE TO PROJECT REVIEW"
+msgstr "अनुमान से परियोजना समीक्षा तक"
+
+#: app/templates/business_landing.html
+msgid "Keep the decision grounded in the details."
+msgstr "निर्णय को वास्तविक विवरणों पर आधारित रखें।"
+
+#: app/templates/business_landing.html
+msgid "Review your saved assessment and financial comparison before deciding whether to continue into the available business project workflow. Any installer sharing requires your separate choice and consent."
+msgstr "मौजूदा व्यावसायिक परियोजना कार्यप्रवाह में आगे बढ़ने से पहले सहेजे गए आकलन और वित्तीय तुलना की समीक्षा करें। इंस्टॉलर के साथ जानकारी साझा करने के लिए आपकी अलग पसंद और सहमति आवश्यक है।"
+
+#: app/templates/business_landing.html
+msgid "What an estimate does not promise"
+msgstr "अनुमान किन बातों की गारंटी नहीं देता"
+
+#: app/templates/business_landing.html
+msgid "Generation, bill savings, ROI, and payback are not guaranteed."
+msgstr "उत्पादन, बिजली बिल की बचत, ROI और पेबैक की गारंटी नहीं है।"
+
+#: app/templates/business_landing.html
+msgid "Actual tariffs, demand charges, export rules, costs, and financing terms must be confirmed for your site."
+msgstr "आपकी साइट के लिए वास्तविक बिजली दर, मांग शुल्क, निर्यात नियम, लागत और वित्तपोषण शर्तों की पुष्टि आवश्यक है।"
+
+#: app/templates/business_landing.html
+msgid "Tax and depreciation benefits are not modelled as guaranteed outcomes."
+msgstr "कर और मूल्यह्रास लाभों को सुनिश्चित परिणाम के रूप में मॉडल नहीं किया गया है।"
+
+#: app/templates/business_landing.html
+msgid "Residential subsidy guidance does not establish commercial eligibility."
+msgstr "आवासीय सब्सिडी मार्गदर्शन से व्यावसायिक पात्रता सिद्ध नहीं होती।"
+
+#: app/templates/business_landing.html
+msgid "YOUR SITE. YOUR INPUTS."
+msgstr "आपकी साइट। आपके इनपुट।"
+
+#: app/templates/business_landing.html
+msgid "Start with a commercial rooftop assessment."
+msgstr "व्यावसायिक छत के आकलन से शुरुआत करें।"
+
+#: app/templates/business_landing.html
+msgid "You can review the assumptions before using an estimate for a project decision."
+msgstr "परियोजना का निर्णय लेने के लिए अनुमान का उपयोग करने से पहले आप मान्यताओं की समीक्षा कर सकते हैं।"
+
+#: app/templates/consultation.html
+msgid "Share your site context, electricity use, and questions."
+msgstr "अपनी साइट, बिजली उपयोग और सवालों की जानकारी दें।"
+
+#: app/templates/consultation.html
+msgid "Your request is saved for authorized staff review."
+msgstr "आपका अनुरोध अधिकृत कर्मचारियों की समीक्षा के लिए सहेजा जाता है।"
+
+#: app/templates/consultation.html
+msgid "Submitting a request does not book an appointment."
+msgstr "अनुरोध सबमिट करने से अपॉइंटमेंट बुक नहीं होता।"
+
+#: app/templates/consultation.html
+msgid "I agree to be contacted about this consultation request. This does not authorize installer sharing."
+msgstr "मैं इस परामर्श अनुरोध के बारे में संपर्क किए जाने की सहमति देता/देती हूँ। इससे इंस्टॉलर के साथ जानकारी साझा करने की अनुमति नहीं मिलती।"
+
+#: app/templates/consultation.html
+msgid "Request a free solar consultation"
+msgstr "सोलर परामर्श का अनुरोध करें"
+
+#: app/templates/consultation.html
+msgid "Tell us about your site, electricity use, and what you would like to discuss. A request is not a confirmed meeting."
+msgstr "अपनी साइट, बिजली उपयोग और चर्चा के विषय बताएँ। अनुरोध से मीटिंग की पुष्टि नहीं होती।"
+
+#: app/templates/consultation.html
+msgid "Email address (optional)"
+msgstr "ईमेल पता (वैकल्पिक)"
+
+#: app/templates/consultation.html
+msgid "Business or organization name (required for business enquiries)"
+msgstr "व्यवसाय या संस्था का नाम (व्यावसायिक पूछताछ के लिए आवश्यक)"
+
+#: app/templates/consultation.html
+msgid "State or union territory"
+msgstr "राज्य या केंद्र शासित प्रदेश"
+
+#: app/templates/consultation.html
+msgid "Business or property type (optional)"
+msgstr "व्यवसाय या संपत्ति का प्रकार (वैकल्पिक)"
+
+#: app/templates/consultation.html
+msgid "When is most electricity used?"
+msgstr "बिजली का सबसे अधिक उपयोग कब होता है?"
+
+#: app/templates/consultation.html
+msgid "Select if known"
+msgstr "जानकारी हो तो चुनें"
+
+#: app/templates/consultation.html
+msgid "Mostly daytime"
+msgstr "अधिकतर दिन में"
+
+#: app/templates/consultation.html
+msgid "Mixed throughout the day"
+msgstr "दिनभर मिला-जुला उपयोग"
+
+#: app/templates/consultation.html
+msgid "Mostly evening or night"
+msgstr "अधिकतर शाम या रात में"
+
+#: app/templates/consultation.html
+msgid "What would you like to discuss?"
+msgstr "आप किन विषयों पर चर्चा करना चाहते हैं?"
+
+#: app/templates/consultation.html
+msgid "For example: roof assessment, tariff questions, financing options, or project next steps."
+msgstr "उदाहरण: छत का आकलन, बिजली दर संबंधी प्रश्न, वित्तपोषण विकल्प या परियोजना के अगले चरण।"
+
+#: app/templates/consultation.html
+msgid "Submitting request…"
+msgstr "अनुरोध सबमिट हो रहा है…"
+
+#: app/templates/consultation.html
+msgid "Send consultation request"
+msgstr "परामर्श अनुरोध भेजें"
+
+#: app/templates/consultation.html
+msgid "You will see a confirmation only after your request is saved. This does not book a meeting."
+msgstr "अनुरोध सहेजे जाने के बाद ही पुष्टि दिखाई जाएगी। इससे मीटिंग बुक नहीं होती।"
+
+#: app/templates/consultation.html
+msgid "What happens to your request"
+msgstr "आपके अनुरोध के बाद क्या होगा"
+
+#: app/templates/consultation.html
+msgid "Tell us about your business site, energy use, and questions."
+msgstr "अपने व्यवसाय स्थल, ऊर्जा उपयोग और सवालों के बारे में बताएँ।"
+
+#: app/templates/consultation.html
+msgid "Authorized staff review it"
+msgstr "अधिकृत कर्मचारी इसकी समीक्षा करेंगे"
+
+#: app/templates/consultation.html
+msgid "Your request is stored for authorized staff to review."
+msgstr "आपका अनुरोध अधिकृत कर्मचारियों की समीक्षा के लिए सहेजा जाता है।"
+
+#: app/templates/consultation.html
+msgid "A request is not a booking"
+msgstr "अनुरोध अपॉइंटमेंट बुकिंग नहीं है"
+
+#: app/templates/consultation.html
+msgid "A meeting is not scheduled unless you receive a separate confirmation."
+msgstr "अलग से पुष्टि मिलने तक मीटिंग निर्धारित नहीं मानी जाएगी।"
+
+#: app/templates/consultation.html
+msgid "You decide what happens next"
+msgstr "अगला कदम आप तय करते हैं"
+
+#: app/templates/consultation.html
+msgid "Submitting this form does not commit you to an installation or project."
+msgstr "यह फ़ॉर्म सबमिट करने से आप इंस्टॉलेशन या परियोजना के लिए बाध्य नहीं होते।"
+
 #: app/static/js/main.js:455
 #, python-format
 msgid " (auto-sized for %(load)s kW × %(hours)s h)"

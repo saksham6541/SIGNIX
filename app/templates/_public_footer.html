@@ -10,15 +10,20 @@
       <h4>{{ _('SOLUTIONS') }}</h4>
       <ul>
         <li><a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='home')) }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Home') }}{% else %}{{ _('Residential') }}{% endif %}</a></li>
-        <li><a href="{{ url_for('auth.login', next=url_for('pages.survey', planning_track='business')) }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Business') }}{% else %}{{ _('Commercial') }}{% endif %}</a></li>
+        <li><a href="{{ url_for('pages.business_landing') }}">{% if get_locale()|string == 'hi' %}{{ _('Solar for Business') }}{% else %}{{ _('Commercial') }}{% endif %}</a></li>
         <li><span class="landing-footer-unavailable" aria-disabled="true">{{ _('Industrial (Coming Soon)') }}</span></li>
       </ul>
     </div>
     <div class="footer-nav-col">
       <h4>{{ _('EXPLORE') }}</h4>
       <ul>
+        {% if request.endpoint == 'pages.business_landing' %}
+        <li><a href="{{ url_for('pages.business_landing') }}#commercial-workflow">{{ _('How It Works') }}</a></li>
+        <li><a href="{{ url_for('pages.business_landing') }}#commercial-assumptions-title">{{ _('Estimate assumptions') }}</a></li>
+        {% else %}
         <li><a href="{{ url_for('pages.index') }}#workflow">{{ _('How It Works') }}</a></li>
         <li><a href="{{ url_for('pages.index') }}#subsidy-title">{{ _('Subsidy Guide') }}</a></li>
+        {% endif %}
       </ul>
     </div>
     <div class="footer-nav-col">
@@ -27,7 +32,7 @@
         {% if current_user.is_authenticated %}
         <li><a href="{{ url_for('pages.dashboard') }}">{{ _('Dashboard') }}</a></li>
         {% endif %}
-        <li><a href="{{ url_for('pages.consultation') }}">{{ _('Book a Free Consultation') }}</a></li>
+        <li><a href="{{ url_for('pages.consultation', segment='commercial' if request.endpoint == 'pages.business_landing' else None) }}">{{ _('Book a Free Consultation') }}</a></li>
       </ul>
     </div>
   </div>

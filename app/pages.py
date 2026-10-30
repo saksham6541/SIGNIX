@@ -1,5 +1,6 @@
 import re
 import json
+import uuid
 from datetime import date, datetime, timezone
 
 from flask import (
@@ -20,13 +21,19 @@ from flask_login import current_user, login_required
 
 from app.application_checklist import build_pm_surya_ghar_guidance
 from app.config import Config
-from app.models import ApplicationTrackerEvent, Project, UserLocation, db
+from app.models import (
+    ApplicationTrackerEvent,
+    ConsultationRequest,
+    Project,
+    UserLocation,
+    db,
+)
 from app.report_generator import generate_pdf_report
 from app.installer_export import build_installer_package_zip
 from app.services import location_service
 from app.services.commercial_calculation_service import project_for_location, validate_finance_preferences
 from app.services import estimation_service
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app.solar_logic import calculate_environmental_equivalents
 from app.forms import INDIAN_STATES
 
@@ -123,9 +130,230 @@ def index():
     )
 
 
-@pages_bp.get("/consultation")
+@pages_bp.get("/commercial")
+@pages_bp.get("/business")
+def business_landing():
+    return render_template(
+        "business_landing.html",
+        commercial_tariff=estimation_service.lookup_tariff_defaults(
+            None, planning_track="business"
+        ),
+    )
+
+
+CONSULTATION_SEGMENTS = frozenset({"residential", "commercial", "industrial"})
+CONSULTATION_BILL_RANGES = frozenset(
+    {
+        "below-2000",
+        "2000-5000",
+        "5000-10000",
+        "10000-25000",
+        "25000-100000",
+        "above-100000",
+    }
+)
+CONSULTATION_OPERATING_PROFILES = frozenset({"daytime", "mixed", "evening"})
+
+
+def _consultation_form_context(form_data=None, errors=None, submission_token=None, form_error=None):
+    return {
+        "form_data": form_data or {},
+        "errors": errors or {},
+        "submission_token": submission_token or str(uuid.uuid4()),
+        "form_error": form_error,
+    }
+
+
+def _consultation_validation(form_data):
+    errors = {}
+    segment = form_data["segment"]
+    if segment not in CONSULTATION_SEGMENTS:
+        errors["segment"] = _("Choose a valid enquiry type.")
+    if not form_data["full_name"] or len(form_data["full_name"]) > 120:
+        errors["full_name"] = _("Enter your name using no more than 120 characters.")
+    if not re.fullmatch(r"[6-9][0-9]{9}", form_data["phone"]):
+        errors["phone"] = _("Enter a valid 10-digit Indian mobile number.")
+    email = form_data["email"]
+    if email and (
+        len(email) > 254
+        or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]{2,}", email)
+    ):
+        errors["email"] = _("Enter a valid email address.")
+    if segment in {"commercial", "industrial"} and not form_data["business_name"]:
+        errors["business_name"] = _("Enter the business or organization name.")
+    if len(form_data["business_name"]) > 160:
+        errors["business_name"] = _("Use no more than 160 characters.")
+    if not form_data["city"] or len(form_data["city"]) > 120:
+        errors["city"] = _("Enter a city using no more than 120 characters.")
+    if not form_data["state"] or len(form_data["state"]) > 128:
+        errors["state"] = _("Enter a state or union territory using no more than 128 characters.")
+    if not re.fullmatch(r"[0-9]{6}", form_data["pin_code"]):
+        errors["pin_code"] = _("Enter a valid 6-digit PIN code.")
+    if form_data["monthly_bill"] not in CONSULTATION_BILL_RANGES:
+        errors["monthly_bill"] = _("Select an electricity bill range.")
+    if form_data["business_type"] and len(form_data["business_type"]) > 120:
+        errors["business_type"] = _("Use no more than 120 characters.")
+    if form_data["operating_profile"] and form_data["operating_profile"] not in CONSULTATION_OPERATING_PROFILES:
+        errors["operating_profile"] = _("Choose a valid operating profile.")
+    if not form_data["requirements"] or len(form_data["requirements"]) < 10:
+        errors["requirements"] = _("Describe what you would like to discuss (at least 10 characters).")
+    elif len(form_data["requirements"]) > 2000:
+        errors["requirements"] = _("Keep your consultation requirements to 2,000 characters or fewer.")
+    if not form_data["consent"]:
+        errors["consent"] = _("Please agree to be contacted about this request.")
+    return errors
+
+
+@pages_bp.route("/consultation", methods=["GET", "POST"])
 def consultation():
-    return render_template("consultation.html")
+    if request.method == "GET":
+        segment = request.args.get("segment", "residential")
+        if segment not in CONSULTATION_SEGMENTS:
+            segment = "residential"
+        return render_template(
+            "consultation.html",
+            **_consultation_form_context({"segment": segment}),
+        )
+
+    fields = (
+        "submission_token",
+        "segment",
+        "full_name",
+        "phone",
+        "email",
+        "business_name",
+        "city",
+        "state",
+        "pin_code",
+        "monthly_bill",
+        "business_type",
+        "operating_profile",
+        "requirements",
+    )
+    form_data = {field: (request.form.get(field) or "").strip() for field in fields}
+    form_data["consent"] = request.form.get("consent") in {"on", "yes"}
+    try:
+        parsed_token = uuid.UUID(form_data["submission_token"])
+        if str(parsed_token) != form_data["submission_token"].lower():
+            raise ValueError
+        form_data["submission_token"] = str(parsed_token)
+    except (ValueError, AttributeError):
+        errors = {"submission_token": _("Refresh the page and submit the form again.")}
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(form_data, errors, form_error=_("We could not verify this submission.")),
+            ),
+            400,
+        )
+
+    existing = ConsultationRequest.query.filter_by(
+        submission_token=form_data["submission_token"]
+    ).first()
+    if existing is not None:
+        flash(
+            _("This request was already received; no duplicate was created."),
+            "success",
+        )
+        return redirect(url_for("pages.consultation", segment=form_data["segment"]))
+
+    errors = _consultation_validation(form_data)
+    if errors:
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(
+                    form_data, errors, form_data["submission_token"]
+                ),
+            ),
+            400,
+        )
+
+    consultation_request = ConsultationRequest(
+        submission_token=form_data["submission_token"],
+        full_name=form_data["full_name"],
+        phone=form_data["phone"],
+        email=form_data["email"] or None,
+        segment=form_data["segment"],
+        business_name=form_data["business_name"] or None,
+        city=form_data["city"],
+        state=form_data["state"],
+        pin_code=form_data["pin_code"],
+        monthly_bill=form_data["monthly_bill"],
+        business_type=form_data["business_type"] or None,
+        operating_profile=form_data["operating_profile"] or None,
+        requirements=form_data["requirements"],
+        consent=form_data["consent"],
+    )
+    try:
+        db.session.add(consultation_request)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        try:
+            existing = ConsultationRequest.query.filter_by(
+                submission_token=form_data["submission_token"]
+            ).first()
+        except SQLAlchemyError:
+            db.session.rollback()
+            current_app.logger.exception("Consultation request persistence could not be verified")
+            return (
+                render_template(
+                    "consultation.html",
+                    **_consultation_form_context(
+                        form_data,
+                        submission_token=form_data["submission_token"],
+                        form_error=_(
+                            "We could not save your request. Please try again; it has not been submitted."
+                        ),
+                    ),
+                ),
+                503,
+            )
+        if existing is not None:
+            flash(
+                _("This request was already received; no duplicate was created."),
+                "success",
+            )
+            return redirect(
+                url_for("pages.consultation", segment=form_data["segment"])
+            )
+        current_app.logger.exception("Consultation request write violated a database constraint")
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(
+                    form_data,
+                    submission_token=form_data["submission_token"],
+                    form_error=_(
+                        "We could not save your request. Please try again; it has not been submitted."
+                    ),
+                ),
+            ),
+            503,
+        )
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Consultation request could not be persisted")
+        return (
+            render_template(
+                "consultation.html",
+                **_consultation_form_context(
+                    form_data,
+                    submission_token=form_data["submission_token"],
+                    form_error=_(
+                        "We could not save your request. Please try again; it has not been submitted."
+                    ),
+                ),
+            ),
+            503,
+        )
+
+    flash(
+        _("Your consultation request has been received. No appointment has been booked."),
+        "success",
+    )
+    return redirect(url_for("pages.consultation", segment=form_data["segment"]))
 
 
 PLANNING_TRACKS = {

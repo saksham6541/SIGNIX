@@ -5,6 +5,7 @@
 <section class="dashboard-hero">
   <h1>{{ _('Project review') }}</h1>
   <a href="{{ url_for('auth.admin_vendors') }}">{{ _('Vendor review') }}</a>
+  <a href="{{ url_for('auth.admin_consultations') }}">{{ _('Consultation requests') }}</a>
 </section>
 <section class="biz-panel">
   {% if open_projects is defined %}<p>{{ _('Open projects') }}: {{ open_projects|length }} · {{ _('Unlocked leads') }}: {{ unlocked_count }}</p>{% endif %}
