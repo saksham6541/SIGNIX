@@ -437,7 +437,16 @@ def survey(planning_track, template_name="index.html"):
         template_name,
         planning_track=planning_track,
         track=track,
-        default_tariff_per_kwh=current_user.default_tariff_per_kwh,
+        default_tariff_per_kwh=(
+            current_user.default_tariff_per_kwh if planning_track == "home" else None
+        ),
+        commercial_config_tariff_per_kwh=(
+            estimation_service.lookup_tariff_defaults(
+                None, planning_track="business"
+            )["rate_per_kwh"]
+            if planning_track == "business"
+            else None
+        ),
         default_state=current_user.default_state,
         # A saved off-grid/remote household preference remains part of the
         # home workflow. Cross-track preferences never switch a home survey
@@ -507,6 +516,19 @@ def _save_business_estimate_payload(payload):
     inputs = estimation_service.prepare_estimate_inputs(payload, planning_track="business")
     if inputs["tariff_per_kwh"] <= 0:
         raise ValueError("A positive commercial energy tariff is required")
+    tariff_provenance = {
+        "basis": (
+            "user_supplied"
+            if payload.get("tariff_per_kwh") not in (None, "")
+            else "signix_configurable_default"
+        ),
+        "rate_per_kwh": inputs["tariff_per_kwh"],
+        "source": (
+            "User-entered commercial rate; not independently verified"
+            if payload.get("tariff_per_kwh") not in (None, "")
+            else "SIGNIX configurable default; confirm against your utility bill"
+        ),
+    }
     # Units are a demand/sizing input only, never a solar-generation measurement.
     if bill is None:
         inputs["monthly_bill"] = units * inputs["tariff_per_kwh"]
@@ -522,11 +544,13 @@ def _save_business_estimate_payload(payload):
         result, location = estimation_service.create_estimate(current_user.id, **inputs, commit=False)
         location.extras = {**location.extras, **metadata, **preferences,
                            "monthly_units_kwh": units, "monthly_bill_rs": bill,
+                           "tariff_provenance": tariff_provenance,
                            "source": "business_estimate_page"}
         comparison = project_for_location(location)
         # Shared reports and the commercial result use the identical financing flows.
         location.extras = {**location.extras, "financing_comparison": comparison["financing_comparison"]}
         result["financing_comparison"] = comparison["financing_comparison"]
+        result["tariff_provenance"] = tariff_provenance
         db.session.commit()
     except Exception:
         db.session.rollback()

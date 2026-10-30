@@ -20,15 +20,15 @@
     <div class="biz-result-summary-grid">
       <div class="biz-result-card">
         <span>{{ _('System size') }}</span>
-        <strong>{{ project.system_size_kw or 0 }} kW</strong>
+        <strong>{% if project.system_size_kw is number %}{{ project.system_size_kw }} kW{% else %}{{ _('Unavailable') }}{% endif %}</strong>
       </div>
       <div class="biz-result-card">
         <span>{{ _('Yearly generation') }}</span>
-        <strong>{{ project.annual_generation_kwh or 0 }} kWh</strong>
+        <strong>{% if project.annual_generation_kwh is number %}{{ project.annual_generation_kwh }} kWh{% else %}{{ _('Unavailable') }}{% endif %}</strong>
       </div>
       <div class="biz-result-card">
         <span>{{ _('Annual net operating benefit') }}</span>
-        <strong>₹{{ '{:,.0f}'.format((project.models.buy.year_one_savings_inr or 0)) }}</strong>
+        <strong>{% if project.models.buy.year_one_savings_inr is number %}₹{{ '{:,.0f}'.format(project.models.buy.year_one_savings_inr) }}{% else %}{{ _('Unavailable') }}{% endif %}</strong>
       </div>
       <div class="biz-result-card">
         <span>{{ _('Payback') }}</span>
@@ -44,7 +44,9 @@
     <div class="biz-assumptions-box">
       <h3>{{ _('Assumptions used') }}</h3>
       <ul>
-        <li>{{ _('Commercial energy tariff') }}: ₹{{ project.tariff_per_kwh or 0 }}/kWh</li>
+        <li>{{ _('Commercial energy tariff') }}: {% if project.tariff_per_kwh is number %}₹{{ project.tariff_per_kwh }}/kWh{% else %}{{ _('Unavailable') }}{% endif %}</li>
+        <li>{{ _('Tariff source') }}: {{ extras.tariff_provenance.source or _('Unavailable') }}</li>
+        <li>{{ _('Cost assumption source') }}: {{ extras.calculation_policy.assumption_source or _('Unavailable') }}. {{ _('Cost ranges are indicative planning estimates, not an installer quote.') }}</li>
         <li>{{ _('Orientation source') }}: {{ extras.orientation_source or _('Unavailable') }}</li>
         <li>{{ _('Cost per kW') }}: {% if project.cost_range_inr.base_inr is number %}₹{{ '{:,.0f}'.format(project.cost_range_inr.base_inr / project.system_size_kw) }}{% else %}{{ _('Unavailable') }}{% endif %}</li>
         <li>{{ _('Energy charges only') }}</li>

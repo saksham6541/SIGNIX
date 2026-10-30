@@ -1852,8 +1852,37 @@ msgid "Confirmed DC"
 msgstr "पुष्टि किया गया DC"
 
 #: app/templates/index.html:283
-msgid "Confirmed commercial tariff per kWh (₹)"
-msgstr "पुष्ट व्यावसायिक दर प्रति kWh (₹)"
+msgid "Commercial tariff per kWh (₹)"
+msgstr "व्यावसायिक बिजली दर प्रति kWh (₹)"
+
+#: app/templates/index.html:286
+#, python-format
+msgid ""
+"Optional. Leave blank to use the SIGNIX configurable default (₹%(rate)s/kWh), "
+"which is not an official utility tariff. Confirm your rate against your bill."
+msgstr ""
+"वैकल्पिक। खाली छोड़ने पर SIGNIX की कॉन्फ़िगर की गई डिफ़ॉल्ट दर (₹%(rate)s/kWh) "
+"इस्तेमाल होगी, जो आधिकारिक बिजली दर नहीं है। अपनी दर की पुष्टि बिल से करें।"
+
+#: app/templates/business_estimate_result.html
+msgid "Tariff source"
+msgstr "बिजली दर का स्रोत"
+
+#: app/templates/business_estimate_result.html
+msgid "Cost assumption source"
+msgstr "लागत अनुमान का स्रोत"
+
+#: app/templates/business_estimate_result.html
+msgid "Cost ranges are indicative planning estimates, not an installer quote."
+msgstr "लागत सीमाएँ केवल सांकेतिक योजना अनुमान हैं, इंस्टॉलर का कोटेशन नहीं।"
+
+#: app/pages.py
+msgid "User-entered commercial rate; not independently verified"
+msgstr "उपयोगकर्ता द्वारा दर्ज व्यावसायिक दर; स्वतंत्र रूप से सत्यापित नहीं"
+
+#: app/pages.py
+msgid "SIGNIX configurable default; confirm against your utility bill"
+msgstr "SIGNIX की कॉन्फ़िगर की गई डिफ़ॉल्ट दर; अपने बिजली बिल से पुष्टि करें"
 
 #: app/templates/report.html:191
 msgid "Confirmed panels"
