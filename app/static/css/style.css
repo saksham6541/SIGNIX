@@ -9331,6 +9331,41 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .rpt-marketplace-fields textarea {
   width: 100%;
   min-width: 0;
+  min-height: 46px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.4;
+  transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+.rpt-marketplace-fields textarea {
+  min-height: 84px;
+  resize: none;
+}
+
+.rpt-marketplace-fields :is(input, textarea):hover {
+  border-color: color-mix(in srgb, var(--accent-orange) 55%, var(--border));
+}
+
+.rpt-marketplace-fields :is(input, textarea):focus {
+  border-color: var(--accent-orange);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(200, 117, 25, .18);
+}
+
+.rpt-marketplace-fields :is(input, textarea):user-invalid {
+  border-color: #a53a3a;
+  background: #fff9f8;
+}
+
+.rpt-marketplace-fields :is(input, textarea):disabled {
+  background: #eee8dd;
+  color: var(--gray);
+  cursor: not-allowed;
 }
 
 .rpt-marketplace-full {
@@ -9351,6 +9386,38 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   height: 18px;
   flex: 0 0 auto;
   margin-top: 1px;
+  accent-color: var(--accent-orange);
+}
+
+.rpt-marketplace-consent:hover span {
+  color: var(--indigo);
+}
+
+.rpt-marketplace-form .rpt-action-button {
+  min-height: 48px;
+  border: 1px solid var(--accent-orange);
+  background: var(--accent-amber);
+  color: var(--indigo-deep);
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+.rpt-marketplace-form .rpt-action-button:hover {
+  background: var(--accent-orange);
+  box-shadow: 0 8px 18px rgba(200, 117, 25, .2);
+  transform: translateY(-1px);
+}
+
+.rpt-marketplace-form .rpt-action-button:focus-visible {
+  outline: 3px solid rgba(229, 154, 47, .42);
+  outline-offset: 3px;
+}
+
+.rpt-marketplace-form .rpt-action-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .rpt-clone-card .clone-scenario-panel {

@@ -191,8 +191,24 @@ def test_home_and_business_projects_share_board_and_render_correct_detail_titles
     assert "<title>Homeowner solar opportunity · SIGNIX</title>" in residential_detail.text
     assert "<h1>Homeowner solar opportunity</h1>" in residential_detail.text
     assert commercial_detail.status_code == 200
-    assert "<title>Commercial project · SIGNIX</title>" in commercial_detail.text
-    assert "<h1>Commercial project</h1>" in commercial_detail.text
+    assert "<title>Business solar project · SIGNIX</title>" in commercial_detail.text
+    assert "<h1>Business solar project</h1>" in commercial_detail.text
+    with app.app_context():
+        db.session.add_all(
+            [
+                VendorLeadUnlock(
+                    vendor_user_id=vendors[0], project_id=home_id, credits_charged=1
+                ),
+                VendorLeadUnlock(
+                    vendor_user_id=vendors[0], project_id=ids[0], credits_charged=1
+                ),
+            ]
+        )
+        db.session.commit()
+    unlocked = client.get("/vendor/unlocked-leads")
+    assert unlocked.status_code == 200
+    assert "Homeowner solar opportunity" in unlocked.text
+    assert "Business solar project" in unlocked.text
     for secret in (
         "PRIVATE HOME ADDRESS",
         "PRIVATE HOMEOWNER",

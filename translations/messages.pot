@@ -7804,6 +7804,50 @@ msgstr ""
 msgid "Project published to verified installers."
 msgstr ""
 
+#: app/templates/vendor_board.html
+msgid "Browse eligible homeowner and business solar opportunities and save leads for later."
+msgstr ""
+
+#: app/templates/vendor_lead_detail.html
+msgid "Unlocked installer lead"
+msgstr ""
+
+#: app/templates/vendor_lead_detail.html
+msgid "Installer lead"
+msgstr ""
+
+#: app/templates/vendor_unlocked_leads.html app/templates/vendor_credits.html
+msgid "Installer workspace"
+msgstr ""
+
+#: app/templates/vendor_unlocked_leads.html
+msgid "Review purchased lead details and record your follow-up outcome."
+msgstr ""
+
+#: app/templates/vendor_unlocked_leads.html
+msgid "Unlocked lead"
+msgstr ""
+
+#: app/templates/_vendor_unlocked.html
+msgid "Unlocked customer contact"
+msgstr ""
+
+#: app/templates/vendor_credits.html
+msgid "Track lead-unlock spending and request additional credits for administrator review."
+msgstr ""
+
+#: app/templates/vendor_credits.html
+msgid "Credit summary"
+msgstr ""
+
+#: app/templates/vendor_credits.html
+msgid "UNLOCK PRICING"
+msgstr ""
+
+#: app/templates/vendor_credits.html
+msgid "Every balance change remains visible in the credit ledger."
+msgstr ""
+
 #: app/pages.py
 msgid "Consent to save this business project is required."
 msgstr ""

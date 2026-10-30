@@ -9410,6 +9410,50 @@ msgstr "इस लीड को प्रकाशित करने से प
 msgid "Project published to verified installers."
 msgstr "परियोजना सत्यापित इंस्टॉलरों के लिए प्रकाशित कर दी गई है।"
 
+#: app/templates/vendor_board.html
+msgid "Browse eligible homeowner and business solar opportunities and save leads for later."
+msgstr "पात्र गृहस्वामी और व्यावसायिक सौर अवसर देखें और लीड को बाद के लिए सहेजें।"
+
+#: app/templates/vendor_lead_detail.html
+msgid "Unlocked installer lead"
+msgstr "अनलॉक की गई इंस्टॉलर लीड"
+
+#: app/templates/vendor_lead_detail.html
+msgid "Installer lead"
+msgstr "इंस्टॉलर लीड"
+
+#: app/templates/vendor_unlocked_leads.html app/templates/vendor_credits.html
+msgid "Installer workspace"
+msgstr "इंस्टॉलर कार्यक्षेत्र"
+
+#: app/templates/vendor_unlocked_leads.html
+msgid "Review purchased lead details and record your follow-up outcome."
+msgstr "खरीदी गई लीड का विवरण देखें और फॉलो-अप परिणाम दर्ज करें।"
+
+#: app/templates/vendor_unlocked_leads.html
+msgid "Unlocked lead"
+msgstr "अनलॉक की गई लीड"
+
+#: app/templates/_vendor_unlocked.html
+msgid "Unlocked customer contact"
+msgstr "अनलॉक किया गया ग्राहक संपर्क"
+
+#: app/templates/vendor_credits.html
+msgid "Track lead-unlock spending and request additional credits for administrator review."
+msgstr "लीड अनलॉक खर्च पर नज़र रखें और प्रशासक की समीक्षा के लिए अतिरिक्त क्रेडिट का अनुरोध करें।"
+
+#: app/templates/vendor_credits.html
+msgid "Credit summary"
+msgstr "क्रेडिट सारांश"
+
+#: app/templates/vendor_credits.html
+msgid "UNLOCK PRICING"
+msgstr "अनलॉक मूल्य"
+
+#: app/templates/vendor_credits.html
+msgid "Every balance change remains visible in the credit ledger."
+msgstr "क्रेडिट लेजर में प्रत्येक शेष परिवर्तन दिखाई देता रहता है।"
+
 #: app/pages.py
 msgid "Consent to save this business project is required."
 msgstr "इस व्यावसायिक परियोजना को सहेजने के लिए सहमति आवश्यक है।"
