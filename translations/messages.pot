@@ -3884,7 +3884,34 @@ msgid "Example: ₹5,000 ≈ 500 units ≈ 3.5–4 kW."
 msgstr ""
 
 #: app/templates/index.html:283
-msgid "Confirmed commercial tariff per kWh (₹)"
+msgid "Commercial tariff per kWh (₹)"
+msgstr ""
+
+#: app/templates/index.html:286
+#, python-format
+msgid ""
+"Optional. Leave blank to use the SIGNIX configurable default (₹%(rate)s/kWh), "
+"which is not an official utility tariff. Confirm your rate against your bill."
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Tariff source"
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Cost assumption source"
+msgstr ""
+
+#: app/templates/business_estimate_result.html
+msgid "Cost ranges are indicative planning estimates, not an installer quote."
+msgstr ""
+
+#: app/pages.py
+msgid "User-entered commercial rate; not independently verified"
+msgstr ""
+
+#: app/pages.py
+msgid "SIGNIX configurable default; confirm against your utility bill"
 msgstr ""
 
 #: app/templates/index.html:283
