@@ -41,7 +41,14 @@ def test_unlock_is_committed_idempotent_and_private(app, client, leads):
     assert "PRIVATE CUSTOMER" in client.get(f"/vendor/leads/{ids[0]}").text
     assert "PRIVATE CUSTOMER" in client.get("/vendor/unlocked-leads").text
     assert "PRIVATE CUSTOMER" not in client.get("/vendor/board").text
-    assert client.get("/vendor/credits").status_code == 200
+    credits_page = client.get("/vendor/credits")
+    assert credits_page.status_code == 200
+    assert 'class="credit-overview-grid"' in credits_page.text
+    assert "Current balance" in credits_page.text
+    assert "Historical opening balance" in credits_page.text
+    assert "Configured unlock costs" in credits_page.text
+    assert "Credit transactions" in credits_page.text
+    assert "Request credits" in credits_page.text
     with app.app_context():
         vendor = db.session.get(User, vendors[0])
         assert vendor.vendor_credits_balance == 9

@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% set lead_title = _('Homeowner solar opportunity') if item.planning_track == 'home' else _('Commercial project') %}
+{% set lead_title = _('Homeowner solar opportunity') if item.planning_track == 'home' else _('Business solar project') %}
 {% block title %}{{ lead_title }} · SIGNIX{% endblock %}
 {% block body_class %}product-business{% endblock %}
 {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor-leads.css') }}">{% endblock %}
 {% block content %}
 <section class="vendor-leads" data-saving="{{ _('Updating saved lead…') }}" data-failure="{{ _('Could not update saved leads. Please try again.') }}">
-  <h1>{{ lead_title }}</h1>
+  <header class="vendor-page-heading">
+    <p class="console-index">{{ _('Unlocked installer lead') if project else _('Installer lead') }}</p>
+    <h1>{{ lead_title }}</h1>
+  </header>
   {% include '_vendor_lead_nav.html' %}
   <p class="lead-feedback" role="status" aria-live="polite"></p>
   {% include '_vendor_lead_card.html' %}

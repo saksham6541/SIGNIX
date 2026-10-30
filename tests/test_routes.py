@@ -65,6 +65,10 @@ def test_api_estimate_returns_estimate_for_valid_polygon(client, app):
         ]
         assert location.extras["location_context"] == payload["location_context"]
         assert location.extras["pincode"] == "110001"
+    report = client.get(data["redirect_url"])
+    assert report.status_code == 200
+    assert "Share with verified installers" in report.text
+    assert 'class="rpt-marketplace-form"' in report.text
     solar_data_fetch.assert_called_once()
 
 
