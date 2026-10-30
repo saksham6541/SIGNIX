@@ -7,6 +7,7 @@ from app.config import Config
 from app.models import (
     Project,
     ProjectStatusLog,
+    PROJECT_ARCHIVE_NOTE,
     PROJECT_STATUS_PERMISSIONS,
     PROJECT_STATUS_TRANSITIONS,
     User,
@@ -95,7 +96,7 @@ def test_transition_status_records_log_and_updates_state(app):
         assert refreshed.updated_at >= before
 
 
-def test_project_creation_requires_consent_and_starts_under_review(app, client):
+def test_project_publication_requires_consent_and_confirmed_location(app, client):
     with app.app_context():
         user = User.query.filter_by(email="test@example.com").first()
         location = UserLocation(
@@ -129,9 +130,27 @@ def test_project_creation_requires_consent_and_starts_under_review(app, client):
         data={
             "location_id": location_id,
             "contact_name": "Owner",
+            "email": "owner@example.com",
+            "consent_given": "on",
+            "consent_fee": "on",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    with app.app_context():
+        assert Project.query.filter_by(location_id=location_id).count() == 0
+
+    response = client.post(
+        "/projects/create",
+        data={
+            "location_id": location_id,
+            "contact_name": "Owner",
             "phone": "99999",
             "email": "owner@example.com",
             "note": "Alpha",
+            "city": "Bengaluru",
+            "locality": "Central Business District",
+            "pincode": "560001",
             "consent_given": "on",
             "consent_fee": "on",
         },
@@ -140,10 +159,80 @@ def test_project_creation_requires_consent_and_starts_under_review(app, client):
     assert response.status_code == 302
     with app.app_context():
         project = Project.query.filter_by(location_id=location_id).one()
-        assert project.status == "under_review"
+        assert project.status == "open_to_vendors"
         assert project.consent_given is True
         assert project.consent_text_version == Config.PROJECT_CONSENT_TEXT_VERSION
-        assert ProjectStatusLog.query.filter_by(project_id=project.id).count() >= 1
+        assert project.location.extras["city"] == "Bengaluru"
+        assert project.location.extras["locality"] == "Central Business District"
+        assert project.location.extras["pincode"] == "560001"
+        log = ProjectStatusLog.query.filter_by(project_id=project.id).one()
+        assert log.to_status == "open_to_vendors"
+        assert "explicitly published" in log.note
+
+
+def test_homeowner_publication_is_explicit_and_uses_home_report(app, client):
+    with app.app_context():
+        user = User.query.filter_by(email="test@example.com").one()
+        location = UserLocation(
+            user_id=user.id,
+            address="Selected rooftop",
+            latitude=12.9,
+            longitude=77.6,
+            system_size=6.4,
+            extras={
+                "planning_track": "home",
+                "location_context": {
+                    "city": "Bengaluru",
+                    "locality": "Jayanagar",
+                    "pincode": "560041",
+                },
+            },
+        )
+        db.session.add(location)
+        db.session.commit()
+        location_id = location.id
+
+    private_response = client.post(
+        "/projects/create",
+        data={
+            "location_id": location_id,
+            "city": "Bengaluru",
+            "locality": "Jayanagar",
+            "pincode": "560041",
+        },
+        follow_redirects=False,
+    )
+    assert private_response.status_code == 302
+    assert private_response.headers["Location"].endswith(
+        f"/report/{location_id}#installer-marketplace"
+    )
+    with app.app_context():
+        assert Project.query.filter_by(location_id=location_id).count() == 0
+
+    published = client.post(
+        "/projects/create",
+        data={
+            "location_id": location_id,
+            "contact_name": "Test User",
+            "email": "test@example.com",
+            "city": "Bengaluru",
+            "locality": "Jayanagar",
+            "pincode": "560041",
+            "consent_given": "on",
+            "consent_fee": "on",
+        },
+        follow_redirects=False,
+    )
+    assert published.status_code == 302
+    assert published.headers["Location"].endswith(
+        f"/report/{location_id}#installer-marketplace"
+    )
+    with app.app_context():
+        project = Project.query.filter_by(location_id=location_id).one()
+        assert project.status == "open_to_vendors"
+        assert project.consent_given is True
+        assert f"/report/{location_id}" in project.location_link
+        assert "/business/estimate/" not in project.location_link
 
 
 def test_business_projects_page_renders_and_filters_for_current_user(app, client):
@@ -857,6 +946,11 @@ def test_project_listing_scopes_to_current_user_and_close_delete_work(app, clien
     assert delete_response.status_code == 302
     with app.app_context():
         assert db.session.get(Project, project_id) is None
+    assert client.get(f"/business/projects/{project_id}").status_code == 404
+    assert all(
+        item["id"] != project_id
+        for item in client.get("/projects").get_json()["projects"]
+    )
 
 
 def test_public_signup_cannot_create_vendor_or_admin(app):
@@ -973,3 +1067,66 @@ def test_unapproved_vendor_is_stopped_on_pending_page(app):
     approved_response = vendor_client.get("/vendor/board", follow_redirects=False)
     assert approved_response.status_code == 200
     assert "Approved vendor dashboard" in approved_response.get_data(as_text=True)
+
+
+def test_workspace_navigation_exposes_business_tools_and_approved_vendor_pages(app, client):
+    with client.session_transaction() as browser_session:
+        browser_session["planning_track"] = "business"
+
+    business_html = client.get("/dashboard").get_data(as_text=True)
+    assert "Business Dashboard" in business_html
+    assert 'href="/savings"' in business_html and "Financial Overview" in business_html
+    assert 'href="/business/projects"' in business_html and "Commercial Projects" in business_html
+    assert 'href="/business/estimate"' in business_html and "New Business Assessment" in business_html
+    assert 'href="/properties"' in business_html and "Saved Business Sites" in business_html
+    assert 'href="/compare"' in business_html and "Compare Scenarios" in business_html
+    assert 'href="/survey/home"' in business_html and 'href="/survey/business"' in business_html
+
+    with app.app_context():
+        vendor = User(
+            email="approved-nav-vendor@example.com",
+            password_hash=generate_password_hash("installer-password"),
+            display_name="Approved Installer",
+            role="vendor",
+            vendor_status="approved",
+            vendor_profile={"service_area": "Bengaluru"},
+        )
+        db.session.add(vendor)
+        db.session.commit()
+        vendor_id = vendor.id
+
+    vendor_login_client = app.test_client()
+    login_response = vendor_login_client.post(
+        "/login",
+        data={
+            "email": "approved-nav-vendor@example.com",
+            "password": "installer-password",
+            "planning_track": "business",
+        },
+        follow_redirects=False,
+    )
+    assert login_response.status_code == 302
+    assert login_response.headers["Location"].endswith("/vendor/board")
+
+    with client.session_transaction() as browser_session:
+        browser_session["_user_id"] = str(vendor_id)
+        browser_session["_fresh"] = True
+    vendor_html = client.get("/vendor/board").get_data(as_text=True)
+    for path in (
+        "/vendor/board",
+        "/vendor/saved-leads",
+        "/vendor/unlocked-leads",
+        "/vendor/credits",
+    ):
+        assert f'href="{path}"' in vendor_html
+    assert "Leaderboard (coming soon)" in vendor_html
+    assert 'href="/vendor/leaderboard"' not in vendor_html
+    assert 'class="product-switch"' not in vendor_html
+    assert 'href="/survey/home"' not in vendor_html
+    assert 'href="/survey/business"' not in vendor_html
+    assert 'href="/business/estimate"' not in vendor_html
+    assert 'href="/properties"' not in vendor_html
+    assert 'href="/compare"' not in vendor_html
+    assert client.get("/dashboard", follow_redirects=False).headers["Location"].endswith(
+        "/vendor/board"
+    )

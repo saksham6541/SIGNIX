@@ -1,6 +1,46 @@
+import logging
+
 from sqlalchemy import inspect
 
 from app.models import db
+
+
+logger = logging.getLogger(__name__)
+
+
+def _unlock_project_delete_action(inspector):
+    foreign_keys = inspector.get_foreign_keys("vendor_lead_unlocks")
+    matches = [
+        foreign_key
+        for foreign_key in foreign_keys
+        if foreign_key.get("constrained_columns") == ["project_id"]
+        and foreign_key.get("referred_table") == "projects"
+        and foreign_key.get("referred_columns") == ["id"]
+    ]
+    if len(matches) != 1:
+        return None
+    return str((matches[0].get("options") or {}).get("ondelete") or "NO ACTION").upper()
+
+
+def _handle_unsafe_unlock_constraint(dialect, ondelete):
+    if dialect == "sqlite":
+        raise RuntimeError(
+            "Database schema (sqlite) requires the explicit backed-up "
+            "unlock-receipt migration; startup made no changes. Run "
+            "scripts/migrate_vendor_unlock_receipts.py as documented in "
+            "docs/vendor_unlock_receipt_integrity.md. The migration must "
+            "change vendor_lead_unlocks.project_id from ON DELETE CASCADE "
+            "to RESTRICT without changing receipt or ledger records."
+        )
+    logger.warning(
+        "Database dialect %s still reports "
+        "vendor_lead_unlocks.project_id ON DELETE %s. Application-level "
+        "project archival remains active, but the database-level "
+        "receipt-preservation migration is deferred for this dialect; "
+        "do not hard-delete projects outside the application workflow.",
+        dialect,
+        ondelete or "UNKNOWN",
+    )
 
 
 def initialize_database():
@@ -29,6 +69,10 @@ def initialize_database():
                 "scripts/migrate_vendor_saved_leads.py and docs/installer_leads.md. "
                 "Other schema gaps require a reviewed migration."
             )
+        if "vendor_lead_unlocks" in existing:
+            ondelete = _unlock_project_delete_action(inspector)
+            if ondelete not in {"RESTRICT", "NO ACTION"}:
+                _handle_unsafe_unlock_constraint(db.engine.dialect.name, ondelete)
         return
 
     db.create_all()

@@ -25,6 +25,7 @@ from app.config import Config
 from app.models import (
     ApplicationTrackerEvent,
     ConsultationRequest,
+    PROJECT_ARCHIVE_NOTE,
     PROJECT_STATUS_CHOICES,
     Project,
     UserLocation,
@@ -124,6 +125,31 @@ def _project_is_business(location):
         return True
     property_type = str(extras.get("property_type") or "").strip().lower()
     return property_type in {"commercial", "industrial", "msme", "factory"}
+
+
+def _publication_location(location):
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    context = extras.get("location_context") if isinstance(
+        extras.get("location_context"), dict
+    ) else {}
+    return {
+        field: str(extras.get(field) or context.get(field) or "").strip()
+        for field in ("city", "locality", "pincode")
+    }
+
+
+def _publication_destination(location):
+    if _location_planning_track(location) == "business":
+        return url_for("pages.business_estimate_result", location_id=location.id)
+    return url_for("pages.report", location_id=location.id) + "#installer-marketplace"
+
+
+def _publication_location_link(location):
+    if _location_planning_track(location) == "business":
+        return url_for(
+            "pages.business_estimate_result", location_id=location.id, _external=True
+        )
+    return url_for("pages.report", location_id=location.id, _external=True)
 
 
 def _require_business_workspace_role():
@@ -529,6 +555,9 @@ def _save_business_estimate_payload(payload):
             else "SIGNIX configurable default; confirm against your utility bill"
         ),
     }
+    confirmed_location = estimation_service.normalize_location_context(
+        payload.get("location_context")
+    )
     # Units are a demand/sizing input only, never a solar-generation measurement.
     if bill is None:
         inputs["monthly_bill"] = units * inputs["tariff_per_kwh"]
@@ -545,6 +574,8 @@ def _save_business_estimate_payload(payload):
         location.extras = {**location.extras, **metadata, **preferences,
                            "monthly_units_kwh": units, "monthly_bill_rs": bill,
                            "tariff_provenance": tariff_provenance,
+                           "location_context": confirmed_location,
+                           **confirmed_location,
                            "source": "business_estimate_page"}
         comparison = project_for_location(location)
         # Shared reports and the commercial result use the identical financing flows.
@@ -607,10 +638,17 @@ def business_estimate_result(location_id):
         abort(404)
     session["planning_track"] = "business"
     project_rows = Project.query.filter_by(user_id=current_user.id, location_id=location.id).order_by(Project.created_at.desc()).all()
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    publication_location = _publication_location(location)
     return render_template(
         "business_estimate_result.html", planning_track="business", location=location,
-        project=_commercial_comparison_or_none(location), extras=location.extras or {},
-        projects=project_rows, consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
+        project=_commercial_comparison_or_none(location), extras=extras,
+        publication_location=publication_location,
+        projects=project_rows,
+        archived_project_ids={
+            project.id for project in project_rows if _project_is_archived(project)
+        },
+        consent_text_version=Config.PROJECT_CONSENT_TEXT_VERSION,
     )
 
 
@@ -688,6 +726,13 @@ def _project_status_label(status):
         "closed": "Closed",
     }
     return labels.get(status, status.replace("_", " ").title())
+
+
+def _project_is_archived(project):
+    return project.status == "closed" and any(
+        log.to_status == "closed" and log.note == PROJECT_ARCHIVE_NOTE
+        for log in project.status_logs
+    )
 
 
 @pages_bp.get("/api/projects")
@@ -834,6 +879,9 @@ def business_projects():
         search_query=query,
         status_counts=filter_counts,
         project_status_counts=project_status_counts,
+        archived_project_ids={
+            project.id for project in projects if _project_is_archived(project)
+        },
         totals=totals,
         active_nav="projects",
         project_context={
@@ -968,6 +1016,7 @@ def _render_project_detail(project):
         status_label=active_status,
         installer_count=installer_count,
         is_business=is_business,
+        is_archived=_project_is_archived(project),
         assessment_details=assessment_details,
         financial_estimates=financial_estimates,
         available_transitions=available_transitions,
@@ -1043,18 +1092,53 @@ def create_project():
         return redirect(url_for("pages.dashboard"))
 
     location = db.session.get(UserLocation, location_id)
-    if location is None or location.user_id != current_user.id or not _project_is_business(location):
+    if (
+        location is None
+        or location.user_id != current_user.id
+        or _location_planning_track(location) not in PLANNING_TRACKS
+    ):
         abort(400)
+    destination = _publication_destination(location)
 
     contact_name = (request.form.get("contact_name") or "").strip() or current_user.display_name
     phone = (request.form.get("phone") or "").strip()
     email = (request.form.get("email") or "").strip() or current_user.email
     note = (request.form.get("note") or "").strip()
+    city = (request.form.get("city") or "").strip()
+    locality = (request.form.get("locality") or "").strip()
+    pincode = (request.form.get("pincode") or "").strip()
     consent_given = request.form.get("consent_given") in {"1", "true", "yes", "on"}
     consent_fee = request.form.get("consent_fee") in {"1", "true", "yes", "on"}
     if not consent_given or not consent_fee:
         flash(_("Both consent statements are required before a project can be created."), "error")
-        return redirect(url_for("pages.business_estimate_result", location_id=location.id))
+        return redirect(destination)
+    if not city or len(city) > 120 or not locality or len(locality) > 120:
+        flash(
+            _("Confirm the city and locality before publishing this lead."),
+            "error",
+        )
+        return redirect(destination)
+    if not re.fullmatch(r"[0-9]{6}", pincode):
+        flash(_("Confirm a valid six-digit PIN code before publishing this lead."), "error")
+        return redirect(destination)
+
+    extras = location.extras if isinstance(location.extras, dict) else {}
+    location.extras = {
+        **extras,
+        "city": city,
+        "locality": locality,
+        "pincode": pincode,
+        "location_context": {
+            **(
+                extras.get("location_context")
+                if isinstance(extras.get("location_context"), dict)
+                else {}
+            ),
+            "city": city,
+            "locality": locality,
+            "pincode": pincode,
+        },
+    }
 
     project = Project.query.filter_by(user_id=current_user.id, location_id=location.id).first()
     if project is None:
@@ -1062,7 +1146,7 @@ def create_project():
             user_id=current_user.id,
             location_id=location.id,
             owner=current_user.display_name or contact_name,
-            location_link=url_for("pages.business_estimate_result", location_id=location.id, _external=True),
+            location_link=_publication_location_link(location),
             status="assessment_done",
             consent_given=True,
             consent_timestamp=datetime.now(timezone.utc),
@@ -1074,10 +1158,15 @@ def create_project():
         )
         db.session.add(project)
         db.session.flush()
-        project.transition_status(current_user.role, current_user.id, "under_review", note="Project created")
+        project.transition_status(
+            current_user.role,
+            current_user.id,
+            "open_to_vendors",
+            note="Customer explicitly published lead to verified installers",
+        )
     else:
         project.owner = current_user.display_name or contact_name
-        project.location_link = url_for("pages.business_estimate_result", location_id=location.id, _external=True)
+        project.location_link = _publication_location_link(location)
         project.contact_name = contact_name
         project.phone = phone or None
         project.email = email or None
@@ -1088,13 +1177,18 @@ def create_project():
         if project.status == "closed":
             db.session.rollback()
             flash(_("A closed project cannot be reopened by resubmitting this form."), "error")
-            return redirect(url_for("pages.business_estimate_result", location_id=location.id))
-        if project.status == "assessment_done":
-            project.transition_status(current_user.role, current_user.id, "under_review", note="Project created")
+            return redirect(destination)
+        if project.status in {"assessment_done", "under_review"}:
+            project.transition_status(
+                current_user.role,
+                current_user.id,
+                "open_to_vendors",
+                note="Customer explicitly published lead to verified installers",
+            )
 
     db.session.commit()
-    flash(_("Project created and sent for review."), "success")
-    return redirect(url_for("pages.business_estimate_result", location_id=location.id))
+    flash(_("Project published to verified installers."), "success")
+    return redirect(destination)
 
 
 @pages_bp.post("/projects/<int:project_id>/close")
@@ -1128,17 +1222,43 @@ def close_project(project_id):
 @login_required
 def delete_project(project_id):
     _require_business_workspace_role()
-    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first_or_404()
-    location_id = project.location_id
-    db.session.delete(project)
-    db.session.commit()
-    flash(_("Project deleted. Installers who already unlocked it keep their own records."), "success")
-    return redirect(url_for("pages.business_estimate_result", location_id=location_id))
+    from app.services.project_integrity_service import (
+        ProjectNotFoundError,
+        delete_or_archive_project,
+    )
+
+    try:
+        result = delete_or_archive_project(
+            current_user.id, project_id, current_user.role
+        )
+    except ProjectNotFoundError:
+        abort(404)
+
+    if result["action"] == "archived":
+        flash(
+            _(
+                "Project archived. Installer unlock receipts and credit history were preserved."
+            ),
+            "success",
+        )
+    else:
+        flash(_("Project deleted."), "success")
+    return redirect(
+        url_for("pages.business_estimate_result", location_id=result["location_id"])
+    )
 
 
 @pages_bp.route("/dashboard")
 @login_required
 def dashboard():
+    if current_user.role == "vendor":
+        return redirect(
+            url_for(
+                "auth.vendor_board"
+                if current_user.is_vendor_approved
+                else "auth.vendor_pending"
+            )
+        )
     planning_track = _active_planning_track()
     locations = _locations_for_track(current_user.id, planning_track)
     annual_net_benefit = sum(
@@ -1323,6 +1443,10 @@ def report(location_id):
         else None
     )
     psg_allowed = _psg_guidance_allowed(loc_dict)
+    location = db.session.get(UserLocation, location_id)
+    marketplace_project = Project.query.filter_by(
+        user_id=current_user.id, location_id=location_id
+    ).first()
     tracker_events = []
     latest_tracker_event = None
     psg_guidance = None
@@ -1351,6 +1475,8 @@ def report(location_id):
         tracker_status_labels=_tracker_status_labels(),
         today_date=date.today().isoformat(),
         psg_rule=_psg_rule_context(),
+        marketplace_project=marketplace_project,
+        publication_location=_publication_location(location),
     )
 
 

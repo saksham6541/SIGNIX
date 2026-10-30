@@ -1,4 +1,5 @@
 import math
+import re
 import time
 import uuid
 
@@ -158,6 +159,29 @@ def _validate_estimate_geometry(polygon, obstructions=None):
     return polygon, validated_obstructions
 
 
+def normalize_location_context(value):
+    """Validate optional public-area metadata without inventing missing values."""
+    if value in (None, ""):
+        return {}
+    if not isinstance(value, dict):
+        raise InvalidEstimateInputError("location_context must be an object")
+    normalized = {}
+    for field in ("city", "locality", "pincode"):
+        raw = value.get(field)
+        if raw in (None, ""):
+            continue
+        if not isinstance(raw, str) or len(raw.strip()) > 120:
+            raise InvalidEstimateInputError(
+                f"{field} must be text of at most 120 characters"
+            )
+        normalized[field] = raw.strip()
+    if normalized.get("pincode") and not re.fullmatch(
+        r"[0-9]{6}", normalized["pincode"]
+    ):
+        raise InvalidEstimateInputError("pincode must be a six-digit PIN code")
+    return normalized
+
+
 def prepare_estimate_inputs(payload, planning_track="home"):
     if not isinstance(payload, dict):
         raise InvalidEstimateInputError("Request body must be a JSON object")
@@ -242,6 +266,9 @@ def prepare_estimate_inputs(payload, planning_track="home"):
         "net_metering_mode": net_mode or "full_offset",
         "feed_in_tariff": feed_in,
         "state": payload.get("state"),
+        "location_context": normalize_location_context(
+            payload.get("location_context")
+        ),
     }
 
 
@@ -269,6 +296,7 @@ def create_estimate(
     net_metering_mode="full_offset",
     feed_in_tariff=None,
     state=None,
+    location_context=None,
     roof_group_id=None,
     parent_location_id=None,
     scenario_label=None,
@@ -431,6 +459,8 @@ def create_estimate(
                 "assumption_fingerprint": current_assumption_fingerprint(),
                 "surface_generation": result.get("surface_generation"),
                 "surface_generation_status": "current" if result.get("surface_generation") else None,
+                "location_context": dict(location_context or {}),
+                **dict(location_context or {}),
             },
         )
 

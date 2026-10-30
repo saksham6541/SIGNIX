@@ -71,8 +71,14 @@
           <p class="console-index">{{ _('PROJECT') }}</p>
           <h3>{{ summary.site_name }}</h3>
         </div>
-        <span class="biz-chip biz-chip-status">{{ project_status_labels.get(project.status, project.status.replace('_', ' ').title()) }}</span>
+        <span class="biz-chip biz-chip-status">{% if project.id in archived_project_ids %}{{ _('Archived') }}{% else %}{{ project_status_labels.get(project.status, project.status.replace('_', ' ').title()) }}{% endif %}</span>
       </div>
+      {% if project.id in archived_project_ids %}
+      <p class="biz-project-archive-note">
+        {{ _('Archived to preserve installer unlock receipts.') }}
+        {{ _('Lifecycle status') }}: {{ _('Closed') }}.
+      </p>
+      {% endif %}
 
       <div class="biz-project-meta">
         <div>

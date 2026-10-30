@@ -73,7 +73,7 @@
   <section class="biz-result-panel{% if not project %} active{% endif %}" data-panel="next">
     {% if project %}
     <a class="biz-primary-button" href="{{ url_for('pages.download_pdf', location_id=location.id) }}">{{ _('Download report (PDF)') }}</a>
-    <form method="post" action="{{ url_for('pages.create_project') }}" class="biz-project-form">
+    <form method="post" action="{{ url_for('pages.create_project') }}" class="biz-project-form" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="location_id" value="{{ location.id }}">
       <div class="biz-form-grid">
@@ -89,6 +89,18 @@
           {{ _('Email') }}
           <input type="email" name="email" value="{{ current_user.email }}" required>
         </label>
+        <label>
+          {{ _('City') }}
+          <input type="text" name="city" maxlength="120" value="{{ publication_location.city }}" required>
+        </label>
+        <label>
+          {{ _('Locality / area') }}
+          <input type="text" name="locality" maxlength="120" value="{{ publication_location.locality }}" required>
+        </label>
+        <label>
+          {{ _('PIN code') }}
+          <input type="text" name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="{{ publication_location.pincode }}" required>
+        </label>
         <label class="biz-full-width">
           {{ _('Note') }}
           <textarea name="note" rows="3" placeholder="{{ _('Optional') }}"></textarea>
@@ -96,14 +108,14 @@
       </div>
       <label class="biz-consent-box">
         <input type="checkbox" name="consent_given" value="1" required>
-        <span>{{ _('Your details are shared with selected installers only if you choose to.') }}</span>
+        <span>{{ _('I choose to publish this lead to verified installers. My contact details stay private until an installer unlocks it.') }}</span>
       </label>
       <label class="biz-consent-box">
         <input type="checkbox" name="consent_fee" value="1" required>
         <span>{{ _('SIGNIX may receive a fee from installers.') }}</span>
       </label>
-      <button type="submit" class="biz-primary-button">{{ _('Create solar project') }}</button>
-      <p class="biz-help-text">{{ _('Installers who already unlocked the lead keep their own records. SIGNIX cannot delete those records.') }}</p>
+      <button type="submit" class="biz-primary-button">{{ _('Publish lead to verified installers') }}</button>
+      <p class="biz-help-text">{{ _('Projects with installer unlocks are archived instead of deleted, preserving receipts and credit history.') }}</p>
     </form>
 
     {% endif %}
@@ -111,15 +123,28 @@
       <div class="biz-project-list">
         {% for project in projects %}
           <div class="biz-project-card">
+            {% if project.id in archived_project_ids %}
+            <p><strong>{{ _('Project') }} #{{ project.id }}</strong> — {{ _('Archived') }} · {{ _('Closed') }}</p>
+            <p class="biz-project-archive-note">
+              {{ _('Archived to preserve installer unlock receipts.') }}
+              {{ _('Lifecycle status') }}: {{ _('Closed') }}.
+            </p>
+            {% else %}
             <p><strong>{{ _('Project') }} #{{ project.id }}</strong> — {{ project.status|replace('_', ' ') }}</p>
+            {% endif %}
+            {% if project.status != 'closed' %}
             <form method="post" action="{{ url_for('pages.close_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Close this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="biz-secondary-button">{{ _('Close project') }}</button>
             </form>
-            <form method="post" action="{{ url_for('pages.delete_project', project_id=project.id) }}" onsubmit="return confirm('{{ _('Delete this project? Installers who already unlocked it keep their own records and SIGNIX cannot delete those.') }}');">
+            {% endif %}
+            {% set has_unlocks = project.vendor_unlocks|length > 0 %}
+            {% if project.id not in archived_project_ids %}
+            <form method="post" action="{{ url_for('pages.delete_project', project_id=project.id) }}" onsubmit="return confirm('{% if has_unlocks %}{{ _('Archive this project? It will remain in your closed projects so installer receipts and credit history stay intact.') }}{% else %}{{ _('Delete this project? This action cannot be undone.') }}{% endif %}');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="biz-danger-button">{{ _('Delete project') }}</button>
+              <button type="submit" class="biz-danger-button">{{ _('Archive project') if has_unlocks else _('Delete project') }}</button>
             </form>
+            {% endif %}
           </div>
         {% endfor %}
       </div>

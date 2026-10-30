@@ -27,14 +27,16 @@
     {% block app_sidebar %}
     {% if current_user.is_authenticated and not hide_sidebar %}
     <aside class="sidebar" id="primary-sidebar" aria-label="{{ _('Primary navigation') }}">
-      <a href="{{ url_for('pages.dashboard') }}" class="logo-block">
+      <a href="{{ url_for('auth.vendor_board') if current_user.role == 'vendor' and current_user.is_vendor_approved else url_for('auth.vendor_pending') if current_user.role == 'vendor' else url_for('pages.dashboard') }}" class="logo-block">
         <img class="sidebar-brand-logo" src="{{ url_for('static', filename='images/signix-logo-full.png') }}" width="190" height="64" alt="{{ _('SIGNIX rooftop solar planning') }}">
       </a>
 
+      {% if current_user.role != 'vendor' %}
       <div class="product-switch" aria-label="{{ _('Solar planning experience') }}">
         <a href="{{ url_for('pages.survey', planning_track='home') }}" {% if active_planning_track == 'home' %}aria-current="page"{% endif %}>{{ _('Home') }}</a>
         <a href="{{ url_for('pages.survey', planning_track='business') }}" {% if active_planning_track == 'business' %}aria-current="page"{% endif %}>{{ _('Business') }}</a>
       </div>
+      {% endif %}
 
       <nav class="side-nav">
         {% if current_user.is_authenticated and current_user.role == 'vendor' %}
@@ -44,14 +46,15 @@
           <a href="{{ url_for('auth.vendor_saved_leads') }}" class="nav-item{% if request.endpoint == 'auth.vendor_saved_leads' %} active{% endif %}">{{ _('Saved Leads') }}</a>
           <a href="{{ url_for('auth.vendor_unlocked_leads') }}" class="nav-item{% if request.endpoint == 'auth.vendor_unlocked_leads' %} active{% endif %}">{{ _('My Unlocked Leads') }}</a>
           <a href="{{ url_for('auth.vendor_credits') }}" class="nav-item{% if request.endpoint == 'auth.vendor_credits' %} active{% endif %}">{{ _('Credits') }}</a>
+          <span class="nav-group-title">{{ _('Leaderboard (coming soon)') }}</span>
         </div>
-        {% endif %}
+        {% else %}
         <!-- 1. Home -->
         <div class="nav-group">
-          <span class="nav-group-title">{{ _('Home') }}</span>
+          <span class="nav-group-title">{{ _('Business') if active_planning_track == 'business' else _('Home') }}</span>
           <a href="{{ url_for('pages.dashboard') }}" class="nav-item {% if request.endpoint == 'pages.dashboard' %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v10h-6zM4 14h6v6H4zM14 18h6v2h-6z"/></svg></span>
-            <span>{{ _('Dashboard') }}</span>
+            <span>{{ _('Business Dashboard') if active_planning_track == 'business' else _('Dashboard') }}</span>
           </a>
           <a href="{{ url_for('pages.savings') }}" class="nav-item {% if request.endpoint == 'pages.savings' %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 5h10M7 9h10M10 5c4 0 4 6 0 6H7l8 8"/></svg></span>
@@ -65,12 +68,12 @@
           {% if active_planning_track == 'business' %}
           <a href="{{ url_for('pages.business_projects') }}" class="nav-item {% if request.endpoint in ('pages.business_projects', 'pages.business_project_detail') %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></span>
-            <span>{{ _('Projects') }}</span>
+            <span>{{ _('Commercial Projects') }}</span>
           </a>
           {% endif %}
-          <a href="{{ url_for('pages.survey', planning_track=active_planning_track) }}" class="nav-item {% if request.endpoint in ('pages.plan', 'pages.survey') %}active{% endif %}">
+          <a href="{{ url_for('pages.business_estimate') if active_planning_track == 'business' else url_for('pages.survey', planning_track='home') }}" class="nav-item {% if request.endpoint in ('pages.plan', 'pages.survey', 'pages.business_estimate') %}active{% endif %}">
             <span class="nav-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg></span>
-            <span>{{ _('New Business Estimate') if active_planning_track == 'business' else _('New Home Estimate') }}</span>
+            <span>{{ _('New Business Assessment') if active_planning_track == 'business' else _('New Home Estimate') }}</span>
           </a>
         </div>
 
@@ -99,6 +102,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
 
         <!-- 4. Account -->
         <div class="nav-group">

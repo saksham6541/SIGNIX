@@ -3,6 +3,7 @@
 .lead-nav, .lead-pagination { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; align-items: center; }
 .lead-nav a { padding: 10px 2px; border-bottom: 3px solid transparent; }
 .lead-nav a[aria-current] { border-color: var(--accent-amber); font-weight: 700; }
+.lead-nav-coming-soon { padding: 10px 2px; color: var(--text-muted); font-size: .9rem; }
 .vendor-leads a { color: var(--indigo); text-underline-offset: 4px; }
 .vendor-leads a:hover { color: var(--accent-orange); }
 .lead-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 24px; }

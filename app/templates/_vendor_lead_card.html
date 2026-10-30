@@ -1,7 +1,7 @@
 <article class="gt-card lead-card" data-lead-id="{{ item.id }}">
   <div class="lead-card-heading"><div>
-    <p class="console-index">{{ _('Commercial project') }}</p>
-    <h2>{{ _(item.business_type) if item.business_type else _('Business type not provided') }}</h2>
+    <p class="console-index">{{ _('Homeowner solar opportunity') if item.planning_track == 'home' else _('Business solar project') }}</p>
+    <h2>{{ _(item.business_type) if item.business_type else (_('Residential rooftop') if item.planning_track == 'home' else _('Business type not provided')) }}</h2>
   </div>
   <form method="post" novalidate action="{{ url_for('auth.vendor_save_lead', project_id=item.id) }}" class="lead-save-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

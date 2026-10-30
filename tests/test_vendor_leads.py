@@ -132,6 +132,78 @@ def test_actual_bill_not_derived_units_and_no_invented_capacity(app, leads):
     assert ids[3] not in result_ids(app, vendors[0], capacity_min="0")[0]
 
 
+def test_vendor_profile_capacity_range_limits_board_results(app, leads):
+    ids, vendors = leads
+    with app.app_context():
+        vendor = db.session.get(User, vendors[0])
+        vendor.vendor_profile = {"capacity_range": "15–40 kW"}
+        db.session.commit()
+
+    visible, total = result_ids(app, vendors[0])
+    assert visible == [ids[1]]
+    assert total == 1
+
+
+def test_home_and_business_projects_share_board_and_render_correct_detail_titles(app, client, leads):
+    ids, vendors = leads
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        home_location = UserLocation(
+            user_id=owner.id,
+            address="PRIVATE HOME ADDRESS",
+            latitude=28.1,
+            longitude=77.1,
+            system_size=8,
+            roof_area_sqm=70,
+            extras={
+                "planning_track": "home",
+                "city": "Delhi",
+                "locality": "Central",
+                "pincode": "110003",
+            },
+        )
+        db.session.add(home_location)
+        db.session.flush()
+        home_project = Project(
+            user_id=owner.id,
+            location_id=home_location.id,
+            owner="PRIVATE HOMEOWNER",
+            contact_name="PRIVATE HOME CONTACT",
+            phone="9000000000",
+            email="home-private@example.test",
+            status="open_to_vendors",
+            consent_given=True,
+        )
+        db.session.add(home_project)
+        db.session.commit()
+        home_id = home_project.id
+
+    visible, total = result_ids(app, vendors[0], city="Delhi")
+    assert home_id in visible
+    assert ids[0] in visible and ids[1] in visible
+    assert total == 3
+    board = client.get("/vendor/board", query_string={"city": "Delhi"}).text
+    assert "Homeowner solar opportunity" in board
+    assert "Business solar project" in board
+    residential_detail = client.get(f"/vendor/leads/{home_id}")
+    commercial_detail = client.get(f"/vendor/leads/{ids[0]}")
+    assert residential_detail.status_code == 200
+    assert "<title>Homeowner solar opportunity · SIGNIX</title>" in residential_detail.text
+    assert "<h1>Homeowner solar opportunity</h1>" in residential_detail.text
+    assert commercial_detail.status_code == 200
+    assert "<title>Commercial project · SIGNIX</title>" in commercial_detail.text
+    assert "<h1>Commercial project</h1>" in commercial_detail.text
+    for secret in (
+        "PRIVATE HOME ADDRESS",
+        "PRIVATE HOMEOWNER",
+        "PRIVATE HOME CONTACT",
+        "9000000000",
+        "home-private@example.test",
+    ):
+        assert secret not in board
+
+
+
 @pytest.mark.parametrize("bad", ["junk", "50000", True, -1, float("inf")])
 def test_invalid_stored_bill_is_not_zero_or_numeric(app, leads, bad):
     ids, vendors = leads
@@ -209,7 +281,7 @@ def test_eligibility_consent_track_service_area_and_unlock_cap(app, client, lead
     with app.app_context():
         db.session.get(Project, ids[0]).consent_given = False
         loc = db.session.get(Project, ids[1]).location
-        loc.extras = {**loc.extras, "planning_track": "home"}
+        loc.extras = {**loc.extras, "planning_track": "unsupported", "property_type": "unknown"}
         db.session.get(User, vendors[0]).vendor_profile = {"service_area": "Mumbai"}
         db.session.commit()
     assert result_ids(app, vendors[0])[0] == [ids[2]]

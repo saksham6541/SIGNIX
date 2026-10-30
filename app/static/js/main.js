@@ -60,6 +60,7 @@ async function applyLocationContext(opts) {
 const SignixFormStore = {
   selectedAddress: null,
   selectedLatLng: null,
+  selectedLocation: null,
   locationContext: null,
 };
 
@@ -118,6 +119,11 @@ function initSearch() {
     setButtonBusy(searchBtn, false, window.SignixI18n.t('Searching…'));
     SignixFormStore.selectedAddress = address;
     SignixFormStore.selectedLatLng = { lat, lng };
+    SignixFormStore.selectedLocation = {
+      city: location.city || '',
+      locality: location.locality || '',
+      pincode: location.postcode || location.pincode || '',
+    };
     input.value = address;
     clearBtn?.classList.remove('hidden');
     clearResults();
@@ -691,7 +697,12 @@ function initEstimationButton() {
           backup_hours: backupHours,
           property_type: propertyType,
           user_priority: userPriority,
-          inverter_preference: inverterPreference
+          inverter_preference: inverterPreference,
+          location_context: {
+            city: SignixFormStore.selectedLocation?.city || SignixFormStore.locationContext?.city || '',
+            locality: SignixFormStore.selectedLocation?.locality || SignixFormStore.locationContext?.locality || '',
+            pincode: SignixFormStore.selectedLocation?.pincode || SignixFormStore.locationContext?.pincode || ''
+          }
         })
       });
       let data;

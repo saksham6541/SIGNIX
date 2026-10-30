@@ -1,10 +1,22 @@
 # filename: app/models.py
 from datetime import datetime, timezone
-from sqlalchemy import CheckConstraint
+import sqlite3
+
+from sqlalchemy import CheckConstraint, event
+from sqlalchemy.engine import Engine
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 
 db = SQLAlchemy()
+
+
+@event.listens_for(Engine, "connect")
+def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
+    """Make declared SQLite referential actions real on every connection."""
+    if isinstance(dbapi_connection, sqlite3.Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 PROJECT_STATUS_CHOICES = (
@@ -16,6 +28,8 @@ PROJECT_STATUS_CHOICES = (
     "installation",
     "closed",
 )
+
+PROJECT_ARCHIVE_NOTE = "Project archived to preserve installer unlock receipts"
 
 PROJECT_STATUS_PERMISSIONS = {
     "user": {"assessment_done", "under_review", "open_to_vendors", "closed"},
@@ -443,7 +457,10 @@ class VendorLeadUnlock(db.Model):
     )
     project_id = db.Column(
         db.Integer,
-        db.ForeignKey("projects.id", ondelete="CASCADE"),
+        # Unlocks are paid audit receipts. A project with an unlock must be
+        # archived instead of deleted; the database is the final guard against
+        # any route or maintenance job silently erasing that receipt.
+        db.ForeignKey("projects.id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
@@ -619,7 +636,7 @@ class Project(db.Model):
     vendor_unlocks = db.relationship(
         "VendorLeadUnlock",
         back_populates="project",
-        cascade="all, delete-orphan",
+        passive_deletes="all",
         order_by="VendorLeadUnlock.unlocked_at",
     )
 
@@ -660,6 +677,45 @@ class Project(db.Model):
             actor_user_id=actor_user_id,
             from_status=previous_status,
             to_status=to_status,
+            note=note,
+        )
+        db.session.add(log)
+        return log
+
+    def archive(self, actor_role, actor_user_id, *, note=None):
+        """Close a project while retaining marketplace and financial history.
+
+        Archival is deliberately distinct from the normal workflow transition
+        map: an owner who previously had authority to delete the record may
+        always choose the less-destructive archive operation.
+        """
+        existing_archive = (
+            next(
+                (
+                    log
+                    for log in self.status_logs
+                    if log.to_status == "closed" and log.note == note
+                ),
+                None,
+            )
+            if note is not None
+            else None
+        )
+        if existing_archive is not None:
+            return existing_archive
+
+        previous_status = self.status
+        now = datetime.now(timezone.utc)
+        if previous_status != "closed":
+            self.status = "closed"
+            self.closed_at = now
+        self.updated_at = now
+        log = ProjectStatusLog(
+            project_id=self.id,
+            actor_role=actor_role,
+            actor_user_id=actor_user_id,
+            from_status=previous_status,
+            to_status="closed",
             note=note,
         )
         db.session.add(log)
