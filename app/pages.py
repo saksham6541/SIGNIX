@@ -635,6 +635,7 @@ def _project_location_context(project, *, installer_count=0):
     location_context = extras.get("location_context") if isinstance(extras.get("location_context"), dict) else {}
     city = str(extras.get("city") or location_context.get("city") or "").strip()
     pin = str(extras.get("pincode") or location_context.get("pincode") or "").strip()
+    address = str(location.address or "").strip()
     business_type = extras.get("business_type") or extras.get("property_type")
     system_size_kw = _persisted_nonnegative_number(location.system_size)
     if not system_size_kw:
@@ -659,8 +660,10 @@ def _project_location_context(project, *, installer_count=0):
             or project.owner
             or f"Project {project.id}"
         ),
+        "address": address,
         "city": city,
         "pin": pin,
+        "location_label": address or " · ".join(value for value in (city, pin) if value),
         "business_type": (
             str(business_type).replace("_", " ").title()
             if business_type

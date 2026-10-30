@@ -76,16 +76,22 @@ def _tables(connection):
     }
 
 
-def _fingerprint(connection, table_names):
+def _fingerprint(connection, table_names, *, exclude_history_version=None):
     result = []
     for table in sorted(table_names):
         columns = [
             row[1]
             for row in connection.execute(f'PRAGMA table_info("{table}")')
         ]
-        rows = connection.execute(
-            f'SELECT * FROM "{table}" ORDER BY rowid'
-        ).fetchall()
+        if table == HISTORY and exclude_history_version is not None:
+            rows = connection.execute(
+                f'SELECT * FROM "{table}" WHERE version != ? ORDER BY rowid',
+                (exclude_history_version,),
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                f'SELECT * FROM "{table}" ORDER BY rowid'
+            ).fetchall()
         result.append((table, tuple(columns), tuple(rows)))
     return tuple(result)
 
@@ -170,7 +176,11 @@ def apply_migration(database_path, backup_dir):
                 (VERSION, datetime.now(timezone.utc).isoformat(), str(backup_path)),
             )
             inspect_database(connection)
-            if _fingerprint(connection, existing_tables) != original_rows:
+            if _fingerprint(
+                connection,
+                existing_tables,
+                exclude_history_version=VERSION,
+            ) != original_rows:
                 raise RuntimeError("Existing database records changed.")
             if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
                 raise RuntimeError("Post-migration integrity check failed.")

@@ -89,7 +89,11 @@ def apply_migration(path, backup_dir):
             connection.execute(f"INSERT INTO {HISTORY} VALUES (?, ?, ?)",
                                (VERSION, datetime.now(timezone.utc).isoformat(), str(backup)))
             inspect_database(connection)
-            if fingerprints(connection, original) != original_values:
+            if fingerprints(
+                connection,
+                original,
+                exclude_history_version=VERSION,
+            ) != original_values:
                 raise RuntimeError("Original records changed.")
             if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)] or connection.execute("PRAGMA foreign_key_check").fetchone():
                 raise RuntimeError("Post-migration integrity check failed.")

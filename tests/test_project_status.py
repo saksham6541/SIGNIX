@@ -210,6 +210,7 @@ def test_business_projects_page_renders_and_filters_for_current_user(app, client
     detail_html = detail_response.get_data(as_text=True)
     assert "Assessment summary" in detail_html
     assert "Close project" in detail_html
+    assert "2 Business Road, Hyderabad" in response.get_data(as_text=True)
 
 
 def test_business_project_portfolio_metrics_filters_and_search_are_persisted(app, client):
@@ -360,6 +361,112 @@ def test_business_project_portfolio_metrics_filters_and_search_are_persisted(app
         as_text=True
     ).count('class="biz-project-card"') == 1
     assert client.get("/business/projects?status=not-a-status").status_code == 400
+
+
+def test_business_project_location_matches_between_card_and_detail(app, client):
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        populated_location = UserLocation(
+            user_id=owner.id,
+            address="42 Fictional Market Road, Pune",
+            latitude=18.52,
+            longitude=73.85,
+            extras={
+                "planning_track": "business",
+                "city": "Pune",
+                "pincode": "411001",
+            },
+        )
+        missing_location = UserLocation(
+            user_id=owner.id,
+            address="",
+            latitude=18.52,
+            longitude=73.85,
+            extras={"planning_track": "business"},
+        )
+        db.session.add_all([populated_location, missing_location])
+        db.session.flush()
+        populated_project = Project(
+            user_id=owner.id,
+            location_id=populated_location.id,
+            owner="Populated Location",
+            status="under_review",
+        )
+        missing_project = Project(
+            user_id=owner.id,
+            location_id=missing_location.id,
+            owner="Missing Location",
+            status="under_review",
+        )
+        db.session.add_all([populated_project, missing_project])
+        db.session.commit()
+        populated_id = populated_project.id
+        missing_id = missing_project.id
+
+    listing = client.get("/business/projects").get_data(as_text=True)
+    assert "<strong>42 Fictional Market Road, Pune</strong>" in listing
+    assert "<small>Pune · 411001</small>" in listing
+    assert "<strong>Not provided</strong>" in listing
+
+    populated_detail = client.get(
+        f"/business/projects/{populated_id}"
+    ).get_data(as_text=True)
+    assert "<dt>Location</dt>" in populated_detail
+    assert "<dd>42 Fictional Market Road, Pune</dd>" in populated_detail
+    assert "<dd>Pune · 411001</dd>" in populated_detail
+
+    missing_detail = client.get(
+        f"/business/projects/{missing_id}"
+    ).get_data(as_text=True)
+    assert "<dd>Not provided</dd>" in missing_detail
+
+
+def test_business_project_empty_states_distinguish_portfolio_search_and_status(
+    app, client
+):
+    empty_html = client.get("/business/projects").get_data(as_text=True)
+    assert "You have not created a project yet." in empty_html
+    assert "No projects match your search." not in empty_html
+
+    with app.app_context():
+        owner = User.query.filter_by(email="test@example.com").one()
+        location = UserLocation(
+            user_id=owner.id,
+            address="5 Sample Road, Pune",
+            latitude=18.52,
+            longitude=73.85,
+            extras={"planning_track": "business", "project_name": "Sample Office"},
+        )
+        db.session.add(location)
+        db.session.flush()
+        project = Project(
+            user_id=owner.id,
+            location_id=location.id,
+            owner="Sample Office",
+            status="under_review",
+        )
+        db.session.add(project)
+        db.session.commit()
+
+    search_html = client.get(
+        "/business/projects?q=NoSuchProject"
+    ).get_data(as_text=True)
+    assert "No projects match your search." in search_html
+    assert "You have not created a project yet." not in search_html
+    assert 'href="/business/projects"' in search_html
+
+    status_html = client.get(
+        "/business/projects?status=closed"
+    ).get_data(as_text=True)
+    assert "No projects match the selected status." in status_html
+    assert "No projects match your search." not in status_html
+    assert 'href="/business/projects"' in status_html
+
+    combined_html = client.get(
+        "/business/projects?status=closed&q=NoSuchProject"
+    ).get_data(as_text=True)
+    assert "No projects match your search and selected status." in combined_html
+    assert 'href="/business/projects"' in combined_html
 
 
 def test_business_project_detail_and_transitions_enforce_owner_and_model_rules(

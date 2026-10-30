@@ -97,6 +97,12 @@ the reported prerequisite before retrying. Do not overwrite a current database
 with a backup: restore to a separate recovery file, verify it, and explicitly
 reconcile any newer writes before selecting that recovery copy for the app.
 
+The consultation-request migration uses the same
+`signix_schema_migrations` history table. Rehearsals on separate pristine
+SQLite fixtures verified that applying `migrate_vendor_saved_leads.py` before
+or after `migrate_consultation_requests.py` preserves existing rows, backups,
+and integrity. These two additive migrations have no required ordering.
+
 ## Focused checks
 
 ```powershell

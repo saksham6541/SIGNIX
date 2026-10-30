@@ -20,6 +20,12 @@ assessment. Transition permissions come from the existing project lifecycle mode
 The transition form requires a reason, includes the standard CSRF token, and the
 status log retains actor role/ID, prior and new status, timestamp, and reason.
 
+Project cards and project details use the same location label: the persisted
+`UserLocation.address` first, then only saved structured city/PIN fields when the
+address is absent. If none are available, both show “Not provided”; the workspace
+does not geocode or infer location values from an address. City/PIN search uses
+only the structured persisted fields.
+
 ## Portfolio data
 
 Project counts and status counts are computed from the owner's business projects,
@@ -33,6 +39,10 @@ Planned capacity uses a positive persisted system size, or the explicit legacy
 or a persisted monthly savings value when no annual value exists. Installer interest
 counts actual vendor unlock records. Missing or invalid values are shown as
 unavailable, not as zero.
+
+An empty portfolio links to a new assessment. A non-matching search, status
+filter, or combination reports which criteria returned no results and provides a
+link that clears both search and filter parameters.
 
 There is no canonical installed-capacity column or metadata written by the current
 workflow. The portfolio therefore sums only an explicitly persisted

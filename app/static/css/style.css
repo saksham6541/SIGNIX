@@ -2161,6 +2161,7 @@ body.ignix-body {
 .biz-projects-page,
 .biz-project-detail {
   width: min(100%, 1200px);
+  min-width: 0;
   margin: 0 auto;
   padding: 24px 0 40px;
 }
@@ -2282,6 +2283,7 @@ body.ignix-body {
 
 .biz-project-card {
   display: grid;
+  min-width: 0;
   gap: 16px;
   padding: 18px;
 }
@@ -2293,16 +2295,23 @@ body.ignix-body {
   gap: 12px;
 }
 
+.biz-project-head > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .biz-project-head h3 {
   margin: 6px 0 0;
   color: var(--indigo);
   font-size: 1.35rem;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .biz-chip {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   padding: 6px 10px;
   border-radius: 999px;
   background: #f3ecff;
@@ -2319,7 +2328,20 @@ body.ignix-body {
 
 .biz-project-meta {
   display: grid;
+  min-width: 0;
   gap: 8px;
+}
+
+.biz-project-meta strong,
+.biz-project-meta small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.biz-project-meta small {
+  margin-top: 4px;
+  color: var(--gray);
+  font-size: 12px;
 }
 
 .biz-meta-label {
@@ -2339,7 +2361,7 @@ body.ignix-body {
 
 .biz-project-facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
@@ -2348,6 +2370,7 @@ body.ignix-body {
 
 .biz-project-facts div {
   display: grid;
+  min-width: 0;
   gap: 4px;
 }
 
@@ -2363,6 +2386,7 @@ body.ignix-body {
   color: var(--text);
   font-size: 0.96rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .biz-project-actions {
@@ -2384,11 +2408,13 @@ body.ignix-body {
 .biz-project-detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+  min-width: 0;
   gap: 18px;
   margin-bottom: 18px;
 }
 
 .biz-panel {
+  min-width: 0;
   padding: 18px 20px;
 }
 
@@ -2400,12 +2426,14 @@ body.ignix-body {
 
 .biz-summary-list {
   display: grid;
+  min-width: 0;
   gap: 12px;
   margin: 0;
 }
 
 .biz-summary-list div {
   display: grid;
+  min-width: 0;
   gap: 4px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
@@ -2427,6 +2455,7 @@ body.ignix-body {
   margin: 0;
   color: var(--text);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .biz-status-box {
@@ -2456,24 +2485,31 @@ body.ignix-body {
 }
 
 .biz-model-table-wrap {
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.biz-model-table {
+.biz-model-table,
+.biz-comparison-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 620px;
 }
 
 .biz-model-table th,
-.biz-model-table td {
+.biz-model-table td,
+.biz-comparison-table th,
+.biz-comparison-table td {
   padding: 12px 10px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   font-size: 13px;
 }
 
-.biz-model-table th {
+.biz-model-table th,
+.biz-comparison-table th {
   color: var(--indigo);
   font-weight: 800;
 }
@@ -2511,6 +2547,49 @@ body.ignix-body {
 }
 
 @media (max-width: 720px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow);
+  }
+
+  .app-shell.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: inline-grid;
+    place-items: center;
+    position: relative;
+    z-index: 41;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    padding: 8px;
+  }
+
+  .app-shell:not(.no-sidebar) .main-column,
+  .app-shell:not(.no-sidebar) .page-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app-shell:not(.no-sidebar) .top-bar {
+    padding: 8px 16px;
+  }
+
+  .app-shell:not(.no-sidebar) .top-bar-right {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .app-shell:not(.no-sidebar) .page-content {
+    padding: 8px 16px 32px;
+  }
+
   .biz-projects-header,
   .biz-project-detail-head {
     align-items: flex-start;
@@ -2526,6 +2605,14 @@ body.ignix-body {
   .biz-project-detail {
     padding-top: 16px;
   }
+
+  .biz-projects-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .biz-project-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 960px) {
@@ -2540,13 +2627,7 @@ body.ignix-body {
   }
 
   .biz-status-chips {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 4px;
-  }
-
-  .biz-status-chip {
-    white-space: nowrap;
+    flex-wrap: wrap;
   }
 
   .biz-project-facts {

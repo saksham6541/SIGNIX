@@ -112,16 +112,23 @@ def validate_scope(report):
         raise RuntimeError("Applied migration has schema drift; refusing automatic repair.")
 
 
-def fingerprints(connection, original_schema):
+def fingerprints(connection, original_schema, *, exclude_history_version=None):
     """Compare all original values, without logging users, hashes or estimates."""
     result = {}
     for table, columns in original_schema.items():
-        if table == HISTORY:
-            continue
         fields = ", ".join(quote(r[1]) for r in columns)
         digest = hashlib.sha256()
         count = 0
-        for row in connection.execute(f"SELECT {fields} FROM {quote(table)} ORDER BY {fields}"):
+        if table == HISTORY and exclude_history_version is not None:
+            rows = connection.execute(
+                f"SELECT {fields} FROM {quote(table)} WHERE version != ? ORDER BY {fields}",
+                (exclude_history_version,),
+            )
+        else:
+            rows = connection.execute(
+                f"SELECT {fields} FROM {quote(table)} ORDER BY {fields}"
+            )
+        for row in rows:
             digest.update(repr(row).encode("utf-8"))
             digest.update(b"\n")
             count += 1
@@ -177,7 +184,11 @@ def apply_migration(path, backup_dir):
                                (VERSION, datetime.now(timezone.utc).isoformat(), str(backup)))
             after = inspect_database(connection)
             validate_scope(after)
-            if fingerprints(connection, original_schema) != original_values:
+            if fingerprints(
+                connection,
+                original_schema,
+                exclude_history_version=VERSION,
+            ) != original_values:
                 raise RuntimeError("Original record verification failed.")
             if connection.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
                 raise RuntimeError("Post-migration integrity check failed.")

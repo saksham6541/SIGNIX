@@ -7624,6 +7624,22 @@ msgstr ""
 msgid "Project status counts"
 msgstr ""
 
+#: app/templates/projects.html
+msgid "No projects match your search."
+msgstr ""
+
+#: app/templates/projects.html
+msgid "No projects match the selected status."
+msgstr ""
+
+#: app/templates/projects.html
+msgid "No projects match your search and selected status."
+msgstr ""
+
+#: app/templates/projects.html
+msgid "Clear search and filters"
+msgstr ""
+
 #: app/templates/projects.html:98 app/templates/project_detail.html:60
 msgid "Installer interest"
 msgstr ""

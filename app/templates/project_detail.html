@@ -17,8 +17,8 @@
       <h2>{{ _('Assessment summary') }}</h2>
       <dl class="biz-summary-list">
         <div>
-          <dt>{{ _('Address') }}</dt>
-          <dd>{{ location.address }}</dd>
+          <dt>{{ _('Location') }}</dt>
+          <dd>{{ summary.location_label or _('Not provided') }}</dd>
         </div>
         <div>
           <dt>{{ _('City / PIN') }}</dt>

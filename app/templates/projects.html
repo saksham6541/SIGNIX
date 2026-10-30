@@ -77,7 +77,10 @@
       <div class="biz-project-meta">
         <div>
           <span class="biz-meta-label">{{ _('Location') }}</span>
-          <strong>{{ summary.city or _('Not provided') }}{% if summary.pin %} · {{ summary.pin }}{% endif %}</strong>
+          <strong>{{ summary.location_label or _('Not provided') }}</strong>
+          {% if summary.address and (summary.city or summary.pin) %}
+          <small>{{ summary.city }}{% if summary.city and summary.pin %} · {% endif %}{{ summary.pin }}</small>
+          {% endif %}
         </div>
       </div>
 
@@ -112,8 +115,21 @@
   </div>
   {% else %}
   <section class="biz-project-empty-state" aria-labelledby="biz-project-empty-title">
+    {% if totals.project_count == 0 %}
     <h2 id="biz-project-empty-title">{{ _('You have not created a project yet.') }}</h2>
     <a href="{{ url_for('pages.business_estimate') }}" class="btn-grad">{{ _('Start a new assessment') }}</a>
+    {% else %}
+    <h2 id="biz-project-empty-title">
+      {% if search_query and selected_status != 'all' %}
+      {{ _('No projects match your search and selected status.') }}
+      {% elif search_query %}
+      {{ _('No projects match your search.') }}
+      {% else %}
+      {{ _('No projects match the selected status.') }}
+      {% endif %}
+    </h2>
+    <a href="{{ url_for('pages.business_projects') }}" class="btn-primary">{{ _('Clear search and filters') }}</a>
+    {% endif %}
   </section>
   {% endif %}
 </section>

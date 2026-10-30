@@ -53,3 +53,8 @@ python scripts\migrate_consultation_requests.py --database .\approved-existing.s
 The migration itself creates and verifies an online backup before adding the
 new table, records its version, preserves existing records, and is repeatable.
 Do not point these commands at an unrelated teammate or production database.
+
+This migration and `migrate_vendor_saved_leads.py` share the
+`signix_schema_migrations` table. Separate pristine SQLite rehearsals confirmed
+that either migration can run first; there is no ordering dependency between
+these two additive changes.

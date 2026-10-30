@@ -9230,6 +9230,22 @@ msgstr "अनुमानित वार्षिक बचत"
 msgid "Project status counts"
 msgstr "परियोजना स्थिति के अनुसार गणना"
 
+#: app/templates/projects.html
+msgid "No projects match your search."
+msgstr "आपकी खोज से कोई परियोजना मेल नहीं खाती।"
+
+#: app/templates/projects.html
+msgid "No projects match the selected status."
+msgstr "चयनित स्थिति से कोई परियोजना मेल नहीं खाती।"
+
+#: app/templates/projects.html
+msgid "No projects match your search and selected status."
+msgstr "आपकी खोज और चयनित स्थिति से कोई परियोजना मेल नहीं खाती।"
+
+#: app/templates/projects.html
+msgid "Clear search and filters"
+msgstr "खोज और फ़िल्टर साफ़ करें"
+
 #: app/templates/projects.html:98 app/templates/project_detail.html:60
 msgid "Installer interest"
 msgstr "इंस्टॉलर की रुचि"
