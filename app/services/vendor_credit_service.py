@@ -29,16 +29,29 @@ def amount(value, *, positive=False):
 
 
 @contextmanager
-def transaction():
-    # Authentication may already have opened a read transaction. No pending work
-    # may be discarded. BEGIN IMMEDIATE takes SQLite's writer lock BEFORE reads.
-    if db.session.new or db.session.dirty or db.session.deleted:
+def transaction(*, lock_user_id=None, lock_project_id=None):
+    # SQLite's FOR UPDATE is ignored. A no-op write on the active connection
+    # acquires its writer lock even if authentication already autobegan a
+    # logical session transaction; the lock lasts through commit/rollback.
+    session = db.session()
+    if session.new or session.dirty or session.deleted:
         raise RuntimeError("Credit operations require a clean session")
-    db.session.rollback()
+
     try:
-        connection = db.session.connection()
-        if connection.dialect.name == "sqlite":
-            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        if session.get_bind().dialect.name == "sqlite" and lock_user_id is not None:
+            session.execute(
+                update(User)
+                .where(User.id == lock_user_id)
+                .values(vendor_credits_balance=User.vendor_credits_balance),
+                execution_options={"synchronize_session": False},
+            )
+            if lock_project_id is not None:
+                session.execute(
+                    update(Project)
+                    .where(Project.id == lock_project_id)
+                    .values(status=Project.status, updated_at=Project.updated_at),
+                    execution_options={"synchronize_session": False},
+                )
         yield
         db.session.commit()
     except Exception:
@@ -47,10 +60,29 @@ def transaction():
 
 
 def locked_user(user_id, *, admin=False, approved=True):
-    user = db.session.query(User).filter_by(id=user_id).with_for_update().one_or_none()
+    user = (
+        db.session.query(User)
+        .filter_by(id=user_id)
+        .with_for_update()
+        .populate_existing()
+        .one_or_none()
+    )
     if user is None or user.role != ("admin" if admin else "vendor") or (not admin and approved and not user.is_vendor_approved):
         raise CreditError("Access denied.", 403)
     return user
+
+
+def _lock_unlock_rows(vendor_id, project_id):
+    session = db.session()
+    vendor = locked_user(vendor_id)
+    project = (
+        session.query(Project)
+        .filter_by(id=project_id)
+        .with_for_update()
+        .populate_existing()
+        .one_or_none()
+    )
+    return vendor, project
 
 
 def ledger_summary(vendor):
@@ -90,9 +122,8 @@ def change_balance(vendor, delta, reason, *, project_id=None, note=None):
 
 
 def unlock_lead(vendor_id, project_id):
-    with transaction():
-        vendor = locked_user(vendor_id)
-        project = Project.query.filter_by(id=project_id).with_for_update().one_or_none()
+    with transaction(lock_user_id=vendor_id, lock_project_id=project_id):
+        vendor, project = _lock_unlock_rows(vendor_id, project_id)
         if project is None:
             raise CreditError("This lead is no longer available.", 404)
         existing = VendorLeadUnlock.query.filter_by(vendor_user_id=vendor_id, project_id=project_id).first()
@@ -119,7 +150,7 @@ def unlock_lead(vendor_id, project_id):
 def record_outcome(vendor_id, project_id, outcome):
     if outcome not in OUTCOMES:
         raise CreditError("Choose a valid lead outcome.", 400)
-    with transaction():
+    with transaction(lock_user_id=vendor_id):
         locked_user(vendor_id)
         unlock = VendorLeadUnlock.query.filter_by(vendor_user_id=vendor_id, project_id=project_id).with_for_update().first()
         if unlock is None:
@@ -139,7 +170,7 @@ def request_credits(vendor_id, requested, reason):
     requested = amount(requested, positive=True)
     if requested > 1000000 or not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 1000:
         raise CreditError("Provide a reason and request at most 1,000,000 credits.", 400)
-    with transaction():
+    with transaction(lock_user_id=vendor_id):
         locked_user(vendor_id)
         pending = VendorRefundRequest.query.filter_by(vendor_user_id=vendor_id, issue_type="credit_request", status="pending").first()
         if pending:
@@ -157,7 +188,7 @@ def request_credits(vendor_id, requested, reason):
 def review_credit_request(admin_id, request_id, decision):
     if decision not in {"approved", "rejected"}:
         raise CreditError("Choose approve or reject.", 400)
-    with transaction():
+    with transaction(lock_user_id=admin_id):
         locked_user(admin_id, admin=True)
         # Lock the recipient before the request, consistently with submission.
         item = VendorRefundRequest.query.filter_by(id=request_id, issue_type="credit_request").first()

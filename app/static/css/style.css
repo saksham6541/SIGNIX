@@ -893,7 +893,7 @@ body.ignix-body {
 .step-item.done .step-dot { background: var(--success); border-color: var(--success); color: #fff; }
 .step-line { width: 40px; height: 2px; background: #ddd; margin: 0 6px; }
 
-@media (max-width: 960px) {
+@media (min-width: 721px) and (max-width: 960px) {
   .sidebar {
     position: fixed; left: 0; top: 0; transform: translateX(-100%);
     transition: transform 0.25s ease; box-shadow: var(--shadow);
@@ -2238,7 +2238,7 @@ body.ignix-body {
 
 .biz-projects-totals {
   display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 22px;
 }
@@ -2528,7 +2528,17 @@ body.ignix-body {
   }
 }
 
+@media (max-width: 960px) {
+  .biz-projects-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 420px) {
+  .biz-projects-totals {
+    grid-template-columns: 1fr;
+  }
+
   .biz-status-chips {
     overflow-x: auto;
     flex-wrap: nowrap;
