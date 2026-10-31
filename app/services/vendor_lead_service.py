@@ -2,6 +2,7 @@
 import math
 import re
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from flask import current_app
 from flask_babel import format_date, gettext as _
@@ -13,18 +14,7 @@ BUSINESS_TYPES = ("Shop", "Office", "Hotel", "School or institution", "Small fac
 MODELS = ("buy", "loan", "ppa")
 SORTS = ("newest", "oldest", "capacity_asc", "capacity_desc", "bill_asc", "bill_desc")
 PAGE_SIZE = 12
-
-
-def _profile_capacity_range(profile):
-    raw = str(profile.get("capacity_range") or "").strip()
-    if not raw:
-        return 0.0, None
-    values = [float(value) for value in re.findall(r"\d+(?:\.\d+)?", raw)]
-    if not values:
-        return 0.0, None
-    if len(values) == 1:
-        return 0.0, values[0]
-    return min(values[0], values[1]), max(values[0], values[1])
+LEAD_BOARD_TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
 def parse_filters(args):
@@ -135,25 +125,21 @@ def eligible_query(vendor, *, owned_only=False):
     else:
         query = query.filter(Project.status == "open_to_vendors",
                              or_(unlocked, unlock_count < current_app.config["VENDOR_MAX_LEADS_PER_PROJECT"]))
-    profile = vendor.vendor_profile if isinstance(vendor.vendor_profile, dict) else {}
-    tokens = [s.strip().lower() for s in re.split(r"[,;\n|]+", str(profile.get("service_area") or "")) if s.strip()]
-    if tokens and not owned_only:
-        # Match only public area fields; exact-address search is a PII oracle.
-        query = query.filter(or_(*[func.lower(columns[key]).contains(token, autoescape=True)
-                                  for token in tokens for key in ("city", "locality", "pincode")]))
-    if not owned_only:
-        capacity_min, capacity_max = _profile_capacity_range(profile)
-        if capacity_min > 0:
-            query = query.filter(columns["system_size_kw"] >= capacity_min)
-        if capacity_max is not None:
-            query = query.filter(columns["system_size_kw"] <= capacity_max)
     return query, columns
 
 
 def public_card(row, saved):
     card = dict(row._mapping)
     card.setdefault("available", True)
-    card["posted_label"] = format_date(card["posted_date"], format="medium") if card["posted_date"] else None
+    posted_date = card["posted_date"]
+    if posted_date:
+        # SQLite strips timezone metadata from UTC datetimes. Reattach UTC
+        # before converting so late-evening UTC publications show the correct
+        # calendar date in SIGNIX's Asia/Kolkata operating timezone.
+        if posted_date.tzinfo is None:
+            posted_date = posted_date.replace(tzinfo=timezone.utc)
+        posted_date = posted_date.astimezone(LEAD_BOARD_TIMEZONE).date()
+    card["posted_label"] = format_date(posted_date, format="medium") if posted_date else None
     # Keep unknown enum values out of the UI rather than exposing arbitrary metadata.
     card["business_type"] = card["business_type"] if card["business_type"] in BUSINESS_TYPES else None
     card["preferred_model"] = card["preferred_model"] if card["preferred_model"] in MODELS else None

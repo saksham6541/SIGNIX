@@ -1113,7 +1113,8 @@ def create_project():
         or _location_planning_track(location) not in PLANNING_TRACKS
     ):
         abort(400)
-    is_business = _location_planning_track(location) == "business"
+    planning_track = _location_planning_track(location)
+    is_business = planning_track == "business"
     destination = _publication_destination(location)
 
     contact_name = (request.form.get("contact_name") or "").strip() or current_user.display_name
@@ -1163,6 +1164,10 @@ def create_project():
             return redirect(destination)
 
     extras = location.extras if isinstance(location.extras, dict) else {}
+    # Publication accepts legacy saved estimates by inferring their track in
+    # _location_planning_track(). Persist that canonical value so the Lead
+    # Board's SQL eligibility query can classify the same project consistently.
+    extras = {**extras, "planning_track": planning_track}
     if is_business:
         extras = {
             **extras,
